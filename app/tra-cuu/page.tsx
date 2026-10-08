@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { useGarageStore } from "@/lib/store/garage-store";
 import {
@@ -16,7 +15,9 @@ import {
     X,
     ArrowUpRight,
     ShieldCheck,
-    HelpCircle,
+    Search,
+    Zap,
+    Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
@@ -87,72 +88,59 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between force-light">
-            {/* Header Gara Tinh Gọn */}
-            <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-2.5 sm:px-6 flex items-center justify-between">
-                <Link
-                    href="/tra-cuu"
-                    className="flex items-center shrink-0 transition-opacity hover:opacity-90 active:scale-[0.98]"
-                    title="Về trang tra cứu"
-                >
-                    <Image
-                        src="/logo-duy-auto-remove-bg-v1.png"
-                        alt={settings.name || "Duy Auto Logo"}
-                        width={160}
-                        height={70}
-                        priority
-                        className="h-9 sm:h-11 w-auto object-contain"
-                    />
-                </Link>
+        <div className="force-light min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 via-slate-100/70 to-blue-50/40 text-slate-900 flex flex-col justify-between selection:bg-blue-600/10 selection:text-blue-600">
+            {/* Main Content: Tối ưu hoá đặc biệt cho Mobile */}
+            <main className="flex-1 flex flex-col gap-3 justify-center px-4 py-4 sm:py-6 w-full max-w-md mx-auto space-y-4">
+                {/* Brand Hero Mobile Header (Thay thế thanh top header cứng nhắc) */}
+                <div className="text-center space-y-3">
+                    <div className="flex justify-center items-center pb-10">
+                        <Image
+                            src="/logo-duy-auto-remove-bg-v1.png"
+                            alt={settings.name || "Duy Auto Logo"}
+                            width={280}
+                            height={120}
+                            priority
+                            className="h-28 w-auto object-contain drop-shadow-xs"
+                        />
+                    </div>
 
-                {/* Hotline Số Điện Thoại */}
-                {settings.hotline && (
-                    <a
-                        href={`tel:${settings.hotline.replace(/\s+/g, "")}`}
-                        className="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0 transition-all active:scale-95 shadow-2xs"
-                        title="Gọi Hotline Gara"
-                    >
-                        <Phone className="w-3.5 h-3.5 text-red-500 fill-current shrink-0" />
-                        <span>{settings.hotline}</span>
-                    </a>
-                )}
-            </header>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-2xs sm:text-xs font-semibold shadow-2xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Sổ Bảo Hành Điện Tử</span>
+                    </div>
 
-            {/* Khối Trung Tâm: Thẻ Vé Dịch Vụ (Phương Án C) */}
-            <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 w-full mx-auto my-auto space-y-4">
-                <div className="w-full max-w-md">
-                    {/* Service Pass Card */}
-                    <div className="rounded-2xl bg-white border border-slate-200/90 shadow-xs overflow-hidden">
-                        {/* Dải line màu thương hiệu trên đỉnh thẻ */}
-                        <div className="h-1.5 w-full bg-linear-to-r from-blue-600 via-indigo-600 to-blue-500" />
+                    <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                        Tra Cứu Hồ Sơ Xe
+                    </h1>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                        Nhập biển số để kiểm tra thời hạn bảo hành &amp; phụ
+                        tùng
+                    </p>
+                </div>
 
-                        <div className="p-5 sm:p-7 space-y-5">
-                            {/* Header Thẻ */}
+                {/* Card Nhập Biển Số Xe */}
+                <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-sm shadow-slate-200/60 overflow-hidden">
+                    {/* Dải line màu thương hiệu trên đỉnh thẻ */}
+                    <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500" />
+
+                    <div className="p-4 sm:p-6 space-y-4">
+                        <form onSubmit={handleSearch} className="space-y-3.5">
                             <div className="space-y-1.5">
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-2xs font-semibold uppercase tracking-wider">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                                    <span>Hệ Thống Xác Thực Điện Tử</span>
+                                <div className="flex items-center justify-between">
+                                    <label
+                                        htmlFor="plate-input"
+                                        className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5"
+                                    >
+                                        <Search className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Biển số xe</span>
+                                    </label>
+                                    <span className="text-[11px] text-slate-400">
+                                        VD: 51K-889.99 hoặc 51K88999
+                                    </span>
                                 </div>
-                                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                                    Tra Cứu Bảo Hành
-                                </h1>
-                                <p className="text-xs sm:text-sm text-slate-500">
-                                    Nhập biển số xe để kiểm tra thời hạn & linh kiện phụ tùng
-                                </p>
-                            </div>
 
-                            <div className="h-px bg-slate-100" />
-
-                        {/* Form Nhập Biển Số */}
-                        <form onSubmit={handleSearch} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label
-                                    htmlFor="plate-input"
-                                    className="block text-xs font-semibold uppercase tracking-wider text-slate-500"
-                                >
-                                    Biển số xe
-                                </label>
-                                <div className="relative">
+                                {/* Khung Input Phong Cách Biển Số Xe */}
+                                <div className="relative group">
                                     <input
                                         id="plate-input"
                                         type="text"
@@ -164,13 +152,14 @@ export default function TraCuuPage() {
                                                 ),
                                             )
                                         }
-                                        placeholder="VD: 51K-889.99"
+                                        placeholder="51K-889.99"
                                         autoCapitalize="characters"
                                         autoComplete="off"
                                         autoCorrect="off"
-                                        spellCheck="false"
+                                        spellCheck={false}
+                                        enterKeyHint="search"
                                         autoFocus
-                                        className="w-full h-12 px-3.5 pr-9 rounded-xl border border-slate-200 bg-slate-50/60 font-mono text-base sm:text-lg font-bold uppercase tracking-wider text-slate-900 focus:bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal placeholder:text-sm transition-all"
+                                        className="w-full h-12 sm:h-13 px-4 pr-11 rounded-xl border-2 border-slate-200 bg-slate-50/70 font-mono text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-900 placeholder:text-slate-300 placeholder:font-mono placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all text-center"
                                         style={{
                                             fontFamily:
                                                 "var(--font-plate), monospace",
@@ -180,28 +169,29 @@ export default function TraCuuPage() {
                                         <button
                                             type="button"
                                             onClick={() => setInputPlate("")}
-                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
-                                            title="Xóa"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 active:scale-90 transition-all cursor-pointer"
+                                            title="Xóa biển số"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <X className="w-4 h-4 stroke-[2.5]" />
                                         </button>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Nút Submit Chính */}
+                            {/* Nút Submit Chính (Touch Target lớn, màu sắc bắt mắt) */}
                             <button
                                 type="submit"
-                                className="touch-target w-full h-11 sm:h-12 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer shadow-xs shadow-blue-500/20"
+                                className="touch-target w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all cursor-pointer"
                             >
+                                <Search className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.2]" />
                                 <span>Tra Cứu Thông Tin</span>
-                                <ArrowRight className="w-4 h-4 stroke-[2.2]" />
+                                <ArrowRight className="w-4 h-4 stroke-[2.2] ml-0.5" />
                             </button>
                         </form>
 
-                        {/* Lịch sử tra cứu gần đây (Recent Searches) */}
-                        {recentPlates.length > 0 && (
-                            <div className="pt-2 border-t border-slate-100 space-y-2">
+                        {/* Lịch sử tra cứu gần đây (Recent Searches) hoặc Gợi ý biển số */}
+                        {recentPlates.length > 0 ? (
+                            <div className="pt-2.5 border-t border-slate-100 space-y-2">
                                 <div className="flex items-center justify-between text-2xs text-slate-400">
                                     <span className="font-semibold uppercase tracking-wider">
                                         Đã tra gần đây
@@ -222,37 +212,93 @@ export default function TraCuuPage() {
                                             onClick={() =>
                                                 handleQuickPick(plate)
                                             }
-                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 font-mono font-medium text-xs border border-slate-200/80 hover:border-blue-200 transition-all active:scale-95 cursor-pointer"
+                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 font-mono font-medium text-xs border border-slate-200/90 hover:border-blue-200 transition-all active:scale-95 cursor-pointer"
                                         >
                                             <span>
                                                 {formatPlateDisplay(plate)}
                                             </span>
-                                            <ArrowUpRight className="w-3 h-3 text-slate-400 group-hover:text-blue-500" />
+                                            <ArrowUpRight className="w-3 h-3 text-slate-400" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                <span className="text-[11px] font-medium text-slate-400">
+                                    Biển số mẫu:
+                                </span>
+                                <div className="flex gap-1.5">
+                                    {["51K88999", "30G12345"].map((sample) => (
+                                        <button
+                                            key={sample}
+                                            type="button"
+                                            onClick={() =>
+                                                handleQuickPick(sample)
+                                            }
+                                            className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-blue-50/80 text-slate-600 hover:text-blue-700 font-mono text-xs font-semibold border border-slate-200/80 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            {formatPlateDisplay(sample)}
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         )}
-                        </div>
-                    </div>
-
-                    {/* Dòng Hỗ Trợ Bên Dưới Card */}
-                    <div className="pt-3 px-1 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 text-center sm:text-left">
-                        {settings.hotline && (
-                            <a
-                                href={`tel:${settings.hotline.replace(/\s+/g, "")}`}
-                                className="text-slate-500 hover:text-slate-800 font-medium underline-offset-2 hover:underline transition-colors"
-                            >
-                                Cần hỗ trợ? Gọi {settings.hotline}
-                            </a>
-                        )}
                     </div>
                 </div>
+
+                {/* 3 Lợi ích / Micro-Features trên Mobile */}
+                {/* <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 rounded-xl bg-white/70 border border-slate-200/70 shadow-2xs">
+                        <Zap className="w-3.5 h-3.5 text-amber-500 mx-auto mb-0.5 stroke-[2]" />
+                        <p className="text-[11px] font-bold text-slate-700">
+                            Tức thì
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                            Không cần login
+                        </p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/70 border border-slate-200/70 shadow-2xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5 stroke-[2]" />
+                        <p className="text-[11px] font-bold text-slate-700">
+                            Chính hãng
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                            Bảo hành phụ tùng
+                        </p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/70 border border-slate-200/70 shadow-2xs">
+                        <Clock className="w-3.5 h-3.5 text-emerald-600 mx-auto mb-0.5 stroke-[2]" />
+                        <p className="text-[11px] font-bold text-slate-700">
+                            24/7
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                            Tra cứu mọi lúc
+                        </p>
+                    </div>
+                </div> */}
+
+                {/* Hotline Cứu Hộ / Trợ Giúp Nhanh */}
+                {settings.hotline && (
+                    <a
+                        href={`tel:${settings.hotline.replace(/\s+/g, "")}`}
+                        className="mt-4 touch-target inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl border border-red-200/80 bg-red-50/70 hover:bg-red-50 active:scale-[0.99] text-red-600 text-xs font-semibold transition-all shadow-2xs"
+                    >
+                        <Phone className="w-3.5 h-3.5 fill-current shrink-0" />
+                        <span>
+                            Cần hỗ trợ? Gọi Hotline:{" "}
+                            <strong>{settings.hotline}</strong>
+                        </span>
+                    </a>
+                )}
             </main>
 
-            {/* Footer tối giản */}
-            <footer className="p-3 text-center text-xs text-slate-400">
-                <span>Hệ thống bảo hành Duy.lamxedao.thuduc</span>
+            {/* Footer tự động sát đáy màn hình (Auto-sticking bottom footer) */}
+            <footer className="w-full shrink-0 mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-3 px-4 text-center text-xs text-slate-400 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="max-w-md mx-auto space-y-1">
+                    <p className="font-medium text-slate-500">
+                        Hệ thống bảo hành • Duy.lamxedao.thuduc
+                    </p>
+                </div>
             </footer>
         </div>
     );
