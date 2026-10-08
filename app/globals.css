@@ -71,6 +71,43 @@
   --plate-ink: #0F172A;
 }
 
+/* Ép chế độ Light cho cổng tra cứu công khai */
+.force-light {
+  color-scheme: light !important;
+  --background: #F8FAFC !important;
+  --foreground: #0F172A !important;
+  --card: #FFFFFF !important;
+  --card-foreground: #0F172A !important;
+  --popover: #FFFFFF !important;
+  --popover-foreground: #0F172A !important;
+  --primary: #1D4ED8 !important;
+  --primary-foreground: #FFFFFF !important;
+  --secondary: #F1F5F9 !important;
+  --secondary-foreground: #0F172A !important;
+  --muted: #F8FAFC !important;
+  --muted-foreground: #64748B !important;
+  --accent: #F1F5F9 !important;
+  --accent-foreground: #0F172A !important;
+  --destructive: #EF4444 !important;
+  --destructive-foreground: #FFFFFF !important;
+  --border: #E2E8F0 !important;
+  --input: #E2E8F0 !important;
+  --ring: #1D4ED8 !important;
+  --brand: #D97706 !important;
+  --brand-foreground: #0F172A !important;
+  --success: #10B981 !important;
+  --success-soft: #ECFDF5 !important;
+  --warning: #F59E0B !important;
+  --warning-soft: #FFFBEB !important;
+  --danger: #EF4444 !important;
+  --danger-soft: #FEF2F2 !important;
+  --plate-white: #FFFFFF !important;
+  --plate-yellow: #FACC15 !important;
+  --plate-ink: #0F172A !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -129,14 +166,13 @@ body {
   min-width: 48px;
 }
 
-/* Biển số xe dập nổi chân thực */
+/* Biển số xe dập nổi tinh tế, giảm shadow theo phong cách phẳng hiện đại */
 .plate-embossed {
   box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.35);
-  letter-spacing: 0.12em;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  letter-spacing: 0.08em;
 }
 
 /* CSS In Tem QR A4 */

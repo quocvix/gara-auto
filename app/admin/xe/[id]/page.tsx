@@ -82,16 +82,16 @@ export default function VehicleDetailPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-200">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Back button & Title */}
       <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => router.push('/admin/xe')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Danh sách xe</span>
+          <span>Quay lại Danh sách xe</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -99,16 +99,16 @@ export default function VehicleDetailPage() {
             href={`/tra-cuu/${vehicle.plateNormalized}`}
             target="_blank"
             rel="noreferrer"
-            className="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-semibold hover:bg-muted"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
           >
             <span>Xem như khách</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
           </a>
 
           <button
             type="button"
             onClick={() => router.push(`/admin/xe/${vehicle.id}/qr`)}
-            className="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-emerald-400 hover:bg-muted"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors shadow-sm"
           >
             <QrCode className="w-3.5 h-3.5" />
             <span>In Tem QR</span>
@@ -117,37 +117,37 @@ export default function VehicleDetailPage() {
       </div>
 
       {/* THẺ TỔNG QUAN PHƯƠNG TIỆN */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border shadow-lg space-y-5">
+      <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
-            <h2 className="text-xl font-extrabold text-foreground">{vehicle.model}</h2>
+            <h2 className="text-xl font-bold text-slate-900">{vehicle.model}</h2>
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-2">
             <StatusBadge status={vehicle.status} days={vehicle.daysLeft} showDays />
-            <span className="text-xs text-muted-foreground">
-              {vTickets.length} phiếu bảo dưỡng đã kích hoạt
+            <span className="text-xs text-slate-500">
+              {vTickets.length} đợt bảo dưỡng đã thực hiện
             </span>
           </div>
         </div>
 
         {/* Thông số xe */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-muted/30 border border-border/60 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs">
           <div>
-            <span className="text-muted-foreground uppercase font-semibold">Chủ Xe</span>
-            <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="text-slate-500 uppercase font-semibold text-[11px]">Chủ Xe</span>
+            <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>{vehicle.ownerName || 'Chưa đăng ký'}</span>
             </div>
           </div>
 
           <div>
-            <span className="text-muted-foreground uppercase font-semibold">Số Điện Thoại</span>
-            <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5 font-mono">
-              <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-slate-500 uppercase font-semibold text-[11px]">Số Điện Thoại</span>
+            <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
+              <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               {vehicle.ownerPhone ? (
-                <a href={`tel:${vehicle.ownerPhone}`} className="hover:underline text-emerald-400">
+                <a href={`tel:${vehicle.ownerPhone}`} className="hover:underline text-blue-600">
                   {vehicle.ownerPhone}
                 </a>
               ) : (
@@ -157,17 +157,17 @@ export default function VehicleDetailPage() {
           </div>
 
           <div>
-            <span className="text-muted-foreground uppercase font-semibold">ODO Hiện Tại</span>
-            <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5 font-mono">
-              <Gauge className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="text-slate-500 uppercase font-semibold text-[11px]">ODO Hiện Tại</span>
+            <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
+              <Gauge className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               <span>{formatOdo(vehicle.odo)} km</span>
             </div>
           </div>
 
           <div>
-            <span className="text-muted-foreground uppercase font-semibold">Hạn Dài Nhất</span>
-            <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5 font-mono">
-              <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="text-slate-500 uppercase font-semibold text-[11px]">Hạn Dài Nhất</span>
+            <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
+              <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               <span>{vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : '—'}</span>
             </div>
           </div>
@@ -188,9 +188,9 @@ export default function VehicleDetailPage() {
           <button
             type="button"
             onClick={handleCreateNewTicketForThisVehicle}
-            className="touch-target inline-flex items-center gap-2 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
+            className="w-full sm:w-auto h-11 sm:h-10 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Tạo Phiếu Mới Cho Xe Này</span>
           </button>
         </div>
@@ -198,8 +198,8 @@ export default function VehicleDetailPage() {
 
       {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" />
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-600" />
           Lịch Sử Phiếu Bảo Hành ({vTickets.length})
         </h3>
 
@@ -208,23 +208,23 @@ export default function VehicleDetailPage() {
             {vTickets.map((t, idx) => (
               <div
                 key={t.id}
-                className="p-4 sm:p-5 rounded-2xl border border-border bg-card shadow-sm space-y-4"
+                className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-sm space-y-4"
               >
                 {/* Header phiếu */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
-                    <div className="font-bold text-sm text-foreground flex items-center gap-2">
+                    <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
                       <span>Phiếu Đợt {vTickets.length - idx}</span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-medium">
+                      <span className="text-xs px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-medium">
                         Ngày {formatDateVN(t.activatedOn)}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground font-mono mt-1">
+                    <div className="text-xs text-slate-500 font-mono mt-1">
                       ODO: {formatOdo(t.odo)} km • Hạn đến: {formatDateVN(t.expiresOn)}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -240,45 +240,45 @@ export default function VehicleDetailPage() {
                           })),
                         })
                       }
-                      className="p-2 rounded-lg border border-border hover:bg-muted text-amber-400 text-xs font-semibold flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors"
                     >
-                      <Edit className="w-3.5 h-3.5" />
+                      <Edit className="w-3.5 h-3.5 text-slate-500" />
                       <span>Sửa phiếu</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteTicket(t.id)}
-                      className="p-2 rounded-lg border border-border hover:bg-rose-500/10 text-rose-400"
+                      className="p-1.5 rounded-lg border border-slate-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                       title="Xóa phiếu"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 {/* Các phụ tùng trong phiếu */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                     Phụ tùng lắp đặt:
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {t.items.map((item, iIdx) => (
                       <div
                         key={iIdx}
-                        className="p-3 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between text-xs"
+                        className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 flex items-center justify-between text-xs"
                       >
                         <div>
-                          <div className="font-semibold text-foreground">{item.partName}</div>
-                          <div className="text-muted-foreground font-mono text-[11px] mt-0.5">
+                          <div className="font-semibold text-slate-900">{item.partName}</div>
+                          <div className="text-slate-500 font-mono text-[11px] mt-0.5">
                             SKU: {item.partSku} • {item.warrantyMonths}T • Hạn: {formatDateVN(item.expiresOn)}
                           </div>
                           {item.serial && (
-                            <div className="text-primary font-mono text-[11px]">
+                            <div className="text-blue-600 font-mono text-[11px] mt-0.5">
                               Seri: {item.serial}
                             </div>
                           )}
                         </div>
-                        <span className="px-2 py-1 rounded bg-muted font-bold font-mono">
+                        <span className="px-2 py-1 rounded bg-white border border-slate-200 font-bold font-mono text-slate-800">
                           x{item.quantity}
                         </span>
                       </div>
@@ -287,7 +287,7 @@ export default function VehicleDetailPage() {
                 </div>
 
                 {t.note && (
-                  <div className="text-xs text-muted-foreground italic bg-muted/20 p-2.5 rounded-lg border border-border/40">
+                  <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                     Ghi chú: {t.note}
                   </div>
                 )}
@@ -295,7 +295,7 @@ export default function VehicleDetailPage() {
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center border border-dashed border-border rounded-2xl text-muted-foreground text-xs">
+          <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl bg-white text-slate-500 text-xs">
             Xe này chưa có phiếu bảo hành nào.
           </div>
         )}

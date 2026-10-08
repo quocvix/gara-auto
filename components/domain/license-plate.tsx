@@ -34,7 +34,7 @@ export function LicensePlate({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center font-bold tracking-wider font-mono select-none plate-embossed transition-transform ${
+      className={`relative inline-flex items-center justify-center font-bold tracking-wider font-mono select-none shrink-0 whitespace-nowrap plate-embossed transition-transform ${
         isYellow
           ? 'bg-[#FACC15] text-[#0F172A] border-[#1E293B]'
           : 'bg-[#FFFFFF] text-[#0F172A] border-[#1E293B]'
@@ -42,13 +42,13 @@ export function LicensePlate({
       style={{ fontFamily: 'var(--font-plate), monospace' }}
     >
       {/* 4 Ốc vít ở 4 góc */}
-      <span className={`absolute top-1 left-1 rounded-full bg-[#64748B] border border-[#0F172A] ${screwSize[size]}`} />
-      <span className={`absolute top-1 right-1 rounded-full bg-[#64748B] border border-[#0F172A] ${screwSize[size]}`} />
-      <span className={`absolute bottom-1 left-1 rounded-full bg-[#64748B] border border-[#0F172A] ${screwSize[size]}`} />
-      <span className={`absolute bottom-1 right-1 rounded-full bg-[#64748B] border border-[#0F172A] ${screwSize[size]}`} />
+      <span className={`absolute top-1 left-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`} />
+      <span className={`absolute top-1 right-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`} />
+      <span className={`absolute bottom-1 left-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`} />
+      <span className={`absolute bottom-1 right-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`} />
 
       {/* Chữ biển số */}
-      <span className="drop-shadow-sm uppercase">{display}</span>
+      <span className="uppercase whitespace-nowrap">{display}</span>
     </div>
   )
 }

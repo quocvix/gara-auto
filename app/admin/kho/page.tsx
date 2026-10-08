@@ -114,22 +114,22 @@ function InventoryContent() {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Kho Phụ Tùng & Linh Kiện ({parts.filter((p) => p.isActive).length})
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Quản lý xuất nhập tồn, giá bán và thời hạn bảo hành của từng phụ tùng
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <a
             href="/admin/kho/lich-su"
-            className="touch-target inline-flex items-center gap-1.5 px-3.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold shadow-sm transition-all"
+            className="flex-1 sm:flex-initial h-10 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
           >
-            <History className="w-4 h-4 text-primary" />
+            <History className="w-4 h-4 text-blue-600" />
             <span>Lịch Sử Kho</span>
           </a>
 
@@ -137,9 +137,9 @@ function InventoryContent() {
             type="button"
             onClick={handleExport}
             disabled={isExporting || filteredParts.length === 0}
-            className="touch-target inline-flex items-center gap-1.5 px-3.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold shadow-sm transition-all disabled:opacity-40"
+            className="flex-1 sm:flex-initial h-10 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-all disabled:opacity-40 cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>Xuất Excel</span>
           </button>
 
@@ -149,39 +149,39 @@ function InventoryContent() {
               setEditingPart(null)
               setIsPartModalOpen(true)
             }}
-            className="touch-target inline-flex items-center gap-1.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-bold shadow-md shadow-primary/20 active:scale-95 transition-all"
+            className="w-full sm:w-auto h-10 inline-flex items-center justify-center gap-1.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>+ Thêm Phụ Tùng</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Thêm Phụ Tùng</span>
           </button>
         </div>
       </div>
 
       {/* Tìm Kiếm & Bộ Lọc */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <div className="relative">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm tên phụ tùng hoặc mã SKU..."
-            className="w-full h-11 pl-10 pr-4 rounded-xl border border-input bg-card text-sm focus:ring-2 focus:ring-primary focus:outline-none shadow-sm"
+            className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 text-base sm:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-2xs placeholder:text-slate-400"
           />
         </div>
 
-        {/* Filter Chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* Filter Chips cuộn ngang với lề chuẩn R6 */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
           <button
             type="button"
             onClick={() => {
               setSelectedCategory('all')
               setFilterLowStock(false)
             }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               selectedCategory === 'all' && !filterLowStock
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             Tất cả
@@ -190,10 +190,10 @@ function InventoryContent() {
           <button
             type="button"
             onClick={() => setFilterLowStock(!filterLowStock)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
               filterLowStock
-                ? 'bg-rose-500 text-white shadow-sm font-bold'
-                : 'bg-card border border-rose-500/40 text-rose-400 hover:bg-rose-500/10'
+                ? 'bg-rose-50 text-rose-700 border border-rose-300 font-bold shadow-2xs'
+                : 'bg-white border border-rose-200 text-rose-600 hover:bg-rose-50'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -208,10 +208,10 @@ function InventoryContent() {
                 setSelectedCategory(cat)
                 setFilterLowStock(false)
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                 selectedCategory === cat && !filterLowStock
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-card border border-border text-muted-foreground hover:text-foreground'
+                  ? 'bg-blue-600 text-white shadow-2xs'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               {cat}
@@ -231,40 +231,40 @@ function InventoryContent() {
               return (
                 <div
                   key={part.id}
-                  className={`p-4 rounded-2xl border bg-card shadow-sm space-y-3 transition-colors ${
-                    isLow ? 'border-amber-500/50 bg-amber-500/[0.02]' : 'border-border'
+                  className={`p-4 rounded-2xl border bg-white shadow-2xs space-y-3 transition-colors ${
+                    isLow ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200/90'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs px-2 py-0.5 rounded bg-muted font-mono text-muted-foreground">
+                        <span className="text-2xs px-2 py-0.5 rounded-md bg-slate-100 font-mono text-slate-600 border border-slate-200/60 font-semibold">
                           {part.sku}
                         </span>
                         {isLow && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 font-bold border border-rose-500/30">
+                          <span className="text-2xs px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
                             Sắp hết
                           </span>
                         )}
                       </div>
-                      <h4 className="font-bold text-sm text-foreground">{part.name}</h4>
-                      <div className="text-xs text-muted-foreground">
+                      <h4 className="font-bold text-sm text-slate-900">{part.name}</h4>
+                      <div className="text-xs text-slate-500">
                         {part.category} • BH {part.warrantyMonths} tháng
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm font-extrabold text-foreground font-mono">
+                      <div className="text-sm font-extrabold text-slate-900 font-mono">
                         {formatVND(part.price)}
                       </div>
                     </div>
                   </div>
 
                   {/* Tồn kho & Stepper */}
-                  <div className="pt-2 border-t border-border flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <div className="text-xs">
-                      <span className="text-muted-foreground">Tồn hiện tại: </span>
-                      <strong className={`font-mono ${isLow ? 'text-rose-400 font-bold' : ''}`}>
+                      <span className="text-slate-400">Tồn hiện tại: </span>
+                      <strong className={`font-mono ${isLow ? 'text-rose-600 font-bold' : 'text-slate-800'}`}>
                         {part.stock} món
                       </strong>
                     </div>
@@ -278,19 +278,19 @@ function InventoryContent() {
                       <button
                         type="button"
                         onClick={() => handleEdit(part)}
-                        className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
                         title="Sửa thông tin"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-3.5 h-3.5" />
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handleDelete(part)}
-                        className="p-2 rounded-lg border border-border text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10"
+                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer"
                         title="Xóa phụ tùng"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -300,9 +300,9 @@ function InventoryContent() {
           </div>
 
           {/* Desktop DataTable */}
-          <div className="hidden lg:block rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
             <table className="w-full text-left text-xs">
-              <thead className="bg-muted/40 border-b border-border text-muted-foreground uppercase font-bold tracking-wider">
+              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-bold tracking-wider text-2xs">
                 <tr>
                   <th className="py-3.5 px-4">Mã SKU</th>
                   <th className="py-3.5 px-4">Tên Phụ Tùng</th>
@@ -313,35 +313,35 @@ function InventoryContent() {
                   <th className="py-3.5 px-4 text-right">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-slate-100">
                 {filteredParts.map((part) => {
                   const isLow = part.stock <= settings.lowStockThreshold
 
                   return (
                     <tr
                       key={part.id}
-                      className={`hover:bg-muted/20 transition-colors ${
-                        isLow ? 'bg-amber-500/[0.03]' : ''
+                      className={`hover:bg-slate-50/70 transition-colors ${
+                        isLow ? 'bg-rose-50/20' : ''
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-mono font-bold text-foreground">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
                         {part.sku}
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-foreground">
+                      <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2">
                           <span>{part.name}</span>
                           {isLow && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 font-bold border border-rose-500/30">
+                            <span className="text-2xs px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
                               Cảnh báo kho
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-muted-foreground">{part.category}</td>
-                      <td className="py-3.5 px-4 text-center font-mono font-semibold">
+                      <td className="py-3.5 px-4 text-slate-500">{part.category}</td>
+                      <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-700">
                         {part.warrantyMonths} tháng
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-bold">
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900">
                         {formatVND(part.price)}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -355,7 +355,7 @@ function InventoryContent() {
                           <button
                             type="button"
                             onClick={() => handleEdit(part)}
-                            className="p-1.5 rounded-lg border border-border hover:bg-muted text-primary"
+                            className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
                             title="Sửa"
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -363,7 +363,7 @@ function InventoryContent() {
                           <button
                             type="button"
                             onClick={() => handleDelete(part)}
-                            className="p-1.5 rounded-lg border border-border hover:bg-rose-500/10 text-rose-400"
+                            className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer"
                             title="Xóa"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -378,10 +378,10 @@ function InventoryContent() {
           </div>
         </>
       ) : (
-        <div className="p-12 text-center rounded-2xl border border-dashed border-border bg-card/40 space-y-3">
-          <Package className="w-10 h-10 text-muted-foreground mx-auto" />
-          <div className="font-bold text-base">Không tìm thấy phụ tùng phù hợp</div>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+        <div className="p-12 text-center rounded-2xl border border-dashed border-slate-200 bg-white space-y-3 shadow-2xs">
+          <Package className="w-10 h-10 text-slate-300 mx-auto" />
+          <div className="font-bold text-sm text-slate-700">Không tìm thấy phụ tùng phù hợp</div>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
             Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác.
           </p>
         </div>

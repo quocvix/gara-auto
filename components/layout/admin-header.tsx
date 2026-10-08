@@ -9,47 +9,47 @@ export function AdminHeader() {
   const { settings } = useGarageStore()
 
   return (
-    <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border px-4 py-2.5 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <a href="/admin" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-            <Wrench className="w-4 h-4" />
-          </div>
-          <div>
-            <h1 className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-foreground uppercase">
-              {settings.name || 'GARA AUTO'}
+    <header className="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <a href="/admin" className="flex items-center gap-2 min-w-0">
+          <img
+            src="/logo-duy-auto-remove-bg-v1.png"
+            alt={settings.name || "Duy Auto"}
+            className="h-8 w-auto object-contain shrink-0"
+          />
+          <div className="truncate">
+            <h1 className="font-extrabold text-xs tracking-tight leading-none text-slate-900 uppercase truncate">
+              {settings.name || 'GARA DUY AUTO'}
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
-              <span className="text-[11px] text-muted-foreground font-medium">
-                Admin xưởng
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
+              <span className="text-2xs text-slate-400 font-medium">
+                Admin Quản Trị
               </span>
             </div>
           </div>
         </a>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         <a
           href="/tra-cuu"
           target="_blank"
           rel="noreferrer"
-          className="hidden sm:inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
           title="Mở màn tra cứu của khách trong tab mới"
         >
-          <span>Xem trang khách</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <span>Khách</span>
+          <ExternalLink className="w-3 h-3 text-slate-400" />
         </a>
-
-        <ThemeToggle />
 
         <a
           href="/admin/cai-dat"
-          className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center justify-center transition-colors"
           title="Cài đặt hệ thống gara"
           aria-label="Cài đặt gara"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-4 h-4 text-slate-600" />
         </a>
       </div>
     </header>

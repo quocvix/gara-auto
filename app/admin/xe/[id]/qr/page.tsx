@@ -40,25 +40,25 @@ export default function QrPrintPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-200">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Top Header Điều Khiển (Ẩn khi in) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <button
           type="button"
           onClick={() => router.push(`/admin/xe/${vehicle.id}`)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors self-start"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors self-start"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Quay lại hồ sơ xe</span>
         </button>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-medium bg-card px-3 py-1.5 rounded-xl border border-border">
-            <span>Số lượng tem:</span>
+          <div className="flex items-center gap-2 text-xs font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+            <span className="text-slate-600">Số lượng tem:</span>
             <select
               value={copyCount}
               onChange={(e) => setCopyCount(Number(e.target.value))}
-              className="bg-background border border-input rounded-md px-2 py-1 text-xs font-bold font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold font-mono text-slate-800 focus:outline-none focus:border-blue-600"
             >
               {[1, 2, 4, 6, 8, 10, 12].map((n) => (
                 <option key={n} value={n}>
@@ -71,27 +71,27 @@ export default function QrPrintPage() {
           <button
             type="button"
             onClick={handlePrint}
-            className="touch-target inline-flex items-center gap-2 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold shadow-md shadow-primary/20 active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
           >
             <Printer className="w-4 h-4 stroke-[2.5]" />
-            <span>In Tem Ngay (Print)</span>
+            <span>In Tem Ngay</span>
           </button>
         </div>
       </div>
 
       {/* Hướng Dẫn & Gợi Ý Dán (Ẩn khi in) */}
-      <div className="p-4 rounded-2xl border border-border bg-card/60 text-xs text-muted-foreground space-y-1 print:hidden">
-        <p className="font-semibold text-foreground flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+      <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/60 text-xs text-blue-900 space-y-1 print:hidden">
+        <p className="font-semibold flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-blue-600" />
           Quy chuẩn tem dán bảo hành điện tử (Kích thước 60 × 40 mm)
         </p>
-        <p>
+        <p className="text-slate-600">
           Tem được thiết kế để in bằng máy in văn phòng thông thường hoặc máy in decal dán kính lái, cột B hoặc sổ bảo dưỡng. Khách hàng dùng camera điện thoại bất kỳ để quét tra cứu.
         </p>
       </div>
 
       {/* KHU VỰC IN TEM (PRINT AREA) */}
-      <div className="print-area p-4 sm:p-6 bg-card rounded-3xl border border-border shadow-md print:border-none print:shadow-none print:bg-white print:p-0">
+      <div className="print-area p-4 sm:p-6 bg-white rounded-xl border border-slate-200 shadow-sm print:border-none print:shadow-none print:bg-white print:p-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 print:grid-cols-2 print:gap-3">
           {Array.from({ length: copyCount }).map((_, idx) => (
             <div

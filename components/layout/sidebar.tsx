@@ -63,21 +63,23 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-card shrink-0 h-screen sticky top-0">
+    <aside className="hidden lg:flex w-64 flex-col border-r border-slate-200/90 bg-white shrink-0 h-screen sticky top-0 shadow-2xs">
       {/* Branding */}
-      <div className="p-5 border-b border-border flex items-center justify-between">
-        <a href="/admin" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary font-bold shadow-sm">
-            <Wrench className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="font-extrabold text-sm tracking-tight text-foreground uppercase line-clamp-1">
-              {settings.name || 'GARA AUTO'}
+      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <a href="/admin" className="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/logo-duy-auto-remove-bg-v1.png"
+            alt={settings.name || "Duy Auto Logo"}
+            className="h-9 w-auto object-contain shrink-0"
+          />
+          <div className="min-w-0">
+            <h2 className="font-extrabold text-xs tracking-tight text-slate-900 uppercase truncate">
+              {settings.name || 'GARA DUY AUTO'}
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] text-muted-foreground font-medium">
-                Admin xưởng
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-2xs text-slate-400 font-medium">
+                Admin Quản Trị
               </span>
             </div>
           </div>
@@ -85,14 +87,14 @@ export function Sidebar() {
       </div>
 
       {/* Button Tạo Phiếu Nổi Bật */}
-      <div className="p-4">
+      <div className="p-3.5">
         <button
           type="button"
           onClick={handleCreate}
-          className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-98 transition-all"
+          className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] transition-all cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>+ Tạo Phiếu Bảo Hành</span>
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>Tạo Phiếu Bảo Hành</span>
         </button>
       </div>
 
@@ -106,13 +108,13 @@ export function Sidebar() {
             <a
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                 isActive
-                  ? 'bg-primary/10 text-primary border border-primary/25 shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+                  ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
               <span>{link.label}</span>
             </a>
           )
@@ -120,35 +122,35 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-border space-y-3 bg-muted/20">
+      <div className="p-3.5 border-t border-slate-100 space-y-2.5 bg-slate-50/60">
         <a
           href="/tra-cuu"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-between text-xs text-muted-foreground hover:text-primary transition-colors p-2 rounded-lg bg-card border border-border"
+          className="flex items-center justify-between text-2xs font-medium text-slate-600 hover:text-blue-700 transition-colors p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs"
         >
           <span>Trang tra cứu khách</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3 h-3 text-slate-400" />
         </a>
 
         {settings.hotline && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
-            <Phone className="w-3.5 h-3.5 text-primary" />
+          <div className="flex items-center gap-1.5 text-2xs text-slate-500 font-mono px-1">
+            <Phone className="w-3 h-3 text-blue-500 shrink-0" />
             <span>Hotline: {settings.hotline}</span>
           </div>
         )}
 
-        <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-          <span className="font-mono text-[11px] truncate max-w-[130px]">
-            chu-xuong@example.com
+        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-2xs text-slate-500 px-1">
+          <span className="font-mono text-2xs text-slate-400 truncate max-w-[130px]">
+            admin@duyauto.vn
           </span>
           <button
             type="button"
             onClick={logoutAdmin}
-            className="hover:text-rose-400 p-1 transition-colors"
+            className="hover:text-rose-600 p-1 transition-colors cursor-pointer"
             title="Đăng xuất"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 text-slate-400 hover:text-rose-500" />
           </button>
         </div>
       </div>

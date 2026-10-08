@@ -236,19 +236,19 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
       {children}
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-card border border-border rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="force-light w-full max-w-2xl bg-white border border-slate-200 rounded-t-2xl sm:rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border bg-muted/40">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-white">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <FileCheck2 className="w-6 h-6" />
+                <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                  <FileCheck2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg leading-tight">
+                  <h3 className="font-bold text-base text-slate-900 leading-tight">
                     {ticketId ? 'Chỉnh Sửa Phiếu Bảo Hành' : 'Tạo Phiếu Bảo Hành Mới'}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Tự động tính hạn dài nhất và cập nhật tồn kho phụ tùng
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
               <button
                 type="button"
                 onClick={closeTicketModal}
-                className="p-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -265,17 +265,17 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
             {/* Form Scroll Area */}
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto">
               {error && (
-                <div className="p-3.5 text-sm rounded-xl bg-danger/10 border border-danger/30 text-rose-400 flex items-center gap-2">
+                <div className="p-3 text-xs rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 font-medium">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* KHỐI 1: THÔNG TIN XE */}
-              <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border/60">
+              <div className="space-y-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Car className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Car className="w-3.5 h-3.5 text-blue-600" />
                     1. Thông tin phương tiện
                   </span>
                   {plate && (
@@ -285,7 +285,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       BIỂN SỐ XE *
                     </label>
                     <input
@@ -294,23 +294,23 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       onChange={(e) => setPlate(sanitizePlateInput(e.target.value))}
                       onBlur={handlePlateBlur}
                       placeholder="VD: 51K-889.99"
-                      className="w-full h-11 px-3.5 rounded-lg border border-input bg-background font-mono text-base uppercase font-bold focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white font-mono text-base uppercase font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       MÀU BIỂN SỐ
                     </label>
-                    <div className="grid grid-cols-2 gap-1.5 h-11 p-1 bg-background border border-input rounded-lg">
+                    <div className="grid grid-cols-2 gap-1.5 h-10 p-1 bg-white border border-slate-200 rounded-lg shadow-sm">
                       <button
                         type="button"
                         onClick={() => setPlateColor('white')}
                         className={`text-xs font-bold rounded flex items-center justify-center transition-all ${
                           plateColor === 'white'
-                            ? 'bg-slate-200 text-slate-900 shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-slate-100 text-slate-900 border border-slate-300 shadow-2xs'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         Trắng
@@ -320,8 +320,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                         onClick={() => setPlateColor('yellow')}
                         className={`text-xs font-bold rounded flex items-center justify-center transition-all ${
                           plateColor === 'yellow'
-                            ? 'bg-amber-400 text-slate-900 shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-amber-400 text-slate-900 shadow-2xs'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         Vàng
@@ -332,7 +332,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       DÒNG XE (MODEL) *
                     </label>
                     <input
@@ -340,13 +340,13 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
                       placeholder="VD: Mazda CX-5 2.0"
-                      className="w-full h-11 px-3 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       CHỦ XE
                     </label>
                     <input
@@ -354,12 +354,12 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       value={ownerName}
                       onChange={(e) => setOwnerName(e.target.value)}
                       placeholder="Họ tên chủ xe"
-                      className="w-full h-11 px-3 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       SỐ ĐIỆN THOẠI
                     </label>
                     <input
@@ -367,19 +367,19 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       value={ownerPhone}
                       onChange={(e) => setOwnerPhone(e.target.value)}
                       placeholder="VD: 0988123456"
-                      className="w-full h-11 px-3 rounded-lg border border-input bg-background font-mono text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                     />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
+                    <label className="text-xs font-semibold text-slate-700">
                       ODO HIỆN TẠI (KM)
                     </label>
                     {previousOdo !== null && (
-                      <span className="text-[11px] text-muted-foreground">
-                        ODO cũ gần nhất: <strong>{previousOdo.toLocaleString()} km</strong>
+                      <span className="text-[11px] text-slate-500">
+                        ODO cũ gần nhất: <strong className="text-slate-700">{previousOdo.toLocaleString()} km</strong>
                       </span>
                     )}
                   </div>
@@ -389,11 +389,11 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                     value={odo || ''}
                     onChange={(e) => setOdo(Number(e.target.value))}
                     placeholder="VD: 35000"
-                    className="w-full h-11 px-3 rounded-lg border border-input bg-background font-mono text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                   />
                   {previousOdo !== null && odo > 0 && odo < previousOdo && (
-                    <p className="text-xs text-amber-400 mt-1 flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-md mt-1.5 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
                       Lưu ý: ODO nhập nhỏ hơn ODO lịch sử ({previousOdo.toLocaleString()} km)
                     </p>
                   )}
@@ -401,15 +401,15 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
               </div>
 
               {/* KHỐI 2: CHỌN PHỤ TÙNG */}
-              <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border/60">
+              <div className="space-y-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     2. Hạng mục phụ tùng bảo hành ({selectedItems.length})
                   </span>
                   <button
                     type="button"
                     onClick={() => setIsPartModalOpen(true)}
-                    className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Thêm phụ tùng mới vào kho
@@ -428,11 +428,11 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       return (
                         <div
                           key={item.partId}
-                          className="p-3 rounded-lg border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
+                          className="p-3 rounded-lg border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
                         >
                           <div className="flex-1">
-                            <div className="font-semibold text-sm">{part.name}</div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5 font-mono">
+                            <div className="font-semibold text-sm text-slate-900">{part.name}</div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5 font-mono">
                               <span>SKU: {part.sku}</span>
                               <span>•</span>
                               <span>BH {part.warrantyMonths} tháng</span>
@@ -447,24 +447,24 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                               value={item.serial || ''}
                               onChange={(e) => updateItemSerial(idx, e.target.value)}
                               placeholder="Số seri / tem"
-                              className="w-28 sm:w-32 h-9 px-2 text-xs font-mono rounded-md border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none"
+                              className="w-28 sm:w-32 h-8 px-2 text-xs font-mono rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-600"
                             />
 
-                            <div className="flex items-center border border-border rounded-md bg-background overflow-hidden">
+                            <div className="flex items-center border border-slate-200 rounded-md bg-slate-50 overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => updateItemQty(idx, item.quantity - 1)}
-                                className="w-8 h-8 flex items-center justify-center hover:bg-muted font-bold text-xs"
+                                className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 font-bold text-xs text-slate-600"
                               >
                                 -
                               </button>
-                              <span className="w-8 text-center text-xs font-mono font-bold">
+                              <span className="w-8 text-center text-xs font-mono font-bold text-slate-800">
                                 {item.quantity}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => updateItemQty(idx, item.quantity + 1)}
-                                className="w-8 h-8 flex items-center justify-center hover:bg-muted font-bold text-xs text-primary"
+                                className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 font-bold text-xs text-blue-600"
                               >
                                 +
                               </button>
@@ -473,7 +473,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             <button
                               type="button"
                               onClick={() => removeItem(idx)}
-                              className="p-2 text-muted-foreground hover:text-rose-400 rounded-md hover:bg-muted"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
                               title="Bỏ món này"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -484,14 +484,14 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-5 text-sm text-muted-foreground border border-dashed border-border rounded-lg bg-card/40">
+                  <div className="text-center py-5 text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-white">
                     Chưa có phụ tùng nào được chọn. Hãy bấm chọn bên dưới.
                   </div>
                 )}
 
                 {/* Kho phụ tùng để chọn */}
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     CHỌN TỪ KHO PHỤ TÙNG:
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
@@ -509,18 +509,18 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             onClick={() => addItem(p.id)}
                             className={`p-2.5 rounded-lg border text-left text-xs transition-all flex items-center justify-between gap-2 ${
                               isChosen
-                                ? 'border-primary/60 bg-primary/10 text-foreground'
-                                : 'border-border bg-card hover:bg-muted/70 text-foreground'
+                                ? 'border-blue-500 bg-blue-50 text-blue-900 font-semibold'
+                                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
                             } ${isOutOfStock ? 'opacity-40 cursor-not-allowed' : ''}`}
                           >
                             <div className="overflow-hidden">
                               <div className="font-semibold truncate">{p.name}</div>
-                              <div className="text-[11px] text-muted-foreground font-mono">
+                              <div className="text-[11px] text-slate-500 font-mono">
                                 {formatVND(p.price)} • BH {p.warrantyMonths}T • Tồn: {p.stock}
                               </div>
                             </div>
-                            <span className="shrink-0 p-1 rounded bg-muted">
-                              <Plus className="w-3.5 h-3.5 text-primary" />
+                            <span className="shrink-0 p-1 rounded bg-slate-100 text-slate-600">
+                              <Plus className="w-3.5 h-3.5" />
                             </span>
                           </button>
                         )
@@ -531,7 +531,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
               {/* KHỐI 3: GHI CHÚ */}
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   GHI CHÚ HỒ SƠ / TÌNH TRẠNG XE
                 </label>
                 <textarea
@@ -539,37 +539,37 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Ghi chú về phụ tùng, khuyến cáo lần bảo dưỡng tới..."
-                  className="w-full p-3 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full p-3 rounded-lg border border-slate-200 bg-white text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                 />
               </div>
 
               {/* TÓM TẮT THỜI HẠN */}
               {selectedItems.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-sm">
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs sm:text-sm">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-emerald-400" />
-                    <span className="text-muted-foreground">Thời hạn bảo hành thẻ:</span>
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <span className="text-slate-700 font-medium">Thời hạn bảo hành thẻ:</span>
                   </div>
-                  <span className="font-bold text-emerald-400">
+                  <span className="font-bold text-emerald-700">
                     Đến ngày {formatDateVN(maxWarrantyExpiresOn)}
                   </span>
                 </div>
               )}
 
               {/* Nút Submit chính dán đáy */}
-              <div className="pt-2 sticky bottom-0 bg-card py-2 border-t border-border flex items-center gap-3">
+              <div className="pt-2 sticky bottom-0 bg-white py-2 border-t border-slate-100 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={closeTicketModal}
-                  className="touch-target px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Đóng
                 </button>
                 <button
                   type="submit"
-                  className="touch-target flex-1 flex items-center justify-center gap-2 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg active:scale-98 transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all"
                 >
-                  <FileCheck2 className="w-5 h-5" />
+                  <FileCheck2 className="w-4 h-4" />
                   <span>{ticketId ? 'Cập Nhật Phiếu' : 'Kích Hoạt Bảo Hành'}</span>
                 </button>
               </div>
