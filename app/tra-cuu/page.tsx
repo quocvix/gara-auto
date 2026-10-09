@@ -88,7 +88,7 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="force-light relative min-h-[100svh] min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col justify-between selection:bg-blue-600/10 selection:text-blue-600 overflow-x-hidden">
+        <div className="force-light relative min-h-[100svh] min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 overflow-x-hidden">
             {/* PatternCraft: Cool Blue Glow Right */}
             <div
                 className="pointer-events-none absolute inset-0 z-0"
@@ -113,7 +113,7 @@ export default function TraCuuPage() {
             />
 
             {/* Main Content: Tối ưu hoá đặc biệt cho Mobile (nổi trên nền z-10) */}
-            <main className="relative z-10 flex-1 flex flex-col justify-center px-4 py-2 sm:py-5 w-full max-w-md mx-auto space-y-2 sm:space-y-3.5">
+            <main className="relative z-10 flex-1 flex flex-col justify-center px-4 pt-2 sm:pt-4 pb-14 sm:pb-16 w-full max-w-md mx-auto space-y-2 sm:space-y-3.5">
                 {/* Brand Hero Mobile Header (Thay thế thanh top header cứng nhắc) */}
                 <div className="text-center space-y-1 sm:space-y-1.5">
                     <div className="flex justify-center items-center pb-0 sm:pb-1">
@@ -315,8 +315,8 @@ export default function TraCuuPage() {
                 )}
             </main>
 
-            {/* Footer tự động sát đáy màn hình (Auto-sticking bottom footer) */}
-            <footer className="relative z-10 w-full shrink-0 mt-auto border-t border-slate-200/80 bg-white/70 backdrop-blur-md py-2 sm:py-2.5 px-4 text-center text-xs text-slate-400 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+            {/* Footer cố định sát đáy màn hình (Fixed bottom footer) */}
+            <footer className="fixed bottom-0 inset-x-0 z-20 w-full border-t border-slate-200/80 bg-white/85 backdrop-blur-md py-2 sm:py-2.5 px-4 text-center text-xs text-slate-400 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-xs">
                 <div className="max-w-md mx-auto space-y-1">
                     <p className="font-medium text-slate-500">
                         Hệ thống bảo hành • Duy.lamxedao.thuduc
