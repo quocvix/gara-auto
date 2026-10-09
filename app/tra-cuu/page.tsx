@@ -46,6 +46,18 @@ export default function TraCuuPage() {
         }
     }, []);
 
+    // Khóa hoàn toàn scroll Y của document/body trên mobile Chrome khi ở màn tra cứu
+    useEffect(() => {
+        const prevHtmlOverflow = document.documentElement.style.overflow;
+        const prevBodyOverflow = document.body.style.overflow;
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.documentElement.style.overflow = prevHtmlOverflow;
+            document.body.style.overflow = prevBodyOverflow;
+        };
+    }, []);
+
     const saveRecentPlate = (norm: string) => {
         try {
             const updated = [
@@ -88,7 +100,7 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="force-light relative min-h-[100svh] min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 overflow-x-hidden">
+        <div className="force-light fixed inset-0 w-full h-full bg-white text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 overflow-hidden overscroll-none">
             {/* PatternCraft: Cool Blue Glow Right */}
             <div
                 className="pointer-events-none absolute inset-0 z-0"

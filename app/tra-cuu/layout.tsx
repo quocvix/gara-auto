@@ -11,7 +11,7 @@ export default function TraCuuLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="force-light min-h-screen bg-background text-foreground flex flex-col">
+    <div className="force-light min-h-full flex-1 bg-background text-foreground flex flex-col">
       {children}
     </div>
   )
