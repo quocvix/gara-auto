@@ -88,19 +88,42 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="force-light min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 via-slate-100/70 to-blue-50/40 text-slate-900 flex flex-col justify-between selection:bg-blue-600/10 selection:text-blue-600">
-            {/* Main Content: Tối ưu hoá đặc biệt cho Mobile */}
-            <main className="flex-1 flex flex-col gap-3 justify-center px-4 py-4 sm:py-6 w-full max-w-md mx-auto space-y-4">
+        <div className="force-light relative min-h-[100svh] min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col justify-between selection:bg-blue-600/10 selection:text-blue-600 overflow-x-hidden">
+            {/* PatternCraft: Cool Blue Glow Right */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                    background: "#ffffff",
+                    backgroundImage: `
+                        radial-gradient(
+                            circle at top right,
+                            rgba(70, 130, 180, 0.45),
+                            transparent 70%
+                        ),
+                        radial-gradient(
+                            circle at 20% 80%,
+                            rgba(70, 130, 180, 0.15),
+                            transparent 50%
+                        )
+                    `,
+                    filter: "blur(80px)",
+                    backgroundRepeat: "no-repeat",
+                }}
+                aria-hidden="true"
+            />
+
+            {/* Main Content: Tối ưu hoá đặc biệt cho Mobile (nổi trên nền z-10) */}
+            <main className="relative z-10 flex-1 flex flex-col justify-center px-4 py-2 sm:py-5 w-full max-w-md mx-auto space-y-2 sm:space-y-3.5">
                 {/* Brand Hero Mobile Header (Thay thế thanh top header cứng nhắc) */}
-                <div className="text-center space-y-3">
-                    <div className="flex justify-center items-center pb-10">
+                <div className="text-center space-y-1 sm:space-y-1.5">
+                    <div className="flex justify-center items-center pb-0 sm:pb-1">
                         <Image
                             src="/logo-duy-auto-remove-bg-v1.png"
                             alt={settings.name || "Duy Auto Logo"}
-                            width={280}
-                            height={120}
+                            width={360}
+                            height={145}
                             priority
-                            className="h-28 w-auto object-contain drop-shadow-xs"
+                            className="h-32 sm:h-36 w-auto object-contain drop-shadow-xs"
                         />
                     </div>
 
@@ -109,7 +132,7 @@ export default function TraCuuPage() {
                         <span>Sổ Bảo Hành Điện Tử</span>
                     </div>
 
-                    <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                    <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-slate-900">
                         Tra Cứu Hồ Sơ Xe
                     </h1>
                     <p className="text-xs text-slate-500 max-w-xs mx-auto">
@@ -123,9 +146,9 @@ export default function TraCuuPage() {
                     {/* Dải line màu thương hiệu trên đỉnh thẻ */}
                     <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500" />
 
-                    <div className="p-4 sm:p-6 space-y-4">
-                        <form onSubmit={handleSearch} className="space-y-3.5">
-                            <div className="space-y-1.5">
+                    <div className="p-3.5 sm:p-5 space-y-3 sm:space-y-4">
+                        <form onSubmit={handleSearch} className="space-y-3">
+                            <div className="space-y-1">
                                 <div className="flex items-center justify-between">
                                     <label
                                         htmlFor="plate-input"
@@ -159,7 +182,7 @@ export default function TraCuuPage() {
                                         spellCheck={false}
                                         enterKeyHint="search"
                                         autoFocus
-                                        className="w-full h-12 sm:h-13 px-4 pr-11 rounded-xl border-2 border-slate-200 bg-slate-50/70 font-mono text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-900 placeholder:text-slate-300 placeholder:font-mono placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all text-center"
+                                        className="w-full h-11 sm:h-12 px-3.5 pr-10 rounded-xl border-2 border-slate-200 bg-slate-50/70 font-mono text-base sm:text-lg font-bold uppercase tracking-wider text-slate-900 placeholder:text-slate-300 placeholder:font-mono placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all text-center"
                                         style={{
                                             fontFamily:
                                                 "var(--font-plate), monospace",
@@ -169,7 +192,7 @@ export default function TraCuuPage() {
                                         <button
                                             type="button"
                                             onClick={() => setInputPlate("")}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 active:scale-90 transition-all cursor-pointer"
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 active:scale-90 transition-all cursor-pointer"
                                             title="Xóa biển số"
                                         >
                                             <X className="w-4 h-4 stroke-[2.5]" />
@@ -191,7 +214,7 @@ export default function TraCuuPage() {
 
                         {/* Lịch sử tra cứu gần đây (Recent Searches) hoặc Gợi ý biển số */}
                         {recentPlates.length > 0 ? (
-                            <div className="pt-2.5 border-t border-slate-100 space-y-2">
+                            <div className="pt-2 border-t border-slate-100 space-y-1.5">
                                 <div className="flex items-center justify-between text-2xs text-slate-400">
                                     <span className="font-semibold uppercase tracking-wider">
                                         Đã tra gần đây
@@ -223,7 +246,7 @@ export default function TraCuuPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                                 <span className="text-[11px] font-medium text-slate-400">
                                     Biển số mẫu:
                                 </span>
@@ -281,7 +304,7 @@ export default function TraCuuPage() {
                 {settings.hotline && (
                     <a
                         href={`tel:${settings.hotline.replace(/\s+/g, "")}`}
-                        className="mt-4 touch-target inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl border border-red-200/80 bg-red-50/70 hover:bg-red-50 active:scale-[0.99] text-red-600 text-xs font-semibold transition-all shadow-2xs"
+                        className="mt-2 sm:mt-3 touch-target inline-flex items-center justify-center gap-1.5 w-full py-1.5 sm:py-2 px-3 rounded-xl border border-red-200/80 bg-red-50/70 hover:bg-red-50 active:scale-[0.99] text-red-600 text-xs font-semibold transition-all shadow-2xs"
                     >
                         <Phone className="w-3.5 h-3.5 fill-current shrink-0" />
                         <span>
@@ -293,7 +316,7 @@ export default function TraCuuPage() {
             </main>
 
             {/* Footer tự động sát đáy màn hình (Auto-sticking bottom footer) */}
-            <footer className="w-full shrink-0 mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-3 px-4 text-center text-xs text-slate-400 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <footer className="relative z-10 w-full shrink-0 mt-auto border-t border-slate-200/80 bg-white/70 backdrop-blur-md py-2 sm:py-2.5 px-4 text-center text-xs text-slate-400 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
                 <div className="max-w-md mx-auto space-y-1">
                     <p className="font-medium text-slate-500">
                         Hệ thống bảo hành • Duy.lamxedao.thuduc
