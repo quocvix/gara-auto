@@ -48,7 +48,7 @@ export function PartModal({
       setSku(initialPart.sku)
       setName(initialPart.name)
       setCategory(initialPart.category)
-      setWarrantyMonths(initialPart.warrantyMonths)
+      setWarrantyMonths(initialPart.warrantyMonths ?? 0)
       setPrice(initialPart.price)
       setStock(initialPart.stock)
     } else {

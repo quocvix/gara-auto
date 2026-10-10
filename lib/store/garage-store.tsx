@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import type {
   GarageSettings,
+  ItemWarrantyStatus,
   Part,
   StockMovement,
   StockReason,
@@ -36,6 +37,7 @@ interface SaveTicketInput {
     partId: string
     quantity: number
     serial?: string
+    warrantyMonths?: number
   }[]
   note?: string
 }
@@ -367,13 +369,20 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
       const part = updatedParts[pIdx]
       const qty = Math.max(1, itemInput.quantity || 1)
 
-      // Tính ngày hết hạn món này
-      const expDate = new Date(activatedOn)
-      expDate.setMonth(expDate.getMonth() + part.warrantyMonths)
-      const itemExpiresOn = expDate.toISOString().split('T')[0]
+      // Tính ngày hết hạn món này (cho phép tùy chỉnh hoặc không có hạn cố định)
+      const wMonths =
+        typeof itemInput.warrantyMonths === 'number'
+          ? itemInput.warrantyMonths
+          : (part.warrantyMonths ?? 0)
 
-      if (itemExpiresOn > maxExpiresOn) {
-        maxExpiresOn = itemExpiresOn
+      let itemExpiresOn = ''
+      if (wMonths > 0) {
+        const expDate = new Date(activatedOn)
+        expDate.setMonth(expDate.getMonth() + wMonths)
+        itemExpiresOn = expDate.toISOString().split('T')[0]
+        if (itemExpiresOn > maxExpiresOn) {
+          maxExpiresOn = itemExpiresOn
+        }
       }
 
       finalItems.push({
@@ -384,7 +393,7 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
         partSku: part.sku,
         serial: itemInput.serial,
         quantity: qty,
-        warrantyMonths: part.warrantyMonths,
+        warrantyMonths: wMonths,
         expiresOn: itemExpiresOn,
       })
 
@@ -538,12 +547,60 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
       .sort((a, b) => b.activatedOn.localeCompare(a.activatedOn))
 
     let maxExpiresOn = ''
-    for (const t of vTickets) {
-      if (!maxExpiresOn || t.expiresOn > maxExpiresOn) maxExpiresOn = t.expiresOn
-    }
+    let totalItems = 0
+    let activeItemsCount = 0
+    let expiredItemsCount = 0
+    let unlimitedItemsCount = 0
 
-    const days = daysLeft(maxExpiresOn)
-    const status = getStatus(days, settings.expiringThresholdDays)
+    const mappedTickets = vTickets.map((t) => ({
+      id: t.id,
+      activatedOn: t.activatedOn,
+      expiresOn: t.expiresOn,
+      odo: t.odo,
+      note: t.note,
+      items: t.items.map((it) => {
+        totalItems += 1
+        const wMonths = typeof it.warrantyMonths === 'number' ? it.warrantyMonths : 0
+        const itExpires = (it.expiresOn || '').trim()
+
+        let itemStatus: ItemWarrantyStatus = 'unlimited'
+        let itemDaysLeft: number | undefined = undefined
+
+        if (wMonths > 0 && itExpires) {
+          itemDaysLeft = daysLeft(itExpires)
+          if (itemDaysLeft < 0) {
+            itemStatus = 'expired'
+            expiredItemsCount += 1
+          } else if (itemDaysLeft <= settings.expiringThresholdDays) {
+            itemStatus = 'expiring'
+            activeItemsCount += 1
+          } else {
+            itemStatus = 'active'
+            activeItemsCount += 1
+          }
+          if (!maxExpiresOn || itExpires > maxExpiresOn) {
+            maxExpiresOn = itExpires
+          }
+        } else {
+          itemStatus = 'unlimited'
+          unlimitedItemsCount += 1
+        }
+
+        return {
+          id: it.id,
+          name: it.partName,
+          serial: it.serial,
+          quantity: it.quantity,
+          warrantyMonths: wMonths,
+          expiresOn: itExpires,
+          status: itemStatus,
+          daysLeft: itemDaysLeft,
+        }
+      }),
+    }))
+
+    const days = maxExpiresOn ? daysLeft(maxExpiresOn) : 0
+    const status = maxExpiresOn ? getStatus(days, settings.expiringThresholdDays) : 'active'
 
     const cleanPhone = (vehicle.ownerPhone || '').trim()
     const maskedPhone =
@@ -561,20 +618,12 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
       expiresOn: maxExpiresOn,
       status,
       daysLeft: days,
-      tickets: vTickets.map((t) => ({
-        id: t.id,
-        activatedOn: t.activatedOn,
-        expiresOn: t.expiresOn,
-        odo: t.odo,
-        note: t.note,
-        items: t.items.map((it) => ({
-          name: it.partName,
-          serial: it.serial,
-          quantity: it.quantity,
-          warrantyMonths: it.warrantyMonths,
-          expiresOn: it.expiresOn,
-        })),
-      })),
+      totalVisits: vTickets.length,
+      totalItems,
+      activeItemsCount,
+      expiredItemsCount,
+      unlimitedItemsCount,
+      tickets: mappedTickets,
     }
   }
 

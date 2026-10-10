@@ -26,6 +26,7 @@ interface SelectedItem {
   partId: string
   quantity: number
   serial?: string
+  warrantyMonths?: number
 }
 
 interface OpenModalParams {
@@ -136,7 +137,15 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
       updated[existIdx].quantity += 1
       setSelectedItems(updated)
     } else {
-      setSelectedItems([...selectedItems, { partId, quantity: 1 }])
+      const part = parts.find((p) => p.id === partId)
+      setSelectedItems([
+        ...selectedItems,
+        {
+          partId,
+          quantity: 1,
+          warrantyMonths: typeof part?.warrantyMonths === 'number' ? part.warrantyMonths : 12,
+        },
+      ])
     }
     trigger('tap')
   }
@@ -157,6 +166,12 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     setSelectedItems(updated)
   }
 
+  const updateItemWarranty = (index: number, warrantyMonths: number) => {
+    const updated = [...selectedItems]
+    updated[index].warrantyMonths = Math.max(0, warrantyMonths)
+    setSelectedItems(updated)
+  }
+
   const removeItem = (index: number) => {
     const updated = selectedItems.filter((_, idx) => idx !== index)
     setSelectedItems(updated)
@@ -167,9 +182,9 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
   const today = todayVN()
   let maxWarrantyExpiresOn = today
   for (const item of selectedItems) {
-    const part = parts.find((p) => p.id === item.partId)
-    if (part) {
-      const exp = addMonthsToDate(today, part.warrantyMonths)
+    const wMonths = typeof item.warrantyMonths === 'number' ? item.warrantyMonths : 0
+    if (wMonths > 0) {
+      const exp = addMonthsToDate(today, wMonths)
       if (exp > maxWarrantyExpiresOn) maxWarrantyExpiresOn = exp
     }
   }
@@ -423,7 +438,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                       const part = parts.find((p) => p.id === item.partId)
                       if (!part) return null
 
-                      const itemExpires = addMonthsToDate(today, part.warrantyMonths)
+                      const wMonths = typeof item.warrantyMonths === 'number' ? item.warrantyMonths : (part.warrantyMonths ?? 0)
+                      const itemExpires = wMonths > 0 ? addMonthsToDate(today, wMonths) : null
 
                       return (
                         <div
@@ -435,19 +451,41 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5 font-mono">
                               <span>SKU: {part.sku}</span>
                               <span>•</span>
-                              <span>BH {part.warrantyMonths} tháng</span>
-                              <span>•</span>
-                              <span>Đến {formatDateVN(itemExpires)}</span>
+                              {wMonths > 0 && itemExpires ? (
+                                <span className="text-emerald-700 font-semibold">
+                                  BH {wMonths} tháng • Đến {formatDateVN(itemExpires)}
+                                </span>
+                              ) : (
+                                <span className="text-indigo-700 font-semibold">
+                                  Không cố định hạn
+                                </span>
+                              )}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 self-end sm:self-center">
+                          <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
+                            {/* Input thời gian bảo hành thủ công */}
+                            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-md px-1.5 h-8">
+                              <span className="text-2xs text-slate-500 font-medium">BH:</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={120}
+                                value={wMonths}
+                                onChange={(e) => updateItemWarranty(idx, parseInt(e.target.value) || 0)}
+                                placeholder="Tháng"
+                                title="Thời gian bảo hành (tháng, nhập 0 nếu không có hạn cố định)"
+                                className="w-11 h-6 text-center text-xs font-mono font-bold text-slate-800 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-600"
+                              />
+                              <span className="text-2xs text-slate-500">T</span>
+                            </div>
+
                             <input
                               type="text"
                               value={item.serial || ''}
                               onChange={(e) => updateItemSerial(idx, e.target.value)}
                               placeholder="Số seri / tem"
-                              className="w-28 sm:w-32 h-8 px-2 text-xs font-mono rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-600"
+                              className="w-24 sm:w-28 h-8 px-2 text-xs font-mono rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-600"
                             />
 
                             <div className="flex items-center border border-slate-200 rounded-md bg-slate-50 overflow-hidden">

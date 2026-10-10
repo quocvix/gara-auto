@@ -169,7 +169,54 @@ export const INITIAL_VEHICLES: Vehicle[] = [
 ]
 
 export const INITIAL_TICKETS: WarrantyTicket[] = [
-  // Xe 1: Còn hạn 120 ngày
+  // Xe 1 - Lần 2 (Mới nhất): Nâng cấp phụ tùng và cân chỉnh
+  {
+    id: 'tick-1b',
+    vehicleId: 'veh-1',
+    odo: 38500,
+    activatedOn: formatDate(-10),
+    expiresOn: formatDate(720),
+    note: 'Nâng cấp lọc gió K&N thể thao, thay gạt mưa Bosch và cân chỉnh độ chụm bánh xe',
+    items: [
+      {
+        id: 'item-1b-1',
+        ticketId: 'tick-1b',
+        partId: 'part-3',
+        partName: 'Lọc gió động cơ K&N High-Flow',
+        partSku: 'KN-AIR-FILTER',
+        serial: 'KN-HF-9821',
+        quantity: 1,
+        warrantyMonths: 24,
+        expiresOn: formatDate(720),
+      },
+      {
+        id: 'item-1b-2',
+        ticketId: 'tick-1b',
+        partId: 'part-4',
+        partName: 'Gạt mưa Bosch Aerotwin Plus 24"/18"',
+        partSku: 'BOSCH-AERO',
+        serial: 'BS-AERO-889',
+        quantity: 1,
+        warrantyMonths: 6,
+        expiresOn: formatDate(170),
+      },
+      {
+        id: 'item-1b-3',
+        ticketId: 'tick-1b',
+        partId: null,
+        partName: 'Cân chỉnh góc đặt bánh xe & Độ chụm Hunter',
+        partSku: 'ALIGN-HUNTER',
+        serial: 'HT-ALIGN-01',
+        quantity: 1,
+        warrantyMonths: 0, // Không cố định hạn
+        expiresOn: '',
+      },
+    ],
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // Xe 1 - Lần 1 (Đợt trước): Bảo dưỡng cấp 4 vạn km
   {
     id: 'tick-1',
     vehicleId: 'veh-1',
