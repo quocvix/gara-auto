@@ -206,12 +206,9 @@ export default function TraCuuPlatePage() {
             </header>
 
             {/* Main Content */}
-            <main className="relative z-10 flex-1 max-w-2xl w-full mx-auto px-3.5 py-4 sm:p-6 space-y-3.5 sm:space-y-5 animate-in fade-in duration-200">
-                {/* THẺ HỒ SƠ PHƯƠNG TIỆN (TỐI ƯU MOBILE HERO PLATE & 2 CỘT CÂN ĐỐI) */}
+            <main className="relative z-10 flex-1 max-w-2xl w-full mx-auto px-3.5 py-4 sm:p-6 space-y-3.5 sm:space-y-5 animate-fade-in">
+                {/* THẺ HỒ SƠ PHƯƠNG TIỆN */}
                 <section className="rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs relative overflow-hidden">
-                    {/* Dải line màu thương hiệu kỹ thuật trên đỉnh thẻ */}
-                    <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500" />
-
                     <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4">
                         {/* Biển số xe & Tên dòng xe: Mobile xếp dọc thoáng mắt, Desktop xếp ngang */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -224,9 +221,6 @@ export default function TraCuuPlatePage() {
                                     />
                                 </div>
                                 <div className="text-center sm:text-left min-w-0">
-                                    <span className="inline-block text-3xs uppercase tracking-widest font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100/80">
-                                        Hồ sơ phương tiện
-                                    </span>
                                     <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight mt-1 text-balance">
                                         {data.model}
                                     </h1>
@@ -244,33 +238,27 @@ export default function TraCuuPlatePage() {
                             </div>
                         </div>
 
-                        {/* Khối Chủ xe & Số điện thoại: Chuyển sang 2 hàng dọc (Vertical Stack), hiển thị trọn vẹn họ tên dài không bị truncate */}
-                        <div className="border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 px-3.5 sm:px-5 py-2.5 divide-y divide-slate-200/60 rounded-b-2xl text-xs">
+                        {/* Khối Chủ xe & Số điện thoại: Liền mạch cùng một khối, không border ngăn cách */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1.5">
                             {/* Hàng 1: Chủ xe */}
-                            <div className="flex items-center gap-2.5 sm:gap-3 py-2 first:pt-0">
-                                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
-                                    <User className="w-4 h-4" />
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                                    <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <span className="block text-2xs text-slate-400 font-bold uppercase tracking-wider">
-                                        Chủ xe
-                                    </span>
-                                    <span className="font-extrabold text-slate-900 text-sm leading-snug break-words block">
+                                    <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight break-words block">
                                         {data.ownerName || "Khách hàng"}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Hàng 2: Số điện thoại */}
-                            <div className="flex items-center gap-2.5 sm:gap-3 py-2 last:pb-0">
-                                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
-                                    <Phone className="w-4 h-4" />
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                                    <Phone className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <span className="block text-2xs text-slate-400 font-bold uppercase tracking-wider">
-                                        Điện thoại
-                                    </span>
-                                    <span className="font-mono font-extrabold text-slate-800 text-sm tracking-wider block">
+                                    <span className="font-mono font-extrabold text-slate-800 text-base sm:text-lg tracking-wider leading-tight block">
                                         {data.ownerPhoneMasked || "—"}
                                     </span>
                                 </div>
@@ -286,10 +274,7 @@ export default function TraCuuPlatePage() {
                             <span className="p-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100">
                                 <Wrench className="w-3.5 h-3.5" />
                             </span>
-                            <span>
-                                Lịch sử bảo dưỡng ({data.tickets.length} lần vào
-                                xưởng)
-                            </span>
+                            <span>Lịch sử bảo dưỡng</span>
                         </h2>
                     </div>
 
@@ -305,25 +290,24 @@ export default function TraCuuPlatePage() {
                                 >
                                     {/* Header Đợt làm việc: Co giãn mượt mà trên mobile */}
                                     <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-slate-200/70 flex items-center justify-between gap-2 text-xs">
-                                        <div className="flex items-center gap-2 font-bold text-slate-900 min-w-0">
-                                            <span
-                                                className={`px-2.5 py-0.5 rounded-full text-2xs font-extrabold font-mono tracking-wider shrink-0 ${
-                                                    isLatest
-                                                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
-                                                        : "bg-slate-200 text-slate-700"
-                                                }`}
-                                            >
-                                                LẦN {visitNumber}
-                                                {isLatest && " • MỚI NHẤT"}
+                                        <span
+                                            className={`px-2.5 py-0.5 rounded-full text-2xs font-extrabold font-mono tracking-wider shrink-0 ${
+                                                isLatest
+                                                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
+                                                    : "bg-slate-200 text-slate-700"
+                                            }`}
+                                        >
+                                            LẦN {visitNumber}
+                                            {isLatest && " • MỚI NHẤT"}
+                                        </span>
+
+                                        <div className="flex items-center gap-1.5 text-slate-600 font-medium text-xs shrink-0">
+                                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                            <span className="font-mono">
+                                                {formatDateVN(
+                                                    ticket.activatedOn,
+                                                )}
                                             </span>
-                                            <div className="flex items-center gap-1 text-slate-600 font-medium text-xs shrink-0">
-                                                <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                                <span className="font-mono">
-                                                    {formatDateVN(
-                                                        ticket.activatedOn,
-                                                    )}
-                                                </span>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -419,13 +403,13 @@ export default function TraCuuPlatePage() {
                                                             <div
                                                                 className={`h-full rounded-full transition-all duration-500 ${
                                                                     isUnlimited
-                                                                        ? "bg-gradient-to-r from-indigo-500 to-blue-500"
+                                                                        ? "from-indigo-500 to-blue-500"
                                                                         : item.status ===
                                                                             "active"
-                                                                          ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+                                                                          ? "from-emerald-500 to-teal-400"
                                                                           : item.status ===
                                                                               "expiring"
-                                                                            ? "bg-gradient-to-r from-amber-500 to-orange-400"
+                                                                            ? " from-amber-500 to-orange-400"
                                                                             : "bg-slate-300"
                                                                 }`}
                                                                 style={{
@@ -459,12 +443,9 @@ export default function TraCuuPlatePage() {
                                                             ) : (
                                                                 <>
                                                                     <span>
-                                                                        <span className="hidden sm:inline text-slate-400">
+                                                                        <span className="sm:inline text-slate-400">
                                                                             Kích
                                                                             hoạt:{" "}
-                                                                        </span>
-                                                                        <span className="sm:hidden text-slate-400">
-                                                                            Từ:{" "}
                                                                         </span>
                                                                         <strong className="text-slate-600 font-semibold">
                                                                             {formatDateVN(
@@ -473,12 +454,9 @@ export default function TraCuuPlatePage() {
                                                                         </strong>
                                                                     </span>
                                                                     <span className="text-right">
-                                                                        <span className="hidden sm:inline text-slate-400">
+                                                                        <span className="sm:inline text-slate-400">
                                                                             Hết
                                                                             hạn:{" "}
-                                                                        </span>
-                                                                        <span className="sm:hidden text-slate-400">
-                                                                            Đến:{" "}
                                                                         </span>
                                                                         <strong className="text-slate-600 font-semibold">
                                                                             {formatDateVN(
@@ -529,11 +507,6 @@ export default function TraCuuPlatePage() {
                     </div>
                 )}
             </main>
-
-            {/* Footer */}
-            <footer className="relative z-10 p-3.5 text-center text-2xs text-slate-400 font-medium">
-                <span>Hệ thống bảo hành Duy.lamxedao.thuduc</span>
-            </footer>
         </div>
     );
 }
