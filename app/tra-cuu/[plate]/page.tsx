@@ -22,6 +22,7 @@ import {
     Clock,
     AlertCircle,
     XCircle,
+    Package,
 } from "lucide-react";
 
 export default function TraCuuPlatePage() {
@@ -32,6 +33,8 @@ export default function TraCuuPlatePage() {
 
     const { settings, lookupWarranty, isLoaded } = useGarageStore();
     const data = lookupWarranty(plateNorm);
+
+
 
     if (!isLoaded) {
         return (
@@ -268,17 +271,20 @@ export default function TraCuuPlatePage() {
                 </section>
 
                 {/* DANH SÁCH CÁC ĐỢT LÀM XE THEO NGÀY (TIMELINE) */}
-                <section className="space-y-3 sm:space-y-3.5">
+                <section className="space-y-3.5 sm:space-y-4">
                     <div className="flex items-center justify-between px-1">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                             <span className="p-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100">
                                 <Wrench className="w-3.5 h-3.5" />
                             </span>
-                            <span>Lịch sử bảo dưỡng</span>
+                            <span>Lịch sử bảo dưỡng & linh kiện</span>
                         </h2>
+                        <span className="text-3xs font-mono font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                            {data.tickets.length} đợt vào xưởng
+                        </span>
                     </div>
 
-                    <div className="space-y-3.5 sm:space-y-4">
+                    <div className="space-y-5 sm:space-y-6">
                         {data.tickets.map((ticket, tIdx) => {
                             const isLatest = tIdx === 0;
                             const visitNumber = data.tickets.length - tIdx;
@@ -286,24 +292,26 @@ export default function TraCuuPlatePage() {
                             return (
                                 <div
                                     key={ticket.id}
-                                    className="rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-2xs overflow-hidden"
+                                    className="space-y-3"
                                 >
-                                    {/* Header Đợt làm việc: Co giãn mượt mà trên mobile */}
-                                    <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-slate-200/70 flex items-center justify-between gap-2 text-xs">
-                                        <span
-                                            className={`px-2.5 py-0.5 rounded-full text-2xs font-extrabold font-mono tracking-wider shrink-0 ${
-                                                isLatest
-                                                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
-                                                    : "bg-slate-200 text-slate-700"
-                                            }`}
-                                        >
-                                            LẦN {visitNumber}
-                                            {isLatest && " • MỚI NHẤT"}
-                                        </span>
+                                    {/* Header Đợt làm xe: Lần X + ODO + Ngày */}
+                                    <div className="flex items-center justify-between gap-2 px-1 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className={`px-2.5 py-0.5 rounded-full text-2xs font-extrabold font-mono tracking-wider shrink-0 ${
+                                                    isLatest
+                                                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
+                                                        : "bg-slate-200 text-slate-700"
+                                                }`}
+                                            >
+                                                LẦN {visitNumber}
+                                                {isLatest && " • MỚI NHẤT"}
+                                            </span>
+                                        </div>
 
-                                        <div className="flex items-center gap-1.5 text-slate-600 font-medium text-xs shrink-0">
+                                        <div className="flex items-center gap-1.5 text-slate-500 font-medium text-xs shrink-0">
                                             <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                            <span className="font-mono">
+                                            <span className="font-mono text-2xs sm:text-xs">
                                                 {formatDateVN(
                                                     ticket.activatedOn,
                                                 )}
@@ -311,8 +319,8 @@ export default function TraCuuPlatePage() {
                                         </div>
                                     </div>
 
-                                    {/* Danh sách từng phụ kiện & Tiến trình bảo hành riêng */}
-                                    <div className="p-3.5 sm:p-4 divide-y divide-slate-100">
+                                    {/* Danh sách từng phụ kiện: Thẻ E-Warranty chuẩn hiện đại */}
+                                    <div className="space-y-3 sm:space-y-3.5">
                                         {ticket.items.map((item, iIdx) => {
                                             const isUnlimited =
                                                 item.status === "unlimited";
@@ -323,166 +331,219 @@ export default function TraCuuPlatePage() {
                                                       item.expiresOn,
                                                   );
 
+                                            // Bộ cấu hình trạng thái màu sắc chuẩn UI/UX
+                                            const statusMap: Record<
+                                                string,
+                                                {
+                                                    bannerBg: string;
+                                                    dotColor: string;
+                                                    title: string;
+                                                    badgeBg: string;
+                                                    badgeText: string;
+                                                    barGradient: string;
+                                                }
+                                            > = {
+                                                active: {
+                                                    bannerBg:
+                                                        "bg-emerald-50/90 border-emerald-200/70 text-emerald-800",
+                                                    dotColor: "bg-emerald-500",
+                                                    title: "CÒN HIỆU LỰC BẢO HÀNH",
+                                                    badgeBg:
+                                                        "bg-emerald-600 text-white",
+                                                    badgeText:
+                                                        typeof item.daysLeft ===
+                                                        "number"
+                                                            ? `Còn ${item.daysLeft} ngày`
+                                                            : "Còn hiệu lực",
+                                                    barGradient:
+                                                        "bg-gradient-to-r from-emerald-500 to-teal-400",
+                                                },
+                                                expiring: {
+                                                    bannerBg:
+                                                        "bg-amber-50/90 border-amber-200/70 text-amber-800",
+                                                    dotColor: "bg-amber-500",
+                                                    title: "SẮP HẾT HẠN BẢO HÀNH",
+                                                    badgeBg:
+                                                        "bg-amber-600 text-white",
+                                                    badgeText:
+                                                        typeof item.daysLeft ===
+                                                        "number"
+                                                            ? `Còn ${item.daysLeft} ngày`
+                                                            : "Sắp hết hạn",
+                                                    barGradient:
+                                                        "bg-gradient-to-r from-amber-500 to-orange-400",
+                                                },
+                                                expired: {
+                                                    bannerBg:
+                                                        "bg-red-50/90 border-red-200/70 text-red-800",
+                                                    dotColor: "bg-red-500",
+                                                    title: "ĐÃ HẾT HẠN BẢO HÀNH",
+                                                    badgeBg:
+                                                        "bg-red-600 text-white",
+                                                    badgeText: "Đã hết hạn",
+                                                    barGradient: "bg-slate-400",
+                                                },
+                                                unlimited: {
+                                                    bannerBg:
+                                                        "bg-indigo-50/90 border-indigo-200/70 text-indigo-800",
+                                                    dotColor: "bg-indigo-500",
+                                                    title: "BẢO HÀNH LINH HOẠT",
+                                                    badgeBg:
+                                                        "bg-indigo-600 text-white",
+                                                    badgeText: "Không cố định",
+                                                    barGradient:
+                                                        "bg-gradient-to-r from-indigo-500 to-blue-500",
+                                                },
+                                            };
+
+                                            const currentStatus =
+                                                statusMap[item.status] ||
+                                                statusMap.active;
+
                                             return (
                                                 <div
                                                     key={item.id || iIdx}
-                                                    className="py-3.5 first:pt-0 last:pb-0 space-y-2.5 text-xs"
+                                                    className="rounded-2xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all hover:shadow-xs"
                                                 >
-                                                    {/* Thông tin phụ kiện */}
-                                                    <div className="space-y-1 min-w-0">
-                                                        <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                                                            <span className="text-sm font-extrabold text-slate-900 leading-snug">
-                                                                {item.name}
-                                                            </span>
-                                                            <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 font-mono font-bold shrink-0">
-                                                                x{item.quantity}
+                                                    {/* 1. Header Banner Trạng Thái Bảo Hành */}
+                                                    <div
+                                                        className={`px-3.5 sm:px-4 py-2 border-b flex items-center justify-between gap-2 text-xs font-semibold ${currentStatus.bannerBg}`}
+                                                    >
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span
+                                                                className={`w-2 h-2 rounded-full shrink-0 ${currentStatus.dotColor} ${
+                                                                    item.status ===
+                                                                    "active"
+                                                                        ? "animate-pulse"
+                                                                        : ""
+                                                                }`}
+                                                            />
+                                                            <span className="font-extrabold uppercase tracking-wide text-2xs sm:text-xs truncate">
+                                                                {currentStatus.title}
                                                             </span>
                                                         </div>
+                                                        <span
+                                                            className={`px-2.5 py-0.5 rounded-full font-mono font-bold text-3xs sm:text-2xs shadow-2xs shrink-0 ${currentStatus.badgeBg}`}
+                                                        >
+                                                            {currentStatus.badgeText}
+                                                        </span>
                                                     </div>
 
-                                                    {/* Progress Bar riêng cho từng phụ kiện */}
-                                                    <div className="pt-1.5 space-y-1">
-                                                        <div className="flex items-center justify-between text-3xs font-mono mb-1 gap-2">
-                                                            <span className="text-slate-500 font-medium truncate">
-                                                                {isUnlimited
-                                                                    ? "Tiến trình hiệu lực"
-                                                                    : "Thời hạn bảo hành"}
-                                                            </span>
-                                                            <div className="shrink-0">
-                                                                {item.status ===
-                                                                    "unlimited" && (
-                                                                    <span className="inline-flex items-center gap-1 text-2xs px-2 sm:px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-mono font-extrabold border border-indigo-300/90 ring-2 ring-indigo-500/15 shadow-2xs whitespace-nowrap">
-                                                                        <Clock className="w-3 h-3 text-indigo-600" />
-                                                                        <span>
-                                                                            Không
-                                                                            cố
-                                                                            định
-                                                                        </span>
+                                                    {/* 2. Thân Thẻ: Chi tiết linh kiện & sub-boxes */}
+                                                    <div className="p-3.5 sm:p-4 space-y-3">
+                                                        {/* Thông tin tên linh kiện & Tag bảo hành */}
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50/90 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/70 shadow-2xs">
+                                                                <Package className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.8]" />
+                                                            </div>
+                                                            <div className="min-w-0 flex-1 space-y-0.5">
+                                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                                    <span className="text-3xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider">
+                                                                        {item.warrantyMonths
+                                                                            ? `Bảo hành ${item.warrantyMonths} tháng`
+                                                                            : "Linh kiện bảo dưỡng"}
                                                                     </span>
-                                                                )}
-                                                                {item.status ===
-                                                                    "active" && (
-                                                                    <span className="inline-flex items-center gap-1 text-2xs px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-mono font-extrabold border border-emerald-300/90 ring-2 ring-emerald-500/15 shadow-2xs whitespace-nowrap">
-                                                                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                                                                        <span>
-                                                                            Còn
-                                                                            hạn
-                                                                            {typeof item.daysLeft ===
-                                                                                "number" &&
-                                                                                ` • ${item.daysLeft} ngày`}
+                                                                    {item.quantity >
+                                                                        1 && (
+                                                                        <span className="text-3xs font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                                                                            SL: x{item.quantity}
                                                                         </span>
-                                                                    </span>
-                                                                )}
-                                                                {item.status ===
-                                                                    "expiring" && (
-                                                                    <span className="inline-flex items-center gap-1 text-2xs px-2 sm:px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 font-mono font-extrabold border border-amber-300/90 ring-2 ring-amber-500/20 shadow-2xs whitespace-nowrap">
-                                                                        <AlertCircle className="w-3 h-3 text-amber-600" />
-                                                                        <span>
-                                                                            Sắp
-                                                                            hết
-                                                                            {typeof item.daysLeft ===
-                                                                                "number" &&
-                                                                                ` • ${item.daysLeft} ngày`}
-                                                                        </span>
-                                                                    </span>
-                                                                )}
-                                                                {item.status ===
-                                                                    "expired" && (
-                                                                    <span className="inline-flex items-center gap-1 text-2xs px-2 sm:px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 font-mono font-extrabold border border-red-300/90 ring-2 ring-red-500/20 shadow-2xs whitespace-nowrap">
-                                                                        <XCircle className="w-3 h-3 text-red-600" />
-                                                                        <span>
-                                                                            Đã
-                                                                            hết
-                                                                            hạn
-                                                                        </span>
-                                                                    </span>
-                                                                )}
+                                                                    )}
+                                                                </div>
+                                                                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">
+                                                                    {item.name}
+                                                                </h3>
                                                             </div>
                                                         </div>
-                                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                            <div
-                                                                className={`h-full rounded-full transition-all duration-500 ${
-                                                                    isUnlimited
-                                                                        ? "from-indigo-500 to-blue-500"
-                                                                        : item.status ===
-                                                                            "active"
-                                                                          ? "from-emerald-500 to-teal-400"
-                                                                          : item.status ===
-                                                                              "expiring"
-                                                                            ? " from-amber-500 to-orange-400"
-                                                                            : "bg-slate-300"
-                                                                }`}
-                                                                style={{
-                                                                    width: `${item.status === "expired" ? 0 : percent}%`,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        {/* Ngày kích hoạt và ngày hết hạn chuyển nằm dưới thanh progress */}
-                                                        <div className="flex items-center justify-between text-3xs font-mono text-slate-400 pt-0.5">
-                                                            {isUnlimited ? (
-                                                                <>
+
+
+                                                        {/* Sub-box: Thời hạn bảo hành & Thanh Progress */}
+                                                        <div className="rounded-xl bg-slate-50/80 border border-slate-200/70 p-2.5 sm:p-3 space-y-2">
+                                                            <div className="flex items-center justify-between gap-2 text-xs">
+                                                                <span className="flex items-center gap-1.5 font-semibold text-slate-700 text-2xs sm:text-xs">
+                                                                    <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                                                                     <span>
-                                                                        <span className="hidden sm:inline text-slate-400">
-                                                                            Bắt
-                                                                            đầu:{" "}
-                                                                        </span>
-                                                                        <span className="sm:hidden text-slate-400">
-                                                                            Từ:{" "}
-                                                                        </span>
-                                                                        <strong className="text-slate-600 font-semibold">
-                                                                            {formatDateVN(
-                                                                                ticket.activatedOn,
-                                                                            )}
+                                                                        {isUnlimited
+                                                                            ? "Thời hạn bảo hành"
+                                                                            : `Thời hạn bảo hành ${
+                                                                                  item.warrantyMonths
+                                                                                      ? `(${item.warrantyMonths} tháng)`
+                                                                                      : ""
+                                                                              }`}
+                                                                    </span>
+                                                                </span>
+                                                                <span className="font-mono font-extrabold text-slate-900 text-2xs sm:text-xs">
+                                                                    {isUnlimited
+                                                                        ? "Không cố định"
+                                                                        : formatDateVN(
+                                                                              item.expiresOn,
+                                                                          )}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Thanh tiến trình thời gian */}
+                                                            <div className="h-1.5 sm:h-2 w-full bg-slate-200/80 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={`h-full rounded-full transition-all duration-500 ${currentStatus.barGradient}`}
+                                                                    style={{
+                                                                        width: `${
+                                                                            item.status ===
+                                                                            "expired"
+                                                                                ? 0
+                                                                                : percent
+                                                                        }%`,
+                                                                    }}
+                                                                />
+                                                            </div>
+
+                                                            {/* Dòng ngày tháng chi tiết */}
+                                                            <div className="flex items-center justify-between text-3xs font-mono text-slate-400">
+                                                                <span>
+                                                                    Lắp:{" "}
+                                                                    <strong className="text-slate-600 font-semibold">
+                                                                        {formatDateVN(
+                                                                            ticket.activatedOn,
+                                                                        )}
+                                                                    </strong>
+                                                                </span>
+                                                                <span>
+                                                                    {isUnlimited ? (
+                                                                        <strong className="text-indigo-600 font-semibold">
+                                                                            Không cố định hạn
                                                                         </strong>
-                                                                    </span>
-                                                                    <span className="text-indigo-600 font-semibold text-right">
-                                                                        Không cố
-                                                                        định hạn
-                                                                    </span>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <span>
-                                                                        <span className="sm:inline text-slate-400">
-                                                                            Kích
-                                                                            hoạt:{" "}
-                                                                        </span>
-                                                                        <strong className="text-slate-600 font-semibold">
-                                                                            {formatDateVN(
-                                                                                ticket.activatedOn,
-                                                                            )}
-                                                                        </strong>
-                                                                    </span>
-                                                                    <span className="text-right">
-                                                                        <span className="sm:inline text-slate-400">
-                                                                            Hết
-                                                                            hạn:{" "}
-                                                                        </span>
-                                                                        <strong className="text-slate-600 font-semibold">
-                                                                            {formatDateVN(
-                                                                                item.expiresOn,
-                                                                            )}
-                                                                        </strong>
-                                                                    </span>
-                                                                </>
-                                                            )}
+                                                                    ) : (
+                                                                        <>
+                                                                            Hết hạn:{" "}
+                                                                            <strong className="text-slate-600 font-semibold">
+                                                                                {formatDateVN(
+                                                                                    item.expiresOn,
+                                                                                )}
+                                                                            </strong>
+                                                                        </>
+                                                                    )}
+                                                                </span>
+                                                            </div>
                                                         </div>
+
+
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
 
-                                    {/* Ghi chú xưởng nếu có - đặt ở dưới cùng của đợt bảo dưỡng */}
+                                    {/* Ghi chú xưởng nếu có */}
                                     {ticket.note && (
-                                        <div className="px-3.5 sm:px-4 py-2.5 bg-amber-50/60 border-t border-amber-100/80 text-2xs text-amber-900 flex items-start gap-1.5">
+                                        <div className="rounded-xl px-3.5 py-2.5 bg-amber-50/70 border border-amber-200/80 text-2xs text-amber-900 flex items-start gap-2 shadow-2xs">
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                                            <span>
-                                                Ghi chú xưởng:{" "}
-                                                <strong className="font-semibold text-amber-950">
+                                            <div>
+                                                <span className="font-semibold text-amber-800 uppercase tracking-wider text-3xs block">
+                                                    Ghi chú kỹ thuật viên
+                                                </span>
+                                                <span className="font-medium text-amber-950">
                                                     {ticket.note}
-                                                </strong>
-                                            </span>
+                                                </span>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

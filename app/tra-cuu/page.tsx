@@ -79,7 +79,7 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="force-light min-h-screen w-full text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 relative overflow-x-hidden">
+        <div className="force-light min-h-dvh w-full text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 relative overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
             {/* PatternCraft: Cool Blue Glow Right */}
             <div
                 className="pointer-events-none fixed inset-0 z-0"
@@ -104,31 +104,31 @@ export default function TraCuuPage() {
             />
 
             {/* Main Content: Tối ưu hoá đặc biệt cho Mobile (nổi trên nền z-10) */}
-            <main className="relative z-10 flex-1 flex flex-col justify-center px-4 py-6 sm:py-8 sm:pb-16 w-full max-w-md mx-auto space-y-6">
-                {/* Brand Hero Mobile Header (Thay thế thanh top header cứng nhắc) */}
-                <div className="text-center space-y-1.5">
-                    <div className="flex justify-center items-center pb-4 sm:pb-1">
+            <main className="relative z-10 flex-1 flex flex-col justify-center px-4 py-3 sm:py-8 w-full max-w-md mx-auto space-y-4 sm:space-y-6">
+                {/* Brand Hero Mobile Header (Tối ưu chiều dọc gọn gàng) */}
+                <div className="text-center space-y-1">
+                    <div className="flex justify-center items-center pb-3 sm:pb-4">
                         <Image
                             src="/logo-duy-auto-remove-bg-v1.png"
                             alt={settings.name || "Duy Auto Logo"}
                             width={360}
                             height={145}
                             priority
-                            className="h-32 sm:h-36 w-auto object-contain drop-shadow-xs"
+                            className="h-20 sm:h-32 w-auto object-contain drop-shadow-xs"
                         />
                     </div>
 
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-slate-900">
                         Tra Cứu Bảo Hành
                     </h1>
-                    <p className="text-sm text-slate-600 max-w-xs mx-auto">
+                    <p className="text-xs sm:text-sm text-slate-600 max-w-xs mx-auto">
                         Nhập biển số xe để kiểm tra thời hạn bảo hành
                     </p>
                 </div>
 
                 {/* Card Nhập Biển Số Xe */}
                 <div className="rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-sm border border-blue-200/80 shadow-xl shadow-blue-600/10 ring-1 ring-blue-500/15 overflow-hidden transition-all">
-                    <div className="p-4 sm:p-6 space-y-4 bg-linear-to-b from-blue-50/30 via-white to-white">
+                    <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 bg-linear-to-b from-blue-50/30 via-white to-white">
                         <form onSubmit={handleSearch} className="space-y-3.5">
                             <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
@@ -256,7 +256,7 @@ export default function TraCuuPage() {
                 {settings.hotline && (
                     <a
                         href={`tel:${settings.hotline.replace(/\s+/g, "")}`}
-                        className="mt-2 sm:mt-3 touch-target inline-flex items-center justify-center gap-1.5 w-full py-1.5 sm:py-2 px-3 rounded-xl border border-red-200/80 bg-red-50/70 hover:bg-red-50 active:scale-[0.99] text-red-600 text-xs font-semibold transition-all shadow-2xs"
+                        className="mt-1.5 sm:mt-3 touch-target inline-flex items-center justify-center gap-1.5 w-full py-1.5 sm:py-2 px-3 rounded-xl border border-red-200/80 bg-red-50/70 hover:bg-red-50 active:scale-[0.99] text-red-600 text-xs font-semibold transition-all shadow-2xs"
                     >
                         <Phone className="w-3.5 h-3.5 fill-current shrink-0" />
                         <span>
