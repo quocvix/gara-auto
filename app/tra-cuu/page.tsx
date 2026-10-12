@@ -4,11 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useGarageStore } from "@/lib/store/garage-store";
-import {
-    normalizePlate,
-    sanitizePlateInput,
-    formatPlateDisplay,
-} from "@/lib/plate";
+import { normalizePlate, sanitizePlateInput, formatPlateDisplay } from "@/lib/plate";
 import { ArrowRight, X, ArrowUpRight, Search } from "lucide-react";
 import { GarageSupportActions } from "@/components/domain/garage-support-actions";
 import { toast } from "sonner";
@@ -40,10 +36,7 @@ export default function TraCuuPage() {
 
     const saveRecentPlate = (norm: string) => {
         try {
-            const updated = [
-                norm,
-                ...recentPlates.filter((p) => p !== norm),
-            ].slice(0, 4);
+            const updated = [norm, ...recentPlates.filter((p) => p !== norm)].slice(0, 4);
             setRecentPlates(updated);
             localStorage.setItem(RECENT_PLATES_KEY, JSON.stringify(updated));
         } catch {
@@ -80,7 +73,7 @@ export default function TraCuuPage() {
     };
 
     return (
-        <div className="force-light min-h-[100svh] sm:min-h-dvh w-full text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 relative overflow-x-hidden overscroll-y-none pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="force-light min-h-svh sm:min-h-dvh w-full text-slate-900 flex flex-col justify-center selection:bg-blue-600/10 selection:text-blue-600 relative overflow-x-hidden overscroll-y-none pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             {/* PatternCraft: Cool Blue Glow Right */}
             <div
                 className="pointer-events-none fixed inset-0 z-0"
@@ -158,13 +151,7 @@ export default function TraCuuPage() {
                                         id="plate-input"
                                         type="text"
                                         value={inputPlate}
-                                        onChange={(e) =>
-                                            setInputPlate(
-                                                sanitizePlateInput(
-                                                    e.target.value,
-                                                ),
-                                            )
-                                        }
+                                        onChange={(e) => setInputPlate(sanitizePlateInput(e.target.value))}
                                         placeholder="51K-889.99"
                                         autoCapitalize="characters"
                                         autoComplete="off"
@@ -174,8 +161,7 @@ export default function TraCuuPage() {
                                         autoFocus
                                         className="w-full h-11 sm:h-12 px-3.5 pr-10 rounded-xl border-2 border-blue-200/90 bg-slate-50/90 font-mono text-base sm:text-lg font-bold uppercase tracking-wider text-slate-900 placeholder:text-slate-300 placeholder:font-mono placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all text-center shadow-inner"
                                         style={{
-                                            fontFamily:
-                                                "var(--font-plate), monospace",
+                                            fontFamily: "var(--font-plate), monospace",
                                         }}
                                     />
                                     {inputPlate && (
@@ -221,14 +207,10 @@ export default function TraCuuPage() {
                                         <button
                                             key={plate}
                                             type="button"
-                                            onClick={() =>
-                                                handleQuickPick(plate)
-                                            }
+                                            onClick={() => handleQuickPick(plate)}
                                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50/70 hover:bg-blue-100/80 text-blue-800 hover:text-blue-900 font-mono font-medium text-xs border border-blue-200/80 hover:border-blue-300 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                         >
-                                            <span>
-                                                {formatPlateDisplay(plate)}
-                                            </span>
+                                            <span>{formatPlateDisplay(plate)}</span>
                                             <ArrowUpRight className="w-3 h-3 text-blue-500" />
                                         </button>
                                     ))}
@@ -244,9 +226,7 @@ export default function TraCuuPage() {
                                         <button
                                             key={sample}
                                             type="button"
-                                            onClick={() =>
-                                                handleQuickPick(sample)
-                                            }
+                                            onClick={() => handleQuickPick(sample)}
                                             className="px-2.5 py-1 rounded-lg bg-blue-50/70 hover:bg-blue-100/80 text-blue-800 hover:text-blue-900 font-mono text-xs font-semibold border border-blue-200/80 hover:border-blue-300 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                         >
                                             {formatPlateDisplay(sample)}
@@ -259,11 +239,7 @@ export default function TraCuuPage() {
                 </div>
 
                 {/* Hotline & Zalo Cứu Hộ / Hỗ Trợ Gara (Dạng inline gọn gàng, tiết kiệm chiều cao) */}
-                <GarageSupportActions
-                    hotline={settings.hotline}
-                    variant="inline"
-                    className="mt-1 sm:mt-2"
-                />
+                <GarageSupportActions hotline={settings.hotline} variant="inline" className="mt-1 sm:mt-2" />
             </main>
         </div>
     );

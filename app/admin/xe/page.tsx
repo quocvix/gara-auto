@@ -8,14 +8,11 @@ import { formatDateVN, formatOdo } from '@/lib/format'
 import { LicensePlate } from '@/components/domain/license-plate'
 import { StatusBadge } from '@/components/domain/status-badge'
 import { useTicketModal } from '@/components/domain/ticket-modal'
-import { exportVehiclesToExcel } from '@/lib/excel-export'
 import { VehicleOverview } from '@/types/garage'
 import {
   Search,
   Plus,
-  FileSpreadsheet,
   MoreVertical,
-  QrCode,
   Eye,
   Trash2,
   Edit,
@@ -41,7 +38,6 @@ function VehiclesContent() {
     (searchParams.get('status') as FilterStatus) || 'all',
   )
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
 
   const vehicles = getVehicleOverviewList()
 
@@ -67,26 +63,14 @@ function VehiclesContent() {
     })
   }, [vehicles, statusFilter, searchQuery])
 
-  const handleExportExcel = async () => {
-    try {
-      setIsExporting(true)
-      await exportVehiclesToExcel(filteredVehicles)
-      toast.success('Đã xuất file Excel danh sách xe thành công!')
-    } catch (e) {
-      toast.error('Lỗi khi xuất file Excel')
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
-  const handleDelete = (v: VehicleOverview) => {
+  const handleDelete = async (v: VehicleOverview) => {
     setActiveMenuId(null)
     const restore = window.confirm(
       `Xác nhận xóa xe [${v.plate}]?\n\nBấm OK để xóa và HOÀN LẠI TỒN KHO phụ tùng liên quan.\nBấm Cancel nếu không muốn xóa.`,
     )
     if (restore) {
       trigger('warning')
-      deleteVehicle(v.id, true)
+      await deleteVehicle(v.id, true)
       toast.success(`Đã xóa xe [${v.plate}] và hoàn lại tồn kho!`)
     }
   }
@@ -127,19 +111,8 @@ function VehiclesContent() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
-            onClick={handleExportExcel}
-            disabled={isExporting || filteredVehicles.length === 0}
-            className="touch-target inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-all disabled:opacity-40 cursor-pointer"
-            title="Xuất danh sách ra file Excel (.xlsx)"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Xuất Excel</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => openTicketModal()}
-            className="touch-target inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="hidden lg:inline-flex touch-target items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Tạo Phiếu</span>
@@ -255,14 +228,6 @@ function VehiclesContent() {
                           <Edit className="w-3.5 h-3.5 text-amber-600" />
                           <span>Sửa phiếu gần nhất</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/admin/xe/${v.id}/qr`)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-left font-medium text-slate-700 cursor-pointer"
-                        >
-                          <QrCode className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>In tem QR dán xe</span>
-                        </button>
                         <a
                           href={`/tra-cuu/${v.plateNormalized}`}
                           target="_blank"
@@ -331,14 +296,15 @@ function VehiclesContent() {
                     <Eye className="w-3.5 h-3.5 text-blue-600" />
                     <span>Chi Tiết</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/admin/xe/${v.id}/qr`)}
-                    className="flex-1 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  <a
+                    href={`/tra-cuu/${v.plateNormalized}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <QrCode className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>In Tem QR</span>
-                  </button>
+                    <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Xem như khách</span>
+                  </a>
                 </div>
               </div>
             ))}
@@ -389,14 +355,6 @@ function VehiclesContent() {
                           title="Xem chi tiết"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/admin/xe/${v.id}/qr`)}
-                          className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 transition-colors cursor-pointer"
-                          title="In tem QR"
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"

@@ -37,7 +37,7 @@ export default function LoginPage() {
       <header className="px-5 py-3.5 border-b border-slate-200 bg-white flex items-center justify-between">
         <a href="/tra-cuu" className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">
           <Wrench className="w-4 h-4 text-blue-600" />
-          <span>{settings.name || 'GARA AUTO'}</span>
+          <span>{settings.name || 'Duy Auto'}</span>
         </a>
         <a
           href="/tra-cuu"

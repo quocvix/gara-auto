@@ -1,13 +1,13 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import React, { useEffect } from 'react'
+import { create } from 'zustand'
 import type {
   GarageSettings,
   ItemWarrantyStatus,
   Part,
   StockMovement,
   StockReason,
-  TicketItem,
   Vehicle,
   VehicleOverview,
   WarrantyLookupResult,
@@ -22,51 +22,49 @@ import {
 } from '@/lib/seed-data'
 import { normalizePlate } from '@/lib/plate'
 import { daysLeft, getStatus, todayVN } from '@/lib/warranty'
+import {
+  getGarageRepository,
+  type PartInput,
+  type SaveTicketInput,
+} from '@/lib/repository'
 
-interface SaveTicketInput {
-  ticketId?: string
-  vehicle: {
-    plate: string
-    plateColor: 'white' | 'yellow'
-    model: string
-    ownerName: string
-    ownerPhone: string
-  }
-  odo: number
-  items: {
-    partId: string
-    quantity: number
-    serial?: string
-    warrantyMonths?: number
-  }[]
-  note?: string
-}
+export type { SaveTicketInput, PartInput }
 
-interface GarageStoreContextType {
+export interface GarageStoreState {
   isLoaded: boolean
+  isLoading: boolean
+  isSaving: boolean
   isAdmin: boolean
   settings: GarageSettings
   vehicles: Vehicle[]
   tickets: WarrantyTicket[]
   parts: Part[]
   movements: StockMovement[]
-  
-  // Auth
+
+  // Khởi tạo
+  init: () => Promise<void>
+
+  // Auth & Quyền
   loginAdmin: () => void
   logoutAdmin: () => void
   toggleAdminRole: () => void
 
-  // Actions
-  saveTicket: (input: SaveTicketInput) => { ok: boolean; error?: string; ticketId?: string }
-  deleteTicket: (ticketId: string, restoreStock?: boolean) => void
-  deleteVehicle: (vehicleId: string, restoreStock?: boolean) => void
-  savePart: (part: Omit<Part, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => { ok: boolean; error?: string }
-  deletePart: (partId: string) => void
-  adjustStock: (partId: string, delta: number, reason?: StockReason, note?: string) => { ok: boolean; error?: string }
-  updateSettings: (newSettings: Partial<GarageSettings>) => void
-  resetData: () => void
+  // Thao tác bất đồng bộ (Async Actions)
+  saveTicket: (input: SaveTicketInput) => Promise<{ ok: boolean; error?: string; ticketId?: string }>
+  deleteTicket: (ticketId: string, restoreStock?: boolean) => Promise<{ ok: boolean; error?: string }>
+  deleteVehicle: (vehicleId: string, restoreStock?: boolean) => Promise<{ ok: boolean; error?: string }>
+  savePart: (part: PartInput) => Promise<{ ok: boolean; error?: string; part?: Part }>
+  deletePart: (partId: string) => Promise<{ ok: boolean; error?: string }>
+  adjustStock: (
+    partId: string,
+    delta: number,
+    reason?: StockReason,
+    note?: string
+  ) => Promise<{ ok: boolean; error?: string }>
+  updateSettings: (newSettings: Partial<GarageSettings>) => Promise<void>
+  resetData: () => Promise<void>
 
-  // Lookups & Computed
+  // Computed & Selectors
   getVehicleOverviewList: () => VehicleOverview[]
   getVehicleOverviewById: (id: string) => VehicleOverview | undefined
   lookupWarranty: (plate: string) => WarrantyLookupResult | null
@@ -78,430 +76,218 @@ interface GarageStoreContextType {
   }
 }
 
-const STORAGE_KEYS = {
-  VEHICLES: 'gara_vehicles_v1',
-  TICKETS: 'gara_tickets_v1',
-  PARTS: 'gara_parts_v1',
-  MOVEMENTS: 'gara_movements_v1',
-  SETTINGS: 'gara_settings_v1',
-  IS_ADMIN: 'gara_admin_v1',
-}
+export const useGarageStore = create<GarageStoreState>((set, get) => ({
+  isLoaded: false,
+  isLoading: false,
+  isSaving: false,
+  isAdmin: true,
+  settings: INITIAL_SETTINGS,
+  vehicles: INITIAL_VEHICLES,
+  tickets: INITIAL_TICKETS,
+  parts: INITIAL_PARTS,
+  movements: INITIAL_MOVEMENTS,
 
-const GarageStoreContext = createContext<GarageStoreContextType | null>(null)
-
-export function GarageStoreProvider({ children }: { children: React.ReactNode }) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(true) // Default true for convenient preview, toggleable
-  const [settings, setSettings] = useState<GarageSettings>(INITIAL_SETTINGS)
-  const [vehicles, setVehicles] = useState<Vehicle[]>(INITIAL_VEHICLES)
-  const [tickets, setTickets] = useState<WarrantyTicket[]>(INITIAL_TICKETS)
-  const [parts, setParts] = useState<Part[]>(INITIAL_PARTS)
-  const [movements, setMovements] = useState<StockMovement[]>(INITIAL_MOVEMENTS)
-
-  // Khởi tạo từ LocalStorage nếu có
-  useEffect(() => {
+  init: async () => {
+    if (get().isLoaded || get().isLoading) return
+    set({ isLoading: true })
     try {
-      const storedVehicles = localStorage.getItem(STORAGE_KEYS.VEHICLES)
-      const storedTickets = localStorage.getItem(STORAGE_KEYS.TICKETS)
-      const storedParts = localStorage.getItem(STORAGE_KEYS.PARTS)
-      const storedMovements = localStorage.getItem(STORAGE_KEYS.MOVEMENTS)
-      const storedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS)
-      const storedAdmin = localStorage.getItem(STORAGE_KEYS.IS_ADMIN)
-
-      if (storedVehicles) setVehicles(JSON.parse(storedVehicles))
-      if (storedTickets) setTickets(JSON.parse(storedTickets))
-      if (storedParts) setParts(JSON.parse(storedParts))
-      if (storedMovements) setMovements(JSON.parse(storedMovements))
-      if (storedSettings) setSettings(JSON.parse(storedSettings))
-      if (storedAdmin !== null) setIsAdmin(storedAdmin === 'true')
+      const repo = getGarageRepository()
+      const bundle = await repo.loadInitialData()
+      set({
+        vehicles: bundle.vehicles,
+        tickets: bundle.tickets,
+        parts: bundle.parts,
+        movements: bundle.movements,
+        settings: bundle.settings,
+        isAdmin: bundle.isAdmin,
+        isLoaded: true,
+        isLoading: false,
+      })
     } catch (e) {
-      console.error('Failed to load garage store from localStorage', e)
-    } finally {
-      setIsLoaded(true)
+      console.error('[GarageStore] Khởi tạo dữ liệu thất bại:', e)
+      set({ isLoaded: true, isLoading: false })
     }
-  }, [])
+  },
 
-  // Sync state vào LocalStorage
-  const persist = (
-    newVehicles: Vehicle[],
-    newTickets: WarrantyTicket[],
-    newParts: Part[],
-    newMovements: StockMovement[],
-    newSettings: GarageSettings,
+  loginAdmin: () => {
+    set({ isAdmin: true })
+    getGarageRepository().setAdminRole(true).catch(console.error)
+  },
+
+  logoutAdmin: () => {
+    set({ isAdmin: false })
+    getGarageRepository().setAdminRole(false).catch(console.error)
+  },
+
+  toggleAdminRole: () => {
+    const next = !get().isAdmin
+    set({ isAdmin: next })
+    getGarageRepository().setAdminRole(next).catch(console.error)
+  },
+
+  saveTicket: async (input: SaveTicketInput) => {
+    set({ isSaving: true })
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.saveTicket(input)
+      if (res.ok && res.data) {
+        set({
+          vehicles: res.data.vehicles,
+          tickets: res.data.tickets,
+          parts: res.data.parts,
+          movements: res.data.movements,
+          isSaving: false,
+        })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error, ticketId: res.ticketId }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi không xác định khi lưu phiếu' }
+    }
+  },
+
+  deleteTicket: async (ticketId: string, restoreStock = true) => {
+    set({ isSaving: true })
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.deleteTicket(ticketId, restoreStock)
+      if (res.ok && res.data) {
+        set({
+          tickets: res.data.tickets,
+          parts: res.data.parts,
+          movements: res.data.movements,
+          isSaving: false,
+        })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi khi xóa phiếu' }
+    }
+  },
+
+  deleteVehicle: async (vehicleId: string, restoreStock = true) => {
+    set({ isSaving: true })
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.deleteVehicle(vehicleId, restoreStock)
+      if (res.ok && res.data) {
+        set({
+          vehicles: res.data.vehicles,
+          tickets: res.data.tickets,
+          parts: res.data.parts,
+          movements: res.data.movements,
+          isSaving: false,
+        })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi khi xóa xe' }
+    }
+  },
+
+  savePart: async (input: PartInput) => {
+    set({ isSaving: true })
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.savePart(input)
+      if (res.ok && res.parts) {
+        // Cập nhật lại kho & movements
+        const bundle = await repo.loadInitialData()
+        set({
+          parts: bundle.parts,
+          movements: bundle.movements,
+          isSaving: false,
+        })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error, part: res.part }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi khi lưu phụ tùng' }
+    }
+  },
+
+  deletePart: async (partId: string) => {
+    set({ isSaving: true })
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.deletePart(partId)
+      if (res.ok && res.parts) {
+        set({ parts: res.parts, isSaving: false })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi khi xóa phụ tùng' }
+    }
+  },
+
+  adjustStock: async (
+    partId: string,
+    delta: number,
+    reason: StockReason = 'adjust',
+    note?: string
   ) => {
+    set({ isSaving: true })
     try {
-      localStorage.setItem(STORAGE_KEYS.VEHICLES, JSON.stringify(newVehicles))
-      localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(newTickets))
-      localStorage.setItem(STORAGE_KEYS.PARTS, JSON.stringify(newParts))
-      localStorage.setItem(STORAGE_KEYS.MOVEMENTS, JSON.stringify(newMovements))
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(newSettings))
+      const repo = getGarageRepository()
+      const res = await repo.adjustStock(partId, delta, reason, note)
+      if (res.ok && res.data) {
+        set({
+          parts: res.data.parts,
+          movements: res.data.movements,
+          isSaving: false,
+        })
+      } else {
+        set({ isSaving: false })
+      }
+      return { ok: res.ok, error: res.error }
+    } catch (e: any) {
+      set({ isSaving: false })
+      return { ok: false, error: e?.message || 'Lỗi điều chỉnh kho' }
+    }
+  },
+
+  updateSettings: async (newSettings: Partial<GarageSettings>) => {
+    try {
+      const repo = getGarageRepository()
+      const updated = await repo.updateSettings(newSettings)
+      set({ settings: updated })
     } catch (e) {
-      console.error('Failed to persist to localStorage', e)
+      console.error('[GarageStore] Lỗi cập nhật cài đặt:', e)
     }
-  }
+  },
 
-  const loginAdmin = () => {
-    setIsAdmin(true)
-    localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'true')
-  }
-
-  const logoutAdmin = () => {
-    setIsAdmin(false)
-    localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'false')
-  }
-
-  const toggleAdminRole = () => {
-    setIsAdmin((prev) => {
-      const next = !prev
-      localStorage.setItem(STORAGE_KEYS.IS_ADMIN, String(next))
-      return next
-    })
-  }
-
-  const resetData = () => {
-    setVehicles(INITIAL_VEHICLES)
-    setTickets(INITIAL_TICKETS)
-    setParts(INITIAL_PARTS)
-    setMovements(INITIAL_MOVEMENTS)
-    setSettings(INITIAL_SETTINGS)
-    persist(INITIAL_VEHICLES, INITIAL_TICKETS, INITIAL_PARTS, INITIAL_MOVEMENTS, INITIAL_SETTINGS)
-  }
-
-  // Điều chỉnh tồn kho thủ công
-  const adjustStock = (partId: string, delta: number, reason: StockReason = 'adjust', note?: string) => {
-    const partIndex = parts.findIndex((p) => p.id === partId)
-    if (partIndex === -1) return { ok: false, error: 'Không tìm thấy phụ tùng' }
-
-    const currentPart = parts[partIndex]
-    const newStock = currentPart.stock + delta
-    if (newStock < 0) return { ok: false, error: 'Tồn kho không thể âm' }
-
-    const updatedPart: Part = {
-      ...currentPart,
-      stock: newStock,
-      updatedAt: new Date().toISOString(),
-    }
-    const updatedParts = [...parts]
-    updatedParts[partIndex] = updatedPart
-
-    const newMovement: StockMovement = {
-      id: Date.now(),
-      partId,
-      partName: currentPart.name,
-      partSku: currentPart.sku,
-      delta,
-      stockAfter: newStock,
-      reason,
-      note,
-      createdAt: new Date().toISOString(),
-    }
-    const updatedMovements = [newMovement, ...movements]
-
-    setParts(updatedParts)
-    setMovements(updatedMovements)
-    persist(vehicles, tickets, updatedParts, updatedMovements, settings)
-    return { ok: true }
-  }
-
-  // Thêm/Sửa phụ tùng
-  const savePart = (partData: Omit<Part, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
-    const nowIso = new Date().toISOString()
-    let updatedParts: Part[]
-    let updatedMovements = [...movements]
-
-    if (partData.id) {
-      // Sửa
-      const idx = parts.findIndex((p) => p.id === partData.id)
-      if (idx === -1) return { ok: false, error: 'Phụ tùng không tồn tại' }
-
-      const existing = parts[idx]
-      const updated: Part = {
-        ...existing,
-        ...partData,
-        stock: existing.stock, // Stock chỉ đổi qua adjust_stock
-        updatedAt: nowIso,
-      }
-      updatedParts = [...parts]
-      updatedParts[idx] = updated
-    } else {
-      // Thêm mới
-      // Kiểm tra SKU trùng
-      const dupSku = parts.some((p) => p.sku.toUpperCase() === partData.sku.toUpperCase() && p.isActive)
-      if (dupSku) return { ok: false, error: 'Mã phụ tùng (SKU) đã tồn tại' }
-
-      const newId = `part-${Date.now()}`
-      const newPart: Part = {
-        ...partData,
-        id: newId,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-      }
-      updatedParts = [...parts, newPart]
-
-      if (newPart.stock > 0) {
-        updatedMovements = [
-          {
-            id: Date.now(),
-            partId: newId,
-            partName: newPart.name,
-            partSku: newPart.sku,
-            delta: newPart.stock,
-            stockAfter: newPart.stock,
-            reason: 'initial',
-            note: 'Tạo phụ tùng mới',
-            createdAt: nowIso,
-          },
-          ...movements,
-        ]
-      }
-    }
-
-    setParts(updatedParts)
-    setMovements(updatedMovements)
-    persist(vehicles, tickets, updatedParts, updatedMovements, settings)
-    return { ok: true }
-  }
-
-  const deletePart = (partId: string) => {
-    const updatedParts = parts.map((p) => (p.id === partId ? { ...p, isActive: false } : p))
-    setParts(updatedParts)
-    persist(vehicles, tickets, updatedParts, movements, settings)
-  }
-
-  // Lưu hoặc tạo phiếu bảo hành (Atomic logic theo §5.2 RPC)
-  const saveTicket = (input: SaveTicketInput) => {
-    const today = todayVN()
-    const nowIso = new Date().toISOString()
-    const norm = normalizePlate(input.vehicle.plate)
-
-    if (norm.length < 5) {
-      return { ok: false, error: 'Biển số xe phải có ít nhất 5 ký tự' }
-    }
-    if (!input.items || input.items.length === 0) {
-      return { ok: false, error: 'Chọn ít nhất 1 phụ tùng để bảo hành' }
-    }
-
-    // 1. Kiểm tra tồn kho phụ tùng
-    for (const item of input.items) {
-      const part = parts.find((p) => p.id === item.partId)
-      if (!part) return { ok: false, error: 'Phụ tùng không tồn tại trong kho' }
-      if (part.stock < item.quantity) {
-        return { ok: false, error: `Không đủ tồn kho cho phụ tùng: ${part.name} (Còn ${part.stock})` }
-      }
-    }
-
-    let updatedParts = [...parts]
-    let updatedMovements = [...movements]
-    let updatedVehicles = [...vehicles]
-    let updatedTickets = [...tickets]
-
-    // 2. Upsert xe
-    let vehicleId: string
-    const existingVehicleIndex = vehicles.findIndex((v) => v.plateNormalized === norm)
-    if (existingVehicleIndex >= 0) {
-      vehicleId = vehicles[existingVehicleIndex].id
-      updatedVehicles[existingVehicleIndex] = {
-        ...vehicles[existingVehicleIndex],
-        plate: input.vehicle.plate,
-        plateColor: input.vehicle.plateColor,
-        model: input.vehicle.model,
-        ownerName: input.vehicle.ownerName,
-        ownerPhone: input.vehicle.ownerPhone,
-        odo: Math.max(vehicles[existingVehicleIndex].odo || 0, input.odo || 0),
-        updatedAt: nowIso,
-      }
-    } else {
-      vehicleId = `veh-${Date.now()}`
-      const newVeh: Vehicle = {
-        id: vehicleId,
-        plate: input.vehicle.plate,
-        plateNormalized: norm,
-        plateColor: input.vehicle.plateColor,
-        model: input.vehicle.model,
-        ownerName: input.vehicle.ownerName,
-        ownerPhone: input.vehicle.ownerPhone,
-        odo: input.odo || 0,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-      }
-      updatedVehicles.push(newVeh)
-    }
-
-    // 3. Xử lý phiếu
-    const ticketId = input.ticketId || `tick-${Date.now()}`
-    let activatedOn = today
-
-    // Nếu sửa phiếu cũ, hoàn lại tồn kho trước
-    if (input.ticketId) {
-      const oldTicket = tickets.find((t) => t.id === input.ticketId)
-      if (oldTicket) {
-        activatedOn = oldTicket.activatedOn
-        for (const oldItem of oldTicket.items) {
-          if (oldItem.partId) {
-            const pIdx = updatedParts.findIndex((p) => p.id === oldItem.partId)
-            if (pIdx >= 0) {
-              const restoredStock = updatedParts[pIdx].stock + oldItem.quantity
-              updatedParts[pIdx] = { ...updatedParts[pIdx], stock: restoredStock }
-              updatedMovements.unshift({
-                id: Date.now() + Math.random(),
-                partId: oldItem.partId,
-                partName: oldItem.partName,
-                partSku: oldItem.partSku,
-                delta: oldItem.quantity,
-                stockAfter: restoredStock,
-                reason: 'ticket_revert',
-                ticketId,
-                note: 'Hoàn kho khi chỉnh sửa phiếu',
-                createdAt: nowIso,
-              })
-            }
-          }
-        }
-      }
-    }
-
-    // 4. Tạo các hạng mục item & trừ kho
-    let maxExpiresOn = activatedOn
-    const finalItems: TicketItem[] = []
-
-    for (const itemInput of input.items) {
-      const pIdx = updatedParts.findIndex((p) => p.id === itemInput.partId)
-      const part = updatedParts[pIdx]
-      const qty = Math.max(1, itemInput.quantity || 1)
-
-      // Tính ngày hết hạn món này (cho phép tùy chỉnh hoặc không có hạn cố định)
-      const wMonths =
-        typeof itemInput.warrantyMonths === 'number'
-          ? itemInput.warrantyMonths
-          : (part.warrantyMonths ?? 0)
-
-      let itemExpiresOn = ''
-      if (wMonths > 0) {
-        const expDate = new Date(activatedOn)
-        expDate.setMonth(expDate.getMonth() + wMonths)
-        itemExpiresOn = expDate.toISOString().split('T')[0]
-        if (itemExpiresOn > maxExpiresOn) {
-          maxExpiresOn = itemExpiresOn
-        }
-      }
-
-      finalItems.push({
-        id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        ticketId,
-        partId: part.id,
-        partName: part.name,
-        partSku: part.sku,
-        serial: itemInput.serial,
-        quantity: qty,
-        warrantyMonths: wMonths,
-        expiresOn: itemExpiresOn,
+  resetData: async () => {
+    try {
+      const repo = getGarageRepository()
+      const bundle = await repo.resetData()
+      set({
+        vehicles: bundle.vehicles,
+        tickets: bundle.tickets,
+        parts: bundle.parts,
+        movements: bundle.movements,
+        settings: bundle.settings,
+        isAdmin: true,
       })
-
-      // Trừ kho
-      const newStock = part.stock - qty
-      updatedParts[pIdx] = { ...part, stock: newStock }
-      updatedMovements.unshift({
-        id: Date.now() + Math.random(),
-        partId: part.id,
-        partName: part.name,
-        partSku: part.sku,
-        delta: -qty,
-        stockAfter: newStock,
-        reason: 'ticket_use',
-        ticketId,
-        note: `Sử dụng cho xe ${input.vehicle.plate}`,
-        createdAt: nowIso,
-      })
+    } catch (e) {
+      console.error('[GarageStore] Lỗi reset dữ liệu:', e)
     }
+  },
 
-    // Lưu phiếu
-    const finalTicket: WarrantyTicket = {
-      id: ticketId,
-      vehicleId,
-      odo: input.odo,
-      activatedOn,
-      expiresOn: maxExpiresOn,
-      note: input.note,
-      items: finalItems,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    }
-
-    const tIdx = updatedTickets.findIndex((t) => t.id === ticketId)
-    if (tIdx >= 0) {
-      updatedTickets[tIdx] = finalTicket
-    } else {
-      updatedTickets.unshift(finalTicket)
-    }
-
-    setVehicles(updatedVehicles)
-    setTickets(updatedTickets)
-    setParts(updatedParts)
-    setMovements(updatedMovements)
-    persist(updatedVehicles, updatedTickets, updatedParts, updatedMovements, settings)
-
-    return { ok: true, ticketId }
-  }
-
-  // Xóa phiếu
-  const deleteTicket = (ticketId: string, restoreStock = true) => {
-    const target = tickets.find((t) => t.id === ticketId)
-    if (!target) return
-
-    let updatedParts = [...parts]
-    let updatedMovements = [...movements]
-
-    if (restoreStock) {
-      for (const item of target.items) {
-        if (item.partId) {
-          const pIdx = updatedParts.findIndex((p) => p.id === item.partId)
-          if (pIdx >= 0) {
-            const restoredStock = updatedParts[pIdx].stock + item.quantity
-            updatedParts[pIdx] = { ...updatedParts[pIdx], stock: restoredStock }
-            updatedMovements.unshift({
-              id: Date.now() + Math.random(),
-              partId: item.partId,
-              partName: item.partName,
-              partSku: item.partSku,
-              delta: item.quantity,
-              stockAfter: restoredStock,
-              reason: 'ticket_revert',
-              ticketId,
-              note: 'Hoàn kho do xóa phiếu',
-              createdAt: new Date().toISOString(),
-            })
-          }
-        }
-      }
-    }
-
-    const updatedTickets = tickets.filter((t) => t.id !== ticketId)
-    setTickets(updatedTickets)
-    setParts(updatedParts)
-    setMovements(updatedMovements)
-    persist(vehicles, updatedTickets, updatedParts, updatedMovements, settings)
-  }
-
-  // Xóa xe
-  const deleteVehicle = (vehicleId: string, restoreStock = true) => {
-    const vehTickets = tickets.filter((t) => t.vehicleId === vehicleId)
-    for (const t of vehTickets) {
-      deleteTicket(t.id, restoreStock)
-    }
-    const updatedVehicles = vehicles.filter((v) => v.id !== vehicleId)
-    setVehicles(updatedVehicles)
-    persist(updatedVehicles, tickets, parts, movements, settings)
-  }
-
-  // Cập nhật cài đặt
-  const updateSettings = (newSettings: Partial<GarageSettings>) => {
-    const updated = { ...settings, ...newSettings }
-    setSettings(updated)
-    persist(vehicles, tickets, parts, movements, updated)
-  }
-
-  // Danh sách xe kèm tổng quan (VehicleOverview)
-  const getVehicleOverviewList = (): VehicleOverview[] => {
+  getVehicleOverviewList: (): VehicleOverview[] => {
+    const { vehicles, tickets, settings } = get()
     return vehicles.map((v) => {
       const vTickets = tickets.filter((t) => t.vehicleId === v.id)
       let maxExpiresOn = ''
@@ -527,18 +313,18 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
         daysLeft: days,
       }
     })
-  }
+  },
 
-  const getVehicleOverviewById = (id: string): VehicleOverview | undefined => {
-    const list = getVehicleOverviewList()
+  getVehicleOverviewById: (id: string): VehicleOverview | undefined => {
+    const list = get().getVehicleOverviewList()
     return list.find((v) => v.id === id || v.plateNormalized === normalizePlate(id))
-  }
+  },
 
-  // Tra cứu công khai cho khách
-  const lookupWarranty = (plate: string): WarrantyLookupResult | null => {
+  lookupWarranty: (plate: string): WarrantyLookupResult | null => {
     const norm = normalizePlate(plate)
     if (norm.length < 5) return null
 
+    const { vehicles, tickets, settings } = get()
     const vehicle = vehicles.find((v) => v.plateNormalized === norm)
     if (!vehicle) return null
 
@@ -625,17 +411,16 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
       unlimitedItemsCount,
       tickets: mappedTickets,
     }
-  }
+  },
 
-  // KPI Dashboard
-  const getKpis = () => {
-    const overviewList = getVehicleOverviewList()
+  getKpis: () => {
+    const overviewList = get().getVehicleOverviewList()
     const activeVehicles = overviewList.filter((v) => v.status === 'active' || v.status === 'expiring').length
     const expiringVehicles = overviewList.filter((v) => v.status === 'expiring').length
-    const lowStockParts = parts.filter((p) => p.isActive && p.stock <= settings.lowStockThreshold).length
+    const lowStockParts = get().parts.filter((p) => p.isActive && p.stock <= get().settings.lowStockThreshold).length
 
     const currentYearMonth = todayVN().slice(0, 7) // YYYY-MM
-    const ticketsThisMonth = tickets.filter((t) => t.activatedOn.startsWith(currentYearMonth)).length
+    const ticketsThisMonth = get().tickets.filter((t) => t.activatedOn.startsWith(currentYearMonth)).length
 
     return {
       activeVehicles,
@@ -643,44 +428,17 @@ export function GarageStoreProvider({ children }: { children: React.ReactNode })
       lowStockParts,
       ticketsThisMonth,
     }
-  }
+  },
+}))
 
-  return (
-    <GarageStoreContext.Provider
-      value={{
-        isLoaded,
-        isAdmin,
-        settings,
-        vehicles,
-        tickets,
-        parts,
-        movements,
-        loginAdmin,
-        logoutAdmin,
-        toggleAdminRole,
-        saveTicket,
-        deleteTicket,
-        deleteVehicle,
-        savePart,
-        deletePart,
-        adjustStock,
-        updateSettings,
-        resetData,
-        getVehicleOverviewList,
-        getVehicleOverviewById,
-        lookupWarranty,
-        getKpis,
-      }}
-    >
-      {children}
-    </GarageStoreContext.Provider>
-  )
-}
+/**
+ * Provider tương thích ngược với layout.tsx.
+ * Tự động trigger khởi tạo store trên Client.
+ */
+export function GarageStoreProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    useGarageStore.getState().init()
+  }, [])
 
-export function useGarageStore() {
-  const context = useContext(GarageStoreContext)
-  if (!context) {
-    throw new Error('useGarageStore must be used within GarageStoreProvider')
-  }
-  return context
+  return <>{children}</>
 }

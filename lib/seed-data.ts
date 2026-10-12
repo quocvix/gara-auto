@@ -10,10 +10,10 @@ const formatDate = (offsetDays: number): string => {
 
 export const INITIAL_SETTINGS: GarageSettings = {
   id: 1,
-  name: 'GARA AUTO CARE',
+  name: 'Duy Auto',
   hotline: '0399950365',
   address: 'Số 88 Đường Giải Phóng, Phường Giáp Bát, Hoàng Mai, Hà Nội',
-  mapsUrl: 'https://maps.google.com/?q=Gara+Auto+Care',
+  mapsUrl: 'https://maps.google.com/?q=Duy+Auto',
   expiringThresholdDays: 30,
   lowStockThreshold: 3,
 }

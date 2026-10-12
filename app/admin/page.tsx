@@ -1,271 +1,392 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { useGarageStore } from '@/lib/store/garage-store'
-import { formatPlateDisplay } from '@/lib/plate'
-import { formatDateVN } from '@/lib/format'
-import { LicensePlate } from '@/components/domain/license-plate'
-import { StatusBadge } from '@/components/domain/status-badge'
-import { useTicketModal } from '@/components/domain/ticket-modal'
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useGarageStore } from "@/lib/store/garage-store";
+import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
+import { LicensePlate } from "@/components/domain/license-plate";
 import {
-  Car,
-  Clock,
-  AlertTriangle,
-  FileCheck2,
-  Phone,
-  ArrowRight,
-  Plus,
-  Package,
-  CheckCircle2,
-} from 'lucide-react'
-import { useHaptic } from '@/hooks/use-haptic'
+    Car,
+    Clock,
+    AlertTriangle,
+    FileCheck2,
+    Phone,
+    ArrowRight,
+    CheckCircle2,
+    Search,
+    X,
+    ChevronRight,
+    Package,
+    History,
+    ShieldCheck,
+    User,
+} from "lucide-react";
+import { useHaptic } from "@/hooks/use-haptic";
 
 export default function AdminDashboardPage() {
-  const router = useRouter()
-  const { getKpis, getVehicleOverviewList, tickets, parts, settings } = useGarageStore()
-  const { openTicketModal } = useTicketModal()
-  const { trigger } = useHaptic()
+    const router = useRouter();
+    const { getKpis, getVehicleOverviewList, parts, settings, vehicles } = useGarageStore();
+    const { trigger } = useHaptic();
 
-  const kpis = getKpis()
-  const allVehicles = getVehicleOverviewList()
-  const expiringVehicles = allVehicles.filter((v) => v.status === 'expiring')
-  const lowStockPartsList = parts.filter((p) => p.isActive && p.stock <= settings.lowStockThreshold)
+    const [searchPlate, setSearchPlate] = useState("");
 
-  const handleCreate = () => {
-    trigger('tap')
-    openTicketModal()
-  }
+    const kpis = getKpis();
+    const allVehicles = getVehicleOverviewList();
+    const expiringVehicles = allVehicles.filter((v) => v.status === "expiring");
+    const lowStockPartsList = parts.filter((p) => p.isActive && p.stock <= settings.lowStockThreshold);
 
-  return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
-      {/* Top Welcome & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-            Tổng Quan Xưởng Dịch Vụ
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Theo dõi trạng thái bảo hành ô tô và kiểm soát tồn kho phụ tùng
-          </p>
-        </div>
+    const handleQuickSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const q = searchPlate.trim();
+        if (!q) return;
+        trigger("tap");
+        const norm = normalizePlate(q);
+        const exactMatch = vehicles.find((v) => normalizePlate(v.plate) === norm);
+        if (exactMatch) {
+            router.push(`/admin/xe/${exactMatch.id}`);
+        } else {
+            router.push(`/admin/xe?q=${encodeURIComponent(q)}`);
+        }
+    };
 
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="w-full sm:w-auto h-11 sm:h-10 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-xs active:scale-98 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Tạo Phiếu Bảo Hành</span>
-        </button>
-      </div>
-
-      {/* LƯỚI KPI 4 THẺ (2x2 Mobile, 4x1 Desktop - Công thức B của skill) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        {/* KPI 1: Xe Còn Hạn */}
-        <div
-          onClick={() => router.push('/admin/xe?status=active')}
-          className="p-3.5 sm:p-5 rounded-xl border border-slate-200/90 bg-white hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer shadow-2xs group flex flex-col justify-between space-y-2.5 sm:space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Xe Còn Hạn</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-slate-900">
-              {kpis.activeVehicles}
-            </div>
-            <div className="text-[11px] sm:text-2xs text-slate-400 mt-0.5 flex items-center gap-1 font-medium truncate">
-              <span>Đang được bảo hành</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-slate-400 shrink-0" />
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 2: Sắp Hết Hạn */}
-        <div
-          onClick={() => router.push('/admin/xe?status=expiring')}
-          className="p-3.5 sm:p-5 rounded-xl border border-amber-200/90 bg-white hover:border-amber-400 hover:shadow-xs transition-all cursor-pointer shadow-2xs group flex flex-col justify-between space-y-2.5 sm:space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-700">Sắp Hết Hạn</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-amber-600">
-              {kpis.expiringVehicles}
-            </div>
-            <div className="text-[11px] sm:text-2xs text-amber-600/80 mt-0.5 flex items-center gap-1 font-medium truncate">
-              <span>≤ {settings.expiringThresholdDays} ngày tới</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-amber-500 shrink-0" />
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 3: Kho Sắp Hết */}
-        <div
-          onClick={() => router.push('/admin/kho?filter=low')}
-          className="p-3.5 sm:p-5 rounded-xl border border-rose-200/80 bg-white hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer shadow-2xs group flex flex-col justify-between space-y-2.5 sm:space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-700">Kho Sắp Hết</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-rose-600">
-              {kpis.lowStockParts}
-            </div>
-            <div className="text-[11px] sm:text-2xs text-rose-600/80 mt-0.5 flex items-center gap-1 font-medium truncate">
-              <span>≤ {settings.lowStockThreshold} sản phẩm</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-rose-500 shrink-0" />
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 4: Phiếu Trong Tháng */}
-        <div
-          onClick={() => router.push('/admin/xe')}
-          className="p-3.5 sm:p-5 rounded-xl border border-slate-200/90 bg-white hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer shadow-2xs group flex flex-col justify-between space-y-2.5 sm:space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 truncate">Phiếu Tháng</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-blue-600">
-              {kpis.ticketsThisMonth}
-            </div>
-            <div className="text-[11px] sm:text-2xs text-slate-400 mt-0.5 flex items-center gap-1 font-medium truncate">
-              <span>Đợt bảo dưỡng mới</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-slate-400 shrink-0" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* DANH SÁCH XE SẮP HẾT HẠN CẦN GỌI CHĂM SÓC */}
-      <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
-        <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <Clock className="w-3.5 h-3.5" />
-            </div>
-            <h2 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-wider truncate">
-              Xe Sắp Hết Hạn Bảo Hành ({expiringVehicles.length})
-            </h2>
-          </div>
-          <a
-            href="/admin/xe?status=expiring"
-            className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors shrink-0"
-          >
-            <span>Xem tất cả</span>
-            <ArrowRight className="w-3 h-3" />
-          </a>
-        </div>
-
-        {expiringVehicles.length > 0 ? (
-          <div className="divide-y divide-slate-100">
-            {expiringVehicles.map((veh) => (
-              <div
-                key={veh.id}
-                className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 min-w-0">
-                  <div className="self-start">
-                    <LicensePlate plate={veh.plate} color={veh.plateColor} size="sm" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-sm text-slate-900 truncate">{veh.model}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span>Chủ xe: <strong className="text-slate-700">{veh.ownerName || 'Chưa đăng ký'}</strong></span>
-                      <span className="text-slate-300 hidden sm:inline">•</span>
-                      <span className="text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">
-                        Hạn: {formatDateVN(veh.expiresOn)} (còn {veh.daysLeft} ngày)
-                      </span>
+    return (
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+            {/* 2. BENTO KPI TELEMETRY CARDS (Tương phản cao, đổ bóng có màu, dải phân cấp chiều sâu rõ rệt) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                {/* KPI 1: Xe Còn Hạn (Emerald Tone) */}
+                <div
+                    onClick={() => router.push("/admin/xe?status=active")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-emerald-50/40 border border-emerald-300/80 border-t-4 border-t-emerald-500 shadow-md shadow-emerald-900/5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                >
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Xe Còn Hạn</span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
+                            <Car className="w-4 h-4 stroke-[2.5]" />
+                        </div>
                     </div>
-                  </div>
+                    <div>
+                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-emerald-700 tracking-tight">
+                            {kpis.activeVehicles}
+                        </div>
+                        <div className="text-[11px] text-emerald-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Đang bảo hành</span>
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Dải nút hành động: trên mobile xếp thành 1 hàng toàn chiều rộng */}
-                <div className="flex items-center gap-2 w-full sm:w-auto pt-2 border-t border-slate-100 sm:border-0 sm:pt-0">
-                  {veh.ownerPhone ? (
-                    <a
-                      href={`tel:${veh.ownerPhone}`}
-                      className="flex-1 sm:flex-initial h-9 sm:h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-semibold transition-all active:scale-95 shadow-2xs"
-                    >
-                      <Phone className="w-3.5 h-3.5 fill-current" />
-                      <span>Gọi Khách ({veh.ownerPhone})</span>
-                    </a>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic flex-1 sm:flex-initial">Chưa có SĐT</span>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/admin/xe/${veh.id}`)}
-                    className="h-9 sm:h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shrink-0"
-                    title="Xem chi tiết xe"
-                  >
-                    Chi tiết
-                  </button>
+                {/* KPI 2: Sắp Hết Hạn (CARD ƯU TIÊN - Amber Solar Alert) */}
+                <div
+                    onClick={() => router.push("/admin/xe?status=expiring")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white border-2 border-amber-400 border-t-4 border-t-amber-500 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+                >
+                    {kpis.expiringVehicles > 0 && (
+                        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                        </span>
+                    )}
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wide">
+                            Sắp Hết Hạn
+                        </span>
+                        <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
+                            <Clock className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-amber-700 tracking-tight">
+                            {kpis.expiringVehicles}
+                        </div>
+                        <div className="text-[11px] text-amber-900 mt-1 flex items-center gap-1 font-bold truncate">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span>Cần gọi chăm sóc</span>
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        </div>
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-8 text-center text-xs sm:text-sm text-slate-500">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-            Hiện không có xe nào sắp hết hạn trong {settings.expiringThresholdDays} ngày tới.
-          </div>
-        )}
-      </div>
 
-      {/* CẢNH BÁO PHỤ TÙNG SẮP HẾT HÀNG NẾU CÓ */}
-      {lowStockPartsList.length > 0 && (
-        <div className="rounded-2xl border border-rose-200/90 bg-white p-4 sm:p-5 space-y-3 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-rose-700 font-bold text-xs sm:text-sm">
-              <div className="w-6 h-6 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-              <span>Cảnh Báo Tồn Kho Thấp ({lowStockPartsList.length} phụ tùng)</span>
+                {/* KPI 3: Kho Sắp Hết (Rose Alert) */}
+                <div
+                    onClick={() => router.push("/admin/kho?filter=low")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 via-rose-50/40 to-white border-2 border-rose-300 border-t-4 border-t-rose-500 shadow-md shadow-rose-500/10 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                >
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-rose-950 uppercase tracking-wide">Kho Sắp Hết</span>
+                        <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
+                            <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-rose-600 tracking-tight">
+                            {kpis.lowStockParts}
+                        </div>
+                        <div className="text-[11px] text-rose-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            <span>≤ {settings.lowStockThreshold} sản phẩm</span>
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* KPI 4: Phiếu Tháng Này (Cobalt Blue) */}
+                <div
+                    onClick={() => router.push("/admin/xe")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-blue-50/40 border border-blue-300/80 border-t-4 border-t-blue-500 shadow-md shadow-blue-900/5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                >
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700 truncate">Phiếu Tháng Này</span>
+                        <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
+                            <FileCheck2 className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-blue-700 tracking-tight">
+                            {kpis.ticketsThisMonth}
+                        </div>
+                        <div className="text-[11px] text-blue-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span>Hồ sơ phát hành</span>
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        </div>
+                    </div>
+                </div>
             </div>
-            <a
-              href="/admin/kho?filter=low"
-              className="text-xs text-rose-600 hover:text-rose-700 hover:underline font-semibold"
-            >
-              Vào kho nhập thêm
-            </a>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {lowStockPartsList.map((p) => (
-              <div
-                key={p.id}
-                className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 flex items-center justify-between text-xs transition-colors"
-              >
-                <div>
-                  <div className="font-semibold text-slate-900">{p.name}</div>
-                  <div className="text-2xs text-slate-500 font-mono mt-0.5">
-                    SKU: {p.sku} • {p.category}
-                  </div>
+            {/* 3. KHỐI TRỌNG TÂM: XE SẮP HẾT HẠN CẦN CHĂM SÓC KHÁCH HÀNG */}
+            <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 overflow-hidden transition-all">
+                {/* Header thanh lịch với tông Slate-Amber tương phản */}
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-gradient-to-r from-amber-500/15 via-amber-50/40 to-slate-50 border-b border-amber-200/80 flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                            <Clock className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <h2 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wide truncate">
+                                    Xe Sắp Hết Hạn
+                                </h2>
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-mono font-bold text-2xs shrink-0">
+                                    {expiringVehicles.length}
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 font-medium truncate mt-0.5">
+                                Cần gọi nhắc lịch bảo dưỡng định kỳ
+                            </p>
+                        </div>
+                    </div>
+                    <a
+                        href="/admin/xe?status=expiring"
+                        className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 transition-colors shrink-0 py-1 px-2.5 rounded-lg hover:bg-blue-50"
+                    >
+                        <span>Tất cả</span>
+                        <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </a>
                 </div>
-                <span className="px-2.5 py-1 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-mono font-bold text-xs">
-                  Còn: {p.stock}
-                </span>
-              </div>
-            ))}
-          </div>
+
+                {expiringVehicles.length > 0 ? (
+                    <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {expiringVehicles.map((veh) => (
+                            <div
+                                key={veh.id}
+                                className="group p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white hover:bg-amber-50/20 border border-slate-200/90 hover:border-amber-300/90 border-l-4 border-l-amber-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-3"
+                            >
+                                {/* Hàng 1: Biển số xe & Thẻ đếm ngược thời hạn */}
+                                <div className="flex items-center justify-between gap-2">
+                                    <div
+                                        onClick={() => router.push(`/admin/xe/${veh.id}`)}
+                                        className="cursor-pointer group-hover:scale-102 transition-transform shrink-0"
+                                    >
+                                        <LicensePlate plate={veh.plate} color={veh.plateColor} size="sm" />
+                                    </div>
+
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-300/80 text-amber-900 font-bold text-xs font-mono shrink-0">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                                        <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                                        <span>Còn {veh.daysLeft} ngày</span>
+                                    </div>
+                                </div>
+
+                                {/* Hàng 2: Tên dòng xe & Thông tin chủ xe */}
+                                <div
+                                    onClick={() => router.push(`/admin/xe/${veh.id}`)}
+                                    className="cursor-pointer space-y-1"
+                                >
+                                    <div className="font-extrabold text-sm sm:text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                                        {veh.model}
+                                    </div>
+                                    <div className="text-xs text-slate-500 flex items-center gap-1.5 truncate">
+                                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <span>Chủ xe:</span>
+                                        <strong className="text-slate-800 font-bold truncate">
+                                            {veh.ownerName || "Chưa có tên"}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                {/* Hàng 3: Các nút hành động thao tác 1 chạm */}
+                                <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                                    {veh.ownerPhone ? (
+                                        <a
+                                            href={`tel:${veh.ownerPhone}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="flex-1 h-9 sm:h-8.5 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold shadow-xs shadow-emerald-600/20 transition-all cursor-pointer"
+                                            title={`Gọi khách hàng ${veh.ownerName}: ${veh.ownerPhone}`}
+                                        >
+                                            <Phone className="w-3.5 h-3.5 fill-current" />
+                                            <span className="truncate">Gọi ({veh.ownerPhone})</span>
+                                        </a>
+                                    ) : (
+                                        <div className="flex-1 text-xs text-slate-400 italic py-1.5">
+                                            Chưa có SĐT
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push(`/admin/xe/${veh.id}`)}
+                                        className="h-9 sm:h-8.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 text-xs font-bold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0"
+                                    >
+                                        <span>Hồ sơ</span>
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-8 text-center text-xs sm:text-sm text-slate-500 bg-slate-50/40">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                        Tất cả phương tiện đều còn hạn bảo hành dài hạn an toàn.
+                    </div>
+                )}
+            </div>
+
+            {/* 4. CẢNH BÁO PHỤ TÙNG SẮP HẾT HÀNG */}
+            {lowStockPartsList.length > 0 && (
+                <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 overflow-hidden transition-all">
+                    {/* Header cảnh báo Tồn kho */}
+                    <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-gradient-to-r from-rose-500/15 via-rose-50/40 to-slate-50 border-b border-rose-200/80 flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                                <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wide truncate">
+                                        Tồn Kho Thấp
+                                    </h2>
+                                    <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-mono font-bold text-2xs shrink-0">
+                                        {lowStockPartsList.length}
+                                    </span>
+                                </div>
+                                <p className="text-[11px] text-slate-600 font-medium truncate mt-0.5">
+                                    Dưới định mức an toàn, cần nhập thêm
+                                </p>
+                            </div>
+                        </div>
+                        <a
+                            href="/admin/kho?filter=low"
+                            className="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition-colors shrink-0 py-1 px-2.5 rounded-lg hover:bg-rose-50"
+                        >
+                            <span>Kho hàng</span>
+                            <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </a>
+                    </div>
+
+                    <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                        {lowStockPartsList.map((p) => {
+                            const maxThreshold = Math.max(settings.lowStockThreshold * 2, 10);
+                            const percent = Math.min(100, Math.round((p.stock / maxThreshold) * 100));
+
+                            return (
+                                <div
+                                    key={p.id}
+                                    onClick={() => router.push("/admin/kho?filter=low")}
+                                    className="p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:border-rose-300 hover:bg-rose-50/30 flex items-center justify-between gap-3 text-xs transition-all cursor-pointer group shadow-2xs"
+                                >
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-bold text-slate-900 truncate group-hover:text-rose-700 transition-colors">
+                                            {p.name}
+                                        </div>
+                                        <div className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                                            {p.category}
+                                        </div>
+                                        {/* Thanh tiến độ tồn kho trực quan */}
+                                        <div className="mt-2 w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                            <div
+                                                className="bg-rose-500 h-1.5 rounded-full transition-all"
+                                                style={{ width: `${percent}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-xs shrink-0 shadow-xs">
+                                        Còn {p.stock}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* 5. PHÍM TẮT TRUY CẬP NHANH (Bảng điều hướng bổ trợ cho Admin) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                <a
+                    href="/admin/xe"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <Car className="w-4 h-4 stroke-[2.2]" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                                Quản Lý Hồ Sơ Xe
+                            </div>
+                            <div className="text-[11px] text-slate-500">Tra cứu & lịch sử bảo hành</div>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+
+                <a
+                    href="/admin/kho"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <Package className="w-4 h-4 stroke-[2.2]" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">
+                                Quản Lý Kho Hàng
+                            </div>
+                            <div className="text-[11px] text-slate-500">Danh mục & tồn kho phụ tùng</div>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+
+                <a
+                    href="/admin/kho/lich-su"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <History className="w-4 h-4 stroke-[2.2]" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-purple-600 transition-colors">
+                                Lịch Sử Xuất Nhập
+                            </div>
+                            <div className="text-[11px] text-slate-500">Nhật ký biến động kho</div>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+            </div>
         </div>
-      )}
-    </div>
-  )
+    );
 }

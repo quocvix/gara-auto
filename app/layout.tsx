@@ -30,9 +30,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-    title: "GARA AUTO — Tra Cứu & Quản Lý Bảo Hành Ô Tô",
+    title: "DUY AUTO — Tra Cứu & Quản Lý Bảo Hành Ô Tô",
     description:
-        "Hệ thống Quản lý và Tra cứu bảo hành điện tử chính hãng dành cho gara và khách hàng.",
+        "Hệ thống Quản lý và Tra cứu bảo hành điện tử chính hãng Duy Auto dành cho gara và khách hàng.",
 };
 
 export default function RootLayout({

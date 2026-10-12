@@ -30,10 +30,10 @@ export default function GarageSettingsPage() {
     const [expiringThresholdDays, setExpiringThresholdDays] = useState(settings.expiringThresholdDays);
     const [lowStockThreshold, setLowStockThreshold] = useState(settings.lowStockThreshold);
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         trigger("success");
-        updateSettings({
+        await updateSettings({
             name: name.trim(),
             hotline: hotline.trim(),
             address: address.trim(),
@@ -44,17 +44,17 @@ export default function GarageSettingsPage() {
         toast.success("Đã lưu cấu hình gara thành công!");
     };
 
-    const handleResetData = () => {
+    const handleResetData = async () => {
         const ok = window.confirm(
             "Khôi phục dữ liệu demo ban đầu (4 xe mẫu, 8 phụ tùng, lịch sử mẫu)?\nMọi dữ liệu bạn vừa nhập thêm sẽ được làm mới.",
         );
         if (ok) {
             trigger("warning");
-            resetData();
-            setName("GARA AUTO CARE");
+            await resetData();
+            setName("Duy Auto");
             setHotline("0399950365");
             setAddress("Số 88 Đường Giải Phóng, Phường Giáp Bát, Hoàng Mai, Hà Nội");
-            setMapsUrl("https://maps.google.com/?q=Gara+Auto+Care");
+            setMapsUrl("https://maps.google.com/?q=Duy+Auto");
             setExpiringThresholdDays(30);
             setLowStockThreshold(3);
             toast.success("Đã khôi phục dữ liệu mẫu ban đầu!");
@@ -95,7 +95,7 @@ export default function GarageSettingsPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required
-                                placeholder="VD: Gara Auto Care"
+                                placeholder="VD: Duy Auto"
                                 className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
                             />
                         </div>

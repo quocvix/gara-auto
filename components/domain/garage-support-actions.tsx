@@ -37,17 +37,14 @@ export function ZaloIcon({ className = "w-4 h-4" }: { className?: string }) {
                 d="M16 2.5C8.544 2.5 2.5 8.12 2.5 15.05c0 3.86 1.884 7.31 4.84 9.61L6 29.5l5.525-2.02c1.39.43 2.89.67 4.475.67 7.456 0 13.5-5.62 13.5-12.55S23.456 2.5 16 2.5z"
                 fill="currentColor"
             />
-            <path
-                d="M11 11.5h9.5l-6.8 8h7.3v2H11l6.8-8H11v-2z"
-                fill="#FFFFFF"
-            />
+            <path d="M11 11.5h9.5l-6.8 8h7.3v2H11l6.8-8H11v-2z" fill="#FFFFFF" />
         </svg>
     );
 }
 
 export function GarageSupportActions({
     hotline,
-    title = "Cần hỗ trợ về dịch vụ & bảo hành?",
+    title = "Cần hỗ trợ?",
     variant = "card",
     className = "",
 }: GarageSupportActionsProps) {
@@ -71,9 +68,7 @@ export function GarageSupportActions({
                     <div className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-rose-700 transition-colors truncate">
                         Gọi trực tiếp
                     </div>
-                    <div className="text-[10px] sm:text-[11px] font-medium text-rose-600/90 truncate">
-                        {hotline}
-                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-medium text-rose-600/90 truncate">{hotline}</div>
                 </div>
             </a>
 
@@ -92,9 +87,7 @@ export function GarageSupportActions({
                     <div className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0068FF] transition-colors truncate">
                         Nhắn Zalo
                     </div>
-                    <div className="text-[10px] sm:text-[11px] font-medium text-[#0068FF]/90 truncate">
-                        Mở app Zalo
-                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-medium text-[#0068FF]/90 truncate">Mở app Zalo</div>
                 </div>
             </a>
         </div>
@@ -105,10 +98,7 @@ export function GarageSupportActions({
     }
 
     return (
-        <section
-            aria-label="Liên hệ hỗ trợ gara"
-            className={`w-full ${className}`}
-        >
+        <section aria-label="Liên hệ hỗ trợ gara" className={`w-full ${className}`}>
             <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-2xs space-y-3">
                 <div className="flex items-center justify-between gap-2 px-0.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -116,13 +106,9 @@ export function GarageSupportActions({
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <span className="text-xs font-semibold text-slate-700 truncate">
-                            {title}
-                        </span>
+                        <span className="text-xs font-semibold text-slate-700 truncate">{title}</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-900 tracking-tight shrink-0">
-                        {hotline}
-                    </span>
+                    <span className="text-xs font-bold text-slate-900 tracking-tight shrink-0">{hotline}</span>
                 </div>
                 {buttons}
             </div>

@@ -14,11 +14,11 @@ import {
   Car,
   Calendar,
   AlertTriangle,
-  QrCode,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useHaptic } from '@/hooks/use-haptic'
-import { PartModal } from './part-modal'
+import dynamic from 'next/dynamic'
+const PartModal = dynamic(() => import('./part-modal').then((mod) => mod.PartModal), { ssr: false })
 import { LicensePlate } from './license-plate'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -189,8 +189,11 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
     setError('')
 
     const norm = normalizePlate(plate)
@@ -210,37 +213,34 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
       return
     }
 
-    const res = saveTicket({
-      ticketId,
-      vehicle: {
-        plate: plate.trim().toUpperCase(),
-        plateColor,
-        model: model.trim(),
-        ownerName: ownerName.trim(),
-        ownerPhone: ownerPhone.trim(),
-      },
-      odo: Number(odo) || 0,
-      items: selectedItems,
-      note: note.trim(),
-    })
+    try {
+      setIsSubmitting(true)
+      const res = await saveTicket({
+        ticketId,
+        vehicle: {
+          plate: plate.trim().toUpperCase(),
+          plateColor,
+          model: model.trim(),
+          ownerName: ownerName.trim(),
+          ownerPhone: ownerPhone.trim(),
+        },
+        odo: Number(odo) || 0,
+        items: selectedItems,
+        note: note.trim(),
+      })
 
-    if (!res.ok) {
-      setError(res.error || 'Có lỗi xảy ra khi lưu phiếu')
-      trigger('error')
-      return
-    }
-
-    trigger('success')
-    toast.success(ticketId ? 'Đã cập nhật phiếu bảo hành!' : 'Đã kích hoạt bảo hành thành công!')
-    closeTicketModal()
-
-    // Gợi ý in tem QR
-    setTimeout(() => {
-      const targetPlate = normalizePlate(plate)
-      if (confirm(`Kích hoạt thành công xe [${targetPlate}]! Bạn có muốn mở trang In Tem QR dán xe ngay không?`)) {
-        router.push(`/admin/xe/${targetPlate}/qr`)
+      if (!res.ok) {
+        setError(res.error || 'Có lỗi xảy ra khi lưu phiếu')
+        trigger('error')
+        return
       }
-    }, 300)
+
+      trigger('success')
+      toast.success(ticketId ? 'Đã cập nhật phiếu bảo hành!' : 'Đã kích hoạt bảo hành thành công!')
+      closeTicketModal()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -449,8 +449,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                           <div className="flex-1">
                             <div className="font-semibold text-sm text-slate-900">{part.name}</div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5 font-mono">
-                              <span>SKU: {part.sku}</span>
-                              <span>•</span>
                               {wMonths > 0 && itemExpires ? (
                                 <span className="text-emerald-700 font-semibold">
                                   BH {wMonths} tháng • Đến {formatDateVN(itemExpires)}
@@ -605,10 +603,17 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all"
+                  disabled={isSubmitting}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs sm:text-sm shadow-sm transition-all"
                 >
-                  <FileCheck2 className="w-4 h-4" />
-                  <span>{ticketId ? 'Cập Nhật Phiếu' : 'Kích Hoạt Bảo Hành'}</span>
+                  <FileCheck2 className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+                  <span>
+                    {isSubmitting
+                      ? 'Đang Lưu...'
+                      : ticketId
+                        ? 'Cập Nhật Phiếu'
+                        : 'Kích Hoạt Bảo Hành'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -620,9 +625,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
       <PartModal
         isOpen={isPartModalOpen}
         onClose={() => setIsPartModalOpen(false)}
-        onCreatedSuccess={(newSku) => {
-          const created = parts.find((p) => p.sku === newSku)
-          if (created) addItem(created.id)
+        onCreatedSuccess={(newPartId) => {
+          if (newPartId) addItem(newPartId)
         }}
       />
     </TicketModalContext.Provider>

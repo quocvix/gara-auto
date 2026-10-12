@@ -11,7 +11,7 @@ interface PartModalProps {
   isOpen: boolean
   onClose: () => void
   initialPart?: Part | null
-  onCreatedSuccess?: (newPartSku: string) => void
+  onCreatedSuccess?: (newPartId: string) => void
 }
 
 const COMMON_CATEGORIES = [
@@ -34,7 +34,6 @@ export function PartModal({
   const { savePart } = useGarageStore()
   const { trigger } = useHaptic()
 
-  const [sku, setSku] = useState(initialPart?.sku || '')
   const [name, setName] = useState(initialPart?.name || '')
   const [category, setCategory] = useState(initialPart?.category || 'Dầu & Dung dịch')
   const [warrantyMonths, setWarrantyMonths] = useState(initialPart?.warrantyMonths || 6)
@@ -45,14 +44,12 @@ export function PartModal({
   // Sync khi initialPart thay đổi
   React.useEffect(() => {
     if (initialPart) {
-      setSku(initialPart.sku)
       setName(initialPart.name)
       setCategory(initialPart.category)
       setWarrantyMonths(initialPart.warrantyMonths ?? 0)
       setPrice(initialPart.price)
       setStock(initialPart.stock)
     } else {
-      setSku('')
       setName('')
       setCategory('Dầu & Dung dịch')
       setWarrantyMonths(6)
@@ -62,42 +59,45 @@ export function PartModal({
     setError('')
   }, [initialPart, isOpen])
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
     setError('')
 
-    if (!sku.trim()) {
-      setError('Vui lòng nhập mã SKU phụ tùng')
-      return
-    }
     if (!name.trim()) {
       setError('Vui lòng nhập tên phụ tùng')
       return
     }
 
-    const res = savePart({
-      id: initialPart?.id,
-      sku: sku.trim().toUpperCase(),
-      name: name.trim(),
-      category,
-      warrantyMonths: Number(warrantyMonths),
-      price: Number(price),
-      stock: Number(stock),
-      isActive: true,
-    })
+    try {
+      setIsSubmitting(true)
+      const res = await savePart({
+        id: initialPart?.id,
+        name: name.trim(),
+        category,
+        warrantyMonths: Number(warrantyMonths),
+        price: Number(price),
+        stock: Number(stock),
+        isActive: true,
+      })
 
-    if (!res.ok) {
-      setError(res.error || 'Có lỗi xảy ra')
-      trigger('error')
-      return
+      if (!res.ok) {
+        setError(res.error || 'Có lỗi xảy ra')
+        trigger('error')
+        return
+      }
+
+      trigger('success')
+      toast.success(initialPart ? 'Cập nhật phụ tùng thành công!' : 'Đã thêm phụ tùng mới vào kho!')
+      onCreatedSuccess?.(res.part?.id || '')
+      onClose()
+    } finally {
+      setIsSubmitting(false)
     }
-
-    trigger('success')
-    toast.success(initialPart ? 'Cập nhật phụ tùng thành công!' : 'Đã thêm phụ tùng mới vào kho!')
-    onCreatedSuccess?.(sku.trim().toUpperCase())
-    onClose()
   }
 
   return (
@@ -130,40 +130,6 @@ export function PartModal({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                MÃ SKU / MÃ PHỤ TÙNG *
-              </label>
-              <input
-                type="text"
-                value={sku}
-                onChange={(e) => setSku(e.target.value.toUpperCase())}
-                placeholder="VD: MOTUL-300V"
-                disabled={Boolean(initialPart)}
-                className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white font-mono text-sm uppercase text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:opacity-50 shadow-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                DANH MỤC
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
-              >
-                {COMMON_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               TÊN PHỤ TÙNG *
@@ -176,6 +142,23 @@ export function PartModal({
               className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              DANH MỤC
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
+            >
+              {COMMON_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -235,10 +218,17 @@ export function PartModal({
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all"
+              disabled={isSubmitting}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-sm transition-all"
             >
-              <Save className="w-4 h-4" />
-              <span>{initialPart ? 'Lưu Thay Đổi' : 'Tạo Phụ Tùng'}</span>
+              <Save className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+              <span>
+                {isSubmitting
+                  ? 'Đang Lưu...'
+                  : initialPart
+                    ? 'Lưu Thay Đổi'
+                    : 'Tạo Phụ Tùng'}
+              </span>
             </button>
           </div>
         </form>

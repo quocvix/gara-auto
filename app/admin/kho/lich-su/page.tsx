@@ -4,11 +4,9 @@ import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useGarageStore } from '@/lib/store/garage-store'
 import { formatDateVN } from '@/lib/format'
-import { exportMovementsToExcel } from '@/lib/excel-export'
 import {
   ArrowLeft,
   History,
-  FileSpreadsheet,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
@@ -23,7 +21,6 @@ export default function StockMovementsPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [reasonFilter, setReasonFilter] = useState<string>('all')
-  const [isExporting, setIsExporting] = useState(false)
 
   const reasonLabels: Record<string, { label: string; badge: string }> = {
     initial: { label: 'Tạo ban đầu', badge: 'bg-slate-100 text-slate-700 border-slate-200' },
@@ -40,25 +37,12 @@ export default function StockMovementsPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchName = m.partName.toLowerCase().includes(q)
-        const matchSku = m.partSku.toLowerCase().includes(q)
         const matchNote = (m.note || '').toLowerCase().includes(q)
-        return matchName || matchSku || matchNote
+        return matchName || matchNote
       }
       return true
     })
   }, [movements, reasonFilter, searchQuery])
-
-  const handleExport = async () => {
-    try {
-      setIsExporting(true)
-      await exportMovementsToExcel(filteredMovements)
-      toast.success('Đã xuất file Excel lịch sử kho!')
-    } catch {
-      toast.error('Lỗi khi xuất file Excel')
-    } finally {
-      setIsExporting(false)
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -80,16 +64,6 @@ export default function StockMovementsPage() {
             Nhật ký biến động tồn kho chi tiết theo từng phiếu và đợt nhập hàng
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={handleExport}
-          disabled={isExporting || filteredMovements.length === 0}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-all self-start sm:self-auto disabled:opacity-40"
-        >
-          <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-          <span>Xuất Excel</span>
-        </button>
       </div>
 
       {/* Tìm Kiếm & Lọc Lý Do */}
@@ -100,7 +74,7 @@ export default function StockMovementsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo tên phụ tùng, mã SKU hoặc ghi chú..."
+            placeholder="Tìm theo tên phụ tùng hoặc ghi chú..."
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-sm"
           />
         </div>
@@ -157,9 +131,6 @@ export default function StockMovementsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-sm text-slate-900">
                           {m.partName}
-                        </span>
-                        <span className="text-xs font-mono text-slate-500">
-                          ({m.partSku})
                         </span>
                         <span
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${reasonInfo.badge}`}

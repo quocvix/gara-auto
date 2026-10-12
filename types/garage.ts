@@ -18,7 +18,7 @@ export interface TicketItem {
   ticketId: string
   partId: string | null
   partName: string
-  partSku: string
+  partSku?: string
   serial?: string
   quantity: number
   warrantyMonths: number
@@ -39,7 +39,7 @@ export interface WarrantyTicket {
 
 export interface Part {
   id: string
-  sku: string
+  sku?: string
   name: string
   category: string
   warrantyMonths?: number
@@ -56,7 +56,7 @@ export interface StockMovement {
   id: number
   partId: string
   partName: string
-  partSku: string
+  partSku?: string
   delta: number
   stockAfter: number
   reason: StockReason
