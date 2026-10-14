@@ -3,47 +3,39 @@
 import React, { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
-import { formatVND } from "@/lib/format";
-import { QtyStepper } from "@/components/domain/qty-stepper";
 import dynamic from "next/dynamic";
 import { Part } from "@/types/garage";
 
 const PartModal = dynamic(() => import("@/components/domain/part-modal").then((mod) => mod.PartModal), { ssr: false });
-import { Package, Plus, Search, AlertTriangle, Edit, Trash2, History } from "lucide-react";
+import { Package, Plus, Search, AlertTriangle, Edit, Trash2, History, X, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
 
 function InventoryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { parts, adjustStock, deletePart, settings } = useGarageStore();
+    const { parts, deletePart, settings } = useGarageStore();
     const { trigger } = useHaptic();
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [filterLowStock, setFilterLowStock] = useState(searchParams.get("filter") === "low");
     const [isPartModalOpen, setIsPartModalOpen] = useState(false);
     const [editingPart, setEditingPart] = useState<Part | null>(null);
 
-    // Danh mục duy nhất có trong kho
-    const categories = useMemo(() => {
-        const set = new Set<string>();
-        parts.forEach((p) => {
-            if (p.category && p.isActive) set.add(p.category);
-        });
-        return Array.from(set);
+    // Danh sách phụ tùng đang hoạt động
+    const activeParts = useMemo(() => {
+        return parts.filter((p) => p.isActive);
     }, [parts]);
 
-    // Lọc
+    // Số lượng sắp hết hàng
+    const lowStockCount = useMemo(() => {
+        return activeParts.filter((p) => p.stock <= settings.lowStockThreshold).length;
+    }, [activeParts, settings.lowStockThreshold]);
+
+    // Lọc theo tìm kiếm và tồn thấp
     const filteredParts = useMemo(() => {
-        return parts.filter((p) => {
-            if (!p.isActive) return false;
-
+        return activeParts.filter((p) => {
             if (filterLowStock && p.stock > settings.lowStockThreshold) {
-                return false;
-            }
-
-            if (selectedCategory !== "all" && p.category !== selectedCategory) {
                 return false;
             }
 
@@ -54,27 +46,17 @@ function InventoryContent() {
 
             return true;
         });
-    }, [parts, filterLowStock, selectedCategory, searchQuery, settings.lowStockThreshold]);
-
-    const handleStockDelta = async (partId: string, delta: number) => {
-        const reason = delta > 0 ? "import" : "export";
-        const note = delta > 0 ? "Nhập kho nhanh" : "Xuất kho nhanh";
-        const res = await adjustStock(partId, delta, reason, note);
-        if (!res.ok) {
-            toast.error(res.error || "Lỗi cập nhật kho");
-            trigger("error");
-        } else {
-            toast.success(delta > 0 ? `Đã nhập +${delta} vào tồn kho` : `Đã xuất ${delta} khỏi tồn kho`);
-        }
-    };
+    }, [activeParts, filterLowStock, searchQuery, settings.lowStockThreshold]);
 
     const handleEdit = (part: Part) => {
+        trigger("tap");
         setEditingPart(part);
         setIsPartModalOpen(true);
     };
 
-    const handleDelete = async (part: Part) => {
-        const confirm = window.confirm(`Xác nhận xóa phụ tùng "${part.name}" khỏi kho đang bán?`);
+    const handleDelete = async (e: React.MouseEvent, part: Part) => {
+        e.stopPropagation();
+        const confirm = window.confirm(`Xác nhận xóa phụ tùng "${part.name}" khỏi danh sách kho?`);
         if (confirm) {
             trigger("warning");
             await deletePart(part.id);
@@ -83,31 +65,33 @@ function InventoryContent() {
     };
 
     return (
-        <div className="space-y-5 animate-in fade-in duration-200">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
             {/* Top Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-row items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                        Kho Phụ Tùng ({parts.filter((p) => p.isActive).length})
+                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                        Kho hàng
                     </h1>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2">
                     <a
                         href="/admin/kho/lich-su"
-                        className="flex-1 sm:flex-initial h-10 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                        className="h-10 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                        title="Xem lịch sử nhập xuất kho"
                     >
                         <History className="w-4 h-4 text-blue-600" />
-                        <span>Lịch Sử Kho</span>
+                        <span className="hidden sm:inline">Lịch Sử Kho</span>
                     </a>
 
                     <button
                         type="button"
                         onClick={() => {
+                            trigger("tap");
                             setEditingPart(null);
                             setIsPartModalOpen(true);
                         }}
-                        className="w-full sm:w-auto h-10 inline-flex items-center justify-center gap-1.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                        className="h-10 inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                         <span>Thêm Phụ Tùng</span>
@@ -115,73 +99,86 @@ function InventoryContent() {
                 </div>
             </div>
 
-            {/* Tìm Kiếm & Bộ Lọc */}
-            <div className="space-y-2.5">
+            {/* Sticky Search & Filter Header trên Mobile */}
+            <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md space-y-2.5 transition-all">
+                {/* Search Bar */}
                 <div className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Tìm tên phụ tùng..."
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 text-base sm:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-2xs placeholder:text-slate-400"
+                        className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200/90 bg-white text-slate-900 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-xs placeholder:text-slate-400 transition-all"
                     />
+                    {searchQuery.trim().length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                trigger("tap");
+                                setSearchQuery("");
+                            }}
+                            className="w-7 h-7 absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            aria-label="Xóa tìm kiếm"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
 
-                {/* Filter Chips cuộn ngang với lề chuẩn R6 */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                {/* Filter Chips Tối Giản: Tất Cả & Sắp Hết Hàng */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                     <button
                         type="button"
                         onClick={() => {
-                            setSelectedCategory("all");
+                            trigger("tap");
                             setFilterLowStock(false);
                         }}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                            selectedCategory === "all" && !filterLowStock
-                                ? "bg-slate-900 text-white shadow-2xs"
-                                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                            !filterLowStock
+                                ? "bg-blue-600 text-white shadow-xs shadow-blue-600/30"
+                                : "bg-white border border-slate-200 text-slate-600 hover:bg-blue-50/50"
                         }`}
                     >
-                        Tất cả
+                        <span>Tất cả</span>
+                        <span
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                !filterLowStock ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-600"
+                            }`}
+                        >
+                            {activeParts.length}
+                        </span>
                     </button>
 
                     <button
                         type="button"
-                        onClick={() => setFilterLowStock(!filterLowStock)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                        onClick={() => {
+                            trigger("tap");
+                            setFilterLowStock(!filterLowStock);
+                        }}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                             filterLowStock
-                                ? "bg-rose-50 text-rose-700 border border-rose-300 font-bold shadow-2xs"
-                                : "bg-white border border-rose-200 text-rose-600 hover:bg-rose-50"
+                                ? "bg-rose-600 text-white shadow-xs shadow-rose-600/30"
+                                : "bg-white border border-slate-200 text-slate-600 hover:bg-rose-50/50"
                         }`}
                     >
-                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <AlertTriangle className={`w-3.5 h-3.5 ${filterLowStock ? "text-white" : "text-rose-500"}`} />
                         <span>Sắp hết (≤ {settings.lowStockThreshold})</span>
-                    </button>
-
-                    {categories.map((cat) => (
-                        <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                                setSelectedCategory(cat);
-                                setFilterLowStock(false);
-                            }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                                selectedCategory === cat && !filterLowStock
-                                    ? "bg-blue-600 text-white shadow-2xs"
-                                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        <span
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                filterLowStock ? "bg-rose-700 text-white" : "bg-rose-100 text-rose-700"
                             }`}
                         >
-                            {cat}
-                        </button>
-                    ))}
+                            {lowStockCount}
+                        </span>
+                    </button>
                 </div>
             </div>
 
-            {/* DANH SÁCH PHỤ TÙNG (Cards trên Mobile, DataTable trên Desktop) */}
+            {/* DANH SÁCH PHỤ TÙNG: CARDS TRÊN MOBILE, BẢNG TRÊN DESKTOP */}
             {filteredParts.length > 0 ? (
                 <>
-                    {/* Mobile Cards */}
+                    {/* 1. Mobile Cards View (< 1024px) - Bấm vào thẻ để chỉnh sửa an toàn */}
                     <div className="lg:hidden space-y-3">
                         {filteredParts.map((part) => {
                             const isLow = part.stock <= settings.lowStockThreshold;
@@ -189,62 +186,60 @@ function InventoryContent() {
                             return (
                                 <div
                                     key={part.id}
-                                    className={`p-4 rounded-2xl border bg-white shadow-2xs space-y-3 transition-colors ${
-                                        isLow ? "border-rose-200 bg-rose-50/20" : "border-slate-200/90"
+                                    onClick={() => handleEdit(part)}
+                                    className={`group p-4 rounded-2xl border bg-white shadow-xs hover:shadow-md active:scale-[0.99] transition-all cursor-pointer space-y-3 ${
+                                        isLow ? "border-rose-200/90 bg-rose-50/15" : "border-slate-200/90"
                                     }`}
                                 >
+                                    {/* Tên phụ tùng & Cảnh báo tồn thấp */}
                                     <div className="flex items-start justify-between gap-3">
-                                        <div className="space-y-1">
+                                        <div className="min-w-0 flex-1 space-y-1">
                                             {isLow && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-2xs px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
-                                                        Sắp hết
-                                                    </span>
-                                                </div>
+                                                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
+                                                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                                    Sắp hết hàng
+                                                </span>
                                             )}
-                                            <h4 className="font-bold text-sm text-slate-900">{part.name}</h4>
-                                            <div className="text-xs text-slate-500">
-                                                {part.category} • BH {part.warrantyMonths} tháng
-                                            </div>
+                                            <h2 className="font-bold text-sm sm:text-base text-slate-900 leading-snug">
+                                                {part.name}
+                                            </h2>
                                         </div>
 
-                                        <div className="text-right">
-                                            <div className="text-sm font-extrabold text-slate-900 font-mono">
-                                                {formatVND(part.price)}
-                                            </div>
-                                        </div>
+                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
                                     </div>
 
-                                    {/* Tồn kho & Stepper */}
-                                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                                        <div className="text-xs">
-                                            <span className="text-slate-400">Tồn hiện tại: </span>
-                                            <strong
-                                                className={`font-mono ${isLow ? "text-rose-600 font-bold" : "text-slate-800"}`}
+                                    {/* Tồn kho & Nút Thao tác */}
+                                    <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-slate-400">Tồn kho:</span>
+                                            <span
+                                                className={`font-mono text-sm font-extrabold px-2.5 py-0.5 rounded-lg border ${
+                                                    isLow
+                                                        ? "bg-rose-50 border-rose-200 text-rose-700"
+                                                        : "bg-slate-100 border-slate-200 text-slate-800"
+                                                }`}
                                             >
                                                 {part.stock} món
-                                            </strong>
+                                            </span>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
-                                            <QtyStepper
-                                                value={part.stock}
-                                                onCommitDelta={(delta) => handleStockDelta(part.id, delta)}
-                                            />
-
+                                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                            {/* Nút sửa */}
                                             <button
                                                 type="button"
                                                 onClick={() => handleEdit(part)}
-                                                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
-                                                title="Sửa thông tin"
+                                                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer active:scale-95"
+                                                title="Sửa thông tin & tồn kho"
                                             >
-                                                <Edit className="w-3.5 h-3.5" />
+                                                <Edit className="w-3.5 h-3.5 text-blue-600" />
+                                                <span>Sửa</span>
                                             </button>
 
+                                            {/* Nút xóa */}
                                             <button
                                                 type="button"
-                                                onClick={() => handleDelete(part)}
-                                                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer"
+                                                onClick={(e) => handleDelete(e, part)}
+                                                className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer active:scale-95"
                                                 title="Xóa phụ tùng"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -256,16 +251,13 @@ function InventoryContent() {
                         })}
                     </div>
 
-                    {/* Desktop DataTable */}
-                    <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
+                    {/* 2. Desktop DataTable View (>= 1024px) - BỎ +/- TRỰC TIẾP, BẤM SỬA ĐỂ CẬP NHẬT KHO */}
+                    <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
                         <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-bold tracking-wider text-2xs">
+                            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider text-[11px]">
                                 <tr>
                                     <th className="py-3.5 px-4">Tên Phụ Tùng</th>
-                                    <th className="py-3.5 px-4">Danh Mục</th>
-                                    <th className="py-3.5 px-4 text-center">Bảo Hành</th>
-                                    <th className="py-3.5 px-4 text-right">Đơn Giá</th>
-                                    <th className="py-3.5 px-4 text-center">Điều Chỉnh Tồn Kho</th>
+                                    <th className="py-3.5 px-4 text-center">Tồn Kho Hiện Tại</th>
                                     <th className="py-3.5 px-4 text-right">Thao Tác</th>
                                 </tr>
                             </thead>
@@ -276,48 +268,48 @@ function InventoryContent() {
                                     return (
                                         <tr
                                             key={part.id}
-                                            className={`hover:bg-slate-50/70 transition-colors ${
-                                                isLow ? "bg-rose-50/20" : ""
+                                            onClick={() => handleEdit(part)}
+                                            className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${
+                                                isLow ? "bg-rose-50/15" : ""
                                             }`}
                                         >
-                                            <td className="py-3.5 px-4 font-semibold text-slate-900">
+                                            <td className="py-3.5 px-4 font-bold text-slate-900">
                                                 <div className="flex items-center gap-2">
                                                     <span>{part.name}</span>
                                                     {isLow && (
-                                                        <span className="text-2xs px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
-                                                            Cảnh báo kho
+                                                        <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-rose-50 text-rose-700 font-bold border border-rose-200">
+                                                            Sắp hết
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="py-3.5 px-4 text-slate-500">{part.category}</td>
-                                            <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-700">
-                                                {part.warrantyMonths} tháng
-                                            </td>
-                                            <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900">
-                                                {formatVND(part.price)}
-                                            </td>
                                             <td className="py-3.5 px-4 text-center">
-                                                <QtyStepper
-                                                    value={part.stock}
-                                                    onCommitDelta={(delta) => handleStockDelta(part.id, delta)}
-                                                />
+                                                <span
+                                                    className={`inline-flex items-center justify-center font-mono text-sm font-extrabold px-3 py-1 rounded-lg border ${
+                                                        isLow
+                                                            ? "bg-rose-50 border-rose-200 text-rose-700"
+                                                            : "bg-slate-100 border-slate-200 text-slate-800"
+                                                    }`}
+                                                >
+                                                    {part.stock} món
+                                                </span>
                                             </td>
-                                            <td className="py-3.5 px-4 text-right">
+                                            <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         type="button"
                                                         onClick={() => handleEdit(part)}
-                                                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
-                                                        title="Sửa"
+                                                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer active:scale-95"
+                                                        title="Sửa tên & số lượng tồn kho"
                                                     >
-                                                        <Edit className="w-3.5 h-3.5" />
+                                                        <Edit className="w-3.5 h-3.5 text-blue-600" />
+                                                        <span>Sửa</span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleDelete(part)}
-                                                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer"
-                                                        title="Xóa"
+                                                        onClick={(e) => handleDelete(e, part)}
+                                                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer active:scale-95"
+                                                        title="Xóa phụ tùng"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -331,16 +323,33 @@ function InventoryContent() {
                     </div>
                 </>
             ) : (
-                <div className="p-12 text-center rounded-2xl border border-dashed border-slate-200 bg-white space-y-3 shadow-2xs">
-                    <Package className="w-10 h-10 text-slate-300 mx-auto" />
-                    <div className="font-bold text-sm text-slate-700">Không tìm thấy phụ tùng phù hợp</div>
+                /* Empty State */
+                <div className="p-10 text-center rounded-2xl border border-dashed border-slate-200 bg-white space-y-3 shadow-xs">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                        <Package className="w-6 h-6" />
+                    </div>
+                    <div className="font-bold text-sm text-slate-800">Không tìm thấy phụ tùng phù hợp</div>
                     <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                        Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác.
+                        Thử thay đổi từ khóa tìm kiếm hoặc kiểm tra bộ lọc cảnh báo kho.
                     </p>
+                    {(searchQuery || filterLowStock) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                trigger("tap");
+                                setSearchQuery("");
+                                setFilterLowStock(false);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Xóa bộ lọc</span>
+                        </button>
+                    )}
                 </div>
             )}
 
-            {/* PartModal thêm/sửa */}
+            {/* PartModal thêm/sửa gọn nhẹ và an toàn */}
             <PartModal isOpen={isPartModalOpen} onClose={() => setIsPartModalOpen(false)} initialPart={editingPart} />
         </div>
     );

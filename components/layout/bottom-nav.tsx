@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Car, Plus, Package, Settings } from "lucide-react";
 import { useTicketModal } from "@/components/domain/ticket-modal";
 import { useHaptic } from "@/hooks/use-haptic";
+import { useUIStore } from "@/lib/store/ui-store";
 
 export function BottomNav() {
     const pathname = usePathname();
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
+    const isBottomNavHidden = useUIStore((state) => state.isBottomNavHidden);
 
     const navItems = [
         {
@@ -50,7 +52,13 @@ export function BottomNav() {
     };
 
     return (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-lg shadow-slate-900/5 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+        <nav
+            className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-lg shadow-slate-900/5 pb-[max(0.25rem,env(safe-area-inset-bottom))] transition-all duration-300 ease-in-out ${
+                isBottomNavHidden
+                    ? "translate-y-full opacity-0 pointer-events-none"
+                    : "translate-y-0 opacity-100"
+            }`}
+        >
             <div className="flex items-center justify-around h-14 px-1.5 relative max-w-lg mx-auto">
                 {navItems.map((item) => {
                     if (item.isFab) {

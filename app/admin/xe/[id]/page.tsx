@@ -3,12 +3,25 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
-import { formatDateVN, formatOdo, formatVND } from "@/lib/format";
+import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { WarrantyProgress } from "@/components/domain/warranty-progress";
 import { useTicketModal } from "@/components/domain/ticket-modal";
-import { ArrowLeft, Plus, ExternalLink, User, Phone, Gauge, Calendar, FileText, Edit, Trash2 } from "lucide-react";
+import {
+    ArrowLeft,
+    Plus,
+    ExternalLink,
+    User,
+    Phone,
+    Calendar,
+    FileText,
+    Edit,
+    Trash2,
+    Wrench,
+    Clock,
+    ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
 
@@ -25,14 +38,22 @@ export default function VehicleDetailPage() {
 
     if (!vehicle) {
         return (
-            <div className="p-8 text-center space-y-4">
-                <h3 className="text-lg font-bold">Không tìm thấy hồ sơ xe này</h3>
+            <div className="p-8 sm:p-12 text-center rounded-2xl border border-dashed border-slate-200 bg-white max-w-lg mx-auto space-y-4 my-8 shadow-xs">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <FileText className="w-6 h-6" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Không tìm thấy hồ sơ xe này</h3>
+                <p className="text-xs text-slate-500">Hồ sơ có thể đã bị xóa hoặc đường dẫn không chính xác.</p>
                 <button
                     type="button"
-                    onClick={() => router.push("/admin/xe")}
-                    className="text-xs text-primary underline"
+                    onClick={() => {
+                        trigger("tap");
+                        router.push("/admin/xe");
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                    Quay lại danh sách xe
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Quay lại danh sách xe</span>
                 </button>
             </div>
         );
@@ -43,6 +64,7 @@ export default function VehicleDetailPage() {
         .sort((a, b) => b.activatedOn.localeCompare(a.activatedOn));
 
     const handleCreateNewTicketForThisVehicle = () => {
+        trigger("tap");
         openTicketModal({
             vehicle: {
                 plate: vehicle.plate,
@@ -63,204 +85,253 @@ export default function VehicleDetailPage() {
         if (restore) {
             trigger("warning");
             await deleteTicket(ticketId, true);
-            toast.success("Đã xóa phiếu bảo hành và hoàn lại kho!");
+            toast.success("Đã xóa phiếu bảo hành và hoàn lại tồn kho!");
         }
     };
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Back button & Title */}
-            <div className="flex items-center justify-between">
+        <div className="space-y-5 sm:space-y-6 max-w-4xl mx-auto pb-8 animate-in fade-in duration-200">
+            {/* Top Navigation Bar: Nút quay lại & Tiêu đề */}
+            <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
-                    onClick={() => router.push("/admin/xe")}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+                    onClick={() => {
+                        trigger("tap");
+                        router.push("/admin/xe");
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
                 >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>Quay lại Danh sách xe</span>
+                    <ArrowLeft className="w-4 h-4 text-slate-500" />
+                    <span>Danh sách xe</span>
                 </button>
+
+                <a
+                    href={`/tra-cuu/${vehicle.plateNormalized}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/70 hover:bg-indigo-100/70 text-indigo-700 text-xs font-semibold active:scale-95 transition-all"
+                    title="Mở cổng tra cứu công khai như khách xem"
+                >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Cổng tra cứu khách</span>
+                    <span className="sm:hidden">Tra cứu</span>
+                </a>
             </div>
 
-            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN */}
-            <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-sm space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-2">
-                        <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
-                        <h2 className="text-xl font-bold text-slate-900">{vehicle.model}</h2>
+            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD) - ĐÃ BỎ ODO */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 sm:space-y-5">
+                {/* Header Card: Biển số, Dòng xe & Status Badge */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
+                            <StatusBadge
+                                status={vehicle.status}
+                                days={vehicle.daysLeft}
+                                showDays
+                                expiresOn={vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : undefined}
+                            />
+                        </div>
+                        <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">{vehicle.model}</h1>
                     </div>
 
-                    <div className="flex flex-col items-start sm:items-end gap-2">
-                        <StatusBadge status={vehicle.status} days={vehicle.daysLeft} showDays />
-                        <span className="text-xs text-slate-500">{vTickets.length} đợt bảo dưỡng đã thực hiện</span>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold">
+                            <FileText className="w-3.5 h-3.5 text-slate-400" />
+                            {vTickets.length} lần
+                        </span>
                     </div>
                 </div>
 
-                {/* Thông số xe */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-                    <div>
-                        <span className="text-slate-500 uppercase font-semibold text-[11px]">Chủ Xe</span>
-                        <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{vehicle.ownerName || "Chưa đăng ký"}</span>
+                {/* Thông tin Chủ xe & Hạn bảo hành (Grid 2 cột trên mobile, 3 cột trên tablet+) - ĐÃ BỎ ODO */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs">
+                    {/* Chủ xe */}
+                    <div className="space-y-1">
+                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
+                            <User className="w-3 h-3 text-slate-400" />
+                            Chủ Xe
+                        </span>
+                        <div className="font-bold text-sm text-slate-900 truncate">
+                            {vehicle.ownerName || "Chưa có tên chủ xe"}
                         </div>
                     </div>
 
-                    <div>
-                        <span className="text-slate-500 uppercase font-semibold text-[11px]">Số Điện Thoại</span>
-                        <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
-                            <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    {/* Số điện thoại & Nút gọi 1-chạm */}
+                    <div className="space-y-1">
+                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            Số Điện Thoại
+                        </span>
+                        <div className="flex items-center gap-2">
                             {vehicle.ownerPhone ? (
-                                <a href={`tel:${vehicle.ownerPhone}`} className="hover:underline text-blue-600">
-                                    {vehicle.ownerPhone}
-                                </a>
+                                <>
+                                    <span className="font-mono font-bold text-slate-900 text-sm">
+                                        {vehicle.ownerPhone}
+                                    </span>
+                                    <a
+                                        href={`tel:${vehicle.ownerPhone}`}
+                                        onClick={() => trigger("tap")}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0 transition-colors"
+                                        title={`Gọi ${vehicle.ownerPhone}`}
+                                    >
+                                        <Phone className="w-3 h-3 fill-current" />
+                                        <span>Gọi</span>
+                                    </a>
+                                </>
                             ) : (
-                                "—"
+                                <span className="text-slate-400 font-mono">—</span>
                             )}
                         </div>
                     </div>
 
-                    <div>
-                        <span className="text-slate-500 uppercase font-semibold text-[11px]">ODO Hiện Tại</span>
-                        <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
-                            <Gauge className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span>{formatOdo(vehicle.odo)} km</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span className="text-slate-500 uppercase font-semibold text-[11px]">Hạn Dài Nhất</span>
-                        <div className="font-semibold text-sm text-slate-900 mt-1 flex items-center gap-1.5 font-mono">
-                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span>{vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : "—"}</span>
+                    {/* Hạn dài nhất */}
+                    <div className="space-y-1">
+                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            Hạn BH Dài Nhất
+                        </span>
+                        <div className="font-mono font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <span>{vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : "Chưa có"}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Thanh tiến độ */}
+                {/* Thanh tiến độ bảo hành trực quan */}
                 {vehicle.expiresOn && (
-                    <WarrantyProgress
-                        activatedOn={vehicle.lastActivatedOn}
-                        expiresOn={vehicle.expiresOn}
-                        status={vehicle.status}
-                        daysLeft={vehicle.daysLeft}
-                    />
+                    <div className="pt-1">
+                        <WarrantyProgress
+                            activatedOn={vehicle.lastActivatedOn}
+                            expiresOn={vehicle.expiresOn}
+                            status={vehicle.status}
+                            daysLeft={vehicle.daysLeft}
+                        />
+                    </div>
                 )}
 
-                {/* Action nhanh */}
-                <div className="pt-2 flex justify-end">
+                {/* Action Button: Tạo Phiếu Mới Cho Xe Này */}
+                <div className="pt-1">
                     <button
                         type="button"
                         onClick={handleCreateNewTicketForThisVehicle}
-                        className="w-full sm:w-auto h-11 sm:h-10 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
+                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
-                        <span>Tạo Phiếu Mới Cho Xe Này</span>
+                        <span>Tạo Phiếu Bảo Hành Cho Xe Này</span>
                     </button>
                 </div>
             </div>
 
-            {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH */}
-            <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    Lịch Sử Phiếu Bảo Hành ({vTickets.length})
-                </h3>
+            {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH (TIMELINE CARDS) - ĐÃ BỎ ODO */}
+            <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        Lịch Sử ({vTickets.length} lần)
+                    </h2>
+                </div>
 
                 {vTickets.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                         {vTickets.map((t, idx) => (
-                            <div
-                                key={t.id}
-                                className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-sm space-y-4"
-                            >
-                                {/* Header phiếu */}
-                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                                    <div>
-                                        <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                                            <span>Phiếu Đợt {vTickets.length - idx}</span>
-                                            <span className="text-xs px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-medium">
-                                                Ngày {formatDateVN(t.activatedOn)}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-slate-500 font-mono mt-1">
-                                            ODO: {formatOdo(t.odo)} km • Hạn đến: {formatDateVN(t.expiresOn)}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                openTicketModal({
-                                                    ticketId: t.id,
-                                                    vehicle,
-                                                    odo: t.odo,
-                                                    note: t.note,
-                                                    items: t.items.map((it) => ({
-                                                        partId: it.partId || "",
-                                                        quantity: it.quantity,
-                                                        serial: it.serial,
-                                                    })),
-                                                })
-                                            }
-                                            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors"
-                                        >
-                                            <Edit className="w-3.5 h-3.5 text-slate-500" />
-                                            <span>Sửa phiếu</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteTicket(t.id)}
-                                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                                            title="Xóa phiếu"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Các phụ tùng trong phiếu */}
-                                <div className="space-y-2">
-                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                                        Phụ tùng lắp đặt:
-                                    </span>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                        {t.items.map((item, iIdx) => (
-                                            <div
-                                                key={iIdx}
-                                                className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 flex items-center justify-between text-xs"
-                                            >
-                                                <div>
-                                                    <div className="font-semibold text-slate-900">{item.partName}</div>
-                                                    <div className="text-slate-500 font-mono text-[11px] mt-0.5">
-                                                        BH {item.warrantyMonths}T • Hạn:{" "}
-                                                        {formatDateVN(item.expiresOn)}
-                                                    </div>
-                                                    {item.serial && (
-                                                        <div className="text-blue-600 font-mono text-[11px] mt-0.5">
-                                                            Seri: {item.serial}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <span className="px-2 py-1 rounded bg-white border border-slate-200 font-bold font-mono text-slate-800">
-                                                    x{item.quantity}
+                            <div key={t.id} className="relative group">
+                                {/* Ticket Card */}
+                                <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-white shadow-xs hover:shadow-md transition-all space-y-3.5">
+                                    {/* Header phiếu: Đợt X, Ngày kích hoạt, Hạn BH & Nút hành động */}
+                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-extrabold text-sm text-slate-900">
+                                                    Lần {vTickets.length - idx}
+                                                </span>
+                                                <span className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold">
+                                                    Ngày {formatDateVN(t.activatedOn)}
                                                 </span>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        </div>
 
-                                {t.note && (
-                                    <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                                        Ghi chú: {t.note}
+                                        {/* Action buttons: Sửa & Xóa phiếu */}
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    trigger("tap");
+                                                    openTicketModal({
+                                                        ticketId: t.id,
+                                                        vehicle,
+                                                        odo: t.odo,
+                                                        note: t.note,
+                                                        items: t.items.map((it) => ({
+                                                            partId: it.partId || "",
+                                                            quantity: it.quantity,
+                                                        })),
+                                                    });
+                                                }}
+                                                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95"
+                                            >
+                                                <Edit className="w-3.5 h-3.5 text-amber-600" />
+                                                <span>Sửa</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteTicket(t.id)}
+                                                className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                                                title="Xóa phiếu"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
+
+                                    {/* Danh sách phụ tùng trong phiếu */}
+                                    <div className="space-y-2">
+                                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                            <Wrench className="w-3 h-3 text-slate-400" />
+                                            Phụ tùng lắp đặt ({t.items.length})
+                                        </span>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {t.items.map((item, iIdx) => (
+                                                <div
+                                                    key={iIdx}
+                                                    className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-start justify-between gap-2 text-xs"
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="font-bold text-slate-900 leading-tight truncate">
+                                                            {item.partName}
+                                                        </div>
+                                                        <div className="text-slate-500 font-mono text-[11px] mt-1 flex items-center gap-2 flex-wrap">
+                                                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                                                BH {item.warrantyMonths}T
+                                                            </span>
+                                                            <span>Đến: {formatDateVN(item.expiresOn)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="px-2 py-1 rounded-lg bg-white border border-slate-200 font-bold font-mono text-slate-800 text-xs shrink-0 shadow-2xs">
+                                                        x{item.quantity}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Ghi chú đợt nếu có */}
+                                    {t.note && (
+                                        <div className="text-xs text-slate-600 bg-slate-50/90 p-2.5 rounded-xl border border-slate-200">
+                                            <span className="font-bold text-slate-700">Ghi chú:</span> {t.note}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl bg-white text-slate-500 text-xs">
-                        Xe này chưa có phiếu bảo hành nào.
+                    <div className="p-8 sm:p-10 text-center border border-dashed border-slate-200 rounded-2xl bg-white space-y-2.5 shadow-xs">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                            <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="font-bold text-sm text-slate-800">Xe này chưa có phiếu bảo hành nào</div>
+                        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                            Bấm nút &quot;Tạo Phiếu Bảo Hành Cho Xe Này&quot; ở trên để lập đợt bảo dưỡng đầu tiên.
+                        </p>
                     </div>
                 )}
             </div>

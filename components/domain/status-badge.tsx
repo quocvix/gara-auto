@@ -1,56 +1,67 @@
-'use client'
+"use client";
 
-import React from 'react'
-import type { WarrantyStatus } from '@/types/garage'
-import { ShieldCheck, Clock, ShieldAlert } from 'lucide-react'
+import React from "react";
+import type { WarrantyStatus } from "@/types/garage";
+import { ShieldCheck, Clock, ShieldAlert } from "lucide-react";
 
 interface StatusBadgeProps {
-  status: WarrantyStatus
-  days?: number
-  showDays?: boolean
-  className?: string
+    status: WarrantyStatus;
+    days?: number;
+    showDays?: boolean;
+    expiresOn?: string;
+    className?: string;
 }
 
 export function StatusBadge({
-  status,
-  days,
-  showDays = false,
-  className = '',
+    status,
+    days,
+    showDays = false,
+    expiresOn,
+    className = "",
 }: StatusBadgeProps) {
-  if (status === 'active') {
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-success-soft text-success border-success/25 whitespace-nowrap ${className}`}
-      >
-        <ShieldCheck className="w-3.5 h-3.5 text-success shrink-0" />
-        <span>Còn hạn</span>
-        {showDays && days !== undefined && (
-          <span className="opacity-80 text-xs font-normal">({days} ngày)</span>
-        )}
-      </span>
-    )
-  }
+    const tooltip = expiresOn ? `Hết hạn trước ngày: ${expiresOn}` : undefined;
 
-  if (status === 'expiring') {
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-warning-soft text-warning border-warning/30 whitespace-nowrap ${className}`}
-      >
-        <Clock className="w-3.5 h-3.5 text-warning animate-pulse shrink-0" />
-        <span>Sắp hết hạn</span>
-        {days !== undefined && (
-          <span className="font-bold text-xs">({days} ngày)</span>
-        )}
-      </span>
-    )
-  }
+    if (status === "active") {
+        return (
+            <span
+                title={tooltip}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-emerald-100 bg-emerald-50/75 text-emerald-700 whitespace-nowrap transition-colors ${className}`}
+            >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Còn hạn</span>
+                {showDays && days !== undefined && (
+                    <span className="font-mono text-[11px] text-emerald-600/80 font-normal">
+                        ({days} ngày)
+                    </span>
+                )}
+            </span>
+        );
+    }
 
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-danger-soft text-danger border-danger/25 whitespace-nowrap ${className}`}
-    >
-      <ShieldAlert className="w-3.5 h-3.5 text-danger shrink-0" />
-      <span>Hết hạn</span>
-    </span>
-  )
+    if (status === "expiring") {
+        return (
+            <span
+                title={tooltip}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-amber-200/80 bg-amber-50/75 text-amber-800 whitespace-nowrap transition-colors ${className}`}
+            >
+                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>Sắp hết hạn</span>
+                {days !== undefined && (
+                    <span className="font-mono text-[11px] text-amber-700 font-normal">
+                        ({days} ngày)
+                    </span>
+                )}
+            </span>
+        );
+    }
+
+    return (
+        <span
+            title={tooltip}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-rose-100 bg-rose-50/75 text-rose-700 whitespace-nowrap transition-colors ${className}`}
+        >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <span>Hết hạn</span>
+        </span>
+    );
 }

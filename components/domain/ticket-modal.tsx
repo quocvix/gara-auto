@@ -21,11 +21,11 @@ import dynamic from 'next/dynamic'
 const PartModal = dynamic(() => import('./part-modal').then((mod) => mod.PartModal), { ssr: false })
 import { LicensePlate } from './license-plate'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useUIStore } from '@/lib/store/ui-store'
 
 interface SelectedItem {
   partId: string
   quantity: number
-  serial?: string
   warrantyMonths?: number
 }
 
@@ -113,6 +113,20 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     setIsOpen(false)
   }
 
+  const hideBottomNav = useUIStore((state) => state.hideBottomNav)
+  const showBottomNav = useUIStore((state) => state.showBottomNav)
+
+  useEffect(() => {
+    if (!isOpen) return
+    hideBottomNav()
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      showBottomNav()
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isOpen, hideBottomNav, showBottomNav])
+
   // Tự điền thông tin nếu biển số đã tồn tại khi người dùng gõ / rời ô biển số
   const handlePlateBlur = () => {
     const norm = normalizePlate(plate)
@@ -157,12 +171,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     }
     const updated = [...selectedItems]
     updated[index].quantity = quantity
-    setSelectedItems(updated)
-  }
-
-  const updateItemSerial = (index: number, serial: string) => {
-    const updated = [...selectedItems]
-    updated[index].serial = serial
     setSelectedItems(updated)
   }
 
@@ -477,14 +485,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                               />
                               <span className="text-2xs text-slate-500">T</span>
                             </div>
-
-                            <input
-                              type="text"
-                              value={item.serial || ''}
-                              onChange={(e) => updateItemSerial(idx, e.target.value)}
-                              placeholder="Số seri / tem"
-                              className="w-24 sm:w-28 h-8 px-2 text-xs font-mono rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-600"
-                            />
 
                             <div className="flex items-center border border-slate-200 rounded-md bg-slate-50 overflow-hidden">
                               <button
