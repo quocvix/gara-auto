@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { StatusBadge } from "@/components/domain/status-badge";
-import { WarrantyProgress } from "@/components/domain/warranty-progress";
 import { useTicketModal } from "@/components/domain/ticket-modal";
+import { daysLeft, getStatus, progressPercent } from "@/lib/warranty";
+import { getWarrantyStatusConfig } from "@/lib/warranty-status";
 import {
     ArrowLeft,
     Plus,
@@ -30,7 +30,7 @@ export default function VehicleDetailPage() {
     const router = useRouter();
     const id = (params?.id as string) || "";
 
-    const { getVehicleOverviewById, tickets, deleteTicket } = useGarageStore();
+    const { getVehicleOverviewById, tickets, deleteTicket, settings } = useGarageStore();
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
 
@@ -196,18 +196,6 @@ export default function VehicleDetailPage() {
                     </div>
                 </div>
 
-                {/* Thanh tiến độ bảo hành trực quan */}
-                {vehicle.expiresOn && (
-                    <div className="pt-1">
-                        <WarrantyProgress
-                            activatedOn={vehicle.lastActivatedOn}
-                            expiresOn={vehicle.expiresOn}
-                            status={vehicle.status}
-                            daysLeft={vehicle.daysLeft}
-                        />
-                    </div>
-                )}
-
                 {/* Action Button: Tạo Phiếu Mới Cho Xe Này */}
                 <div className="pt-1">
                     <button
@@ -283,33 +271,111 @@ export default function VehicleDetailPage() {
                                     </div>
 
                                     {/* Danh sách phụ tùng trong phiếu */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                                             <Wrench className="w-3 h-3 text-slate-400" />
                                             Phụ tùng lắp đặt ({t.items.length})
                                         </span>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {t.items.map((item, iIdx) => (
-                                                <div
-                                                    key={iIdx}
-                                                    className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-start justify-between gap-2 text-xs"
-                                                >
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="font-bold text-slate-900 leading-tight truncate">
-                                                            {item.partName}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            {t.items.map((item, iIdx) => {
+                                                const isUnlimited = !item.expiresOn || item.warrantyMonths === 0;
+                                                const itemDaysLeft = isUnlimited ? null : daysLeft(item.expiresOn);
+                                                const itemStatus = isUnlimited
+                                                    ? "unlimited"
+                                                    : getStatus(itemDaysLeft!, settings?.expiringThresholdDays ?? 30);
+                                                const percent = isUnlimited
+                                                    ? 100
+                                                    : progressPercent(t.activatedOn, item.expiresOn);
+                                                const statusConfig = getWarrantyStatusConfig(itemStatus, itemDaysLeft);
+
+                                                return (
+                                                    <div
+                                                        key={item.id || iIdx}
+                                                        className={`rounded-xl border border-slate-200/90 border-l-[3.5px] ${statusConfig.accentBorder} bg-white p-3 sm:p-3.5 space-y-2 shadow-2xs transition-all hover:shadow-xs`}
+                                                    >
+                                                        {/* 1. Tên linh kiện & số lượng */}
+                                                        <div className="flex items-center justify-between gap-2.5 min-w-0">
+                                                            <h4
+                                                                className="font-bold text-slate-900 text-xs sm:text-sm leading-snug truncate min-w-0 flex-1"
+                                                                title={item.partName}
+                                                            >
+                                                                {item.partName}
+                                                            </h4>
+                                                            {item.quantity >= 1 && (
+                                                                <span className="text-3xs font-extrabold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider shrink-0 font-mono">
+                                                                    x{item.quantity}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                        <div className="text-slate-500 font-mono text-[11px] mt-1 flex items-center gap-2 flex-wrap">
-                                                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                                                                BH {item.warrantyMonths}T
-                                                            </span>
-                                                            <span>Đến: {formatDateVN(item.expiresOn)}</span>
+
+                                                        {/* 2. Thời hạn & Badge đếm ngày */}
+                                                        <div className="space-y-1.5 pt-0.5">
+                                                            <div className="flex items-center justify-between gap-1.5 text-xs">
+                                                                <span className="flex items-center gap-1 font-semibold text-slate-600 text-2xs">
+                                                                    <Clock className="w-3 h-3 text-blue-600 shrink-0" />
+                                                                    <span>Thời hạn</span>
+                                                                    {item.warrantyMonths > 0 ? (
+                                                                        <span className="text-3xs font-extrabold uppercase px-1.5 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider font-mono">
+                                                                            BH {item.warrantyMonths}T
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-3xs font-extrabold uppercase px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200/60 tracking-wider">
+                                                                            Bảo dưỡng
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                                <span
+                                                                    className={`px-2 py-0.5 rounded-full font-mono font-bold text-3xs shadow-2xs shrink-0 ${statusConfig.badgeBg}`}
+                                                                >
+                                                                    {isUnlimited
+                                                                        ? "Không giới hạn"
+                                                                        : typeof itemDaysLeft === "number"
+                                                                          ? itemDaysLeft > 0
+                                                                              ? `Còn ${itemDaysLeft} ngày`
+                                                                              : "Đã hết hạn"
+                                                                          : statusConfig.badgeText}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Thanh tiến trình thời gian */}
+                                                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={`h-full rounded-full transition-all duration-500 ${statusConfig.barGradient}`}
+                                                                    style={{
+                                                                        width: `${
+                                                                            itemStatus === "expired" ? 0 : percent
+                                                                        }%`,
+                                                                    }}
+                                                                />
+                                                            </div>
+
+                                                            {/* Dòng ngày tháng chi tiết */}
+                                                            <div className="flex items-center justify-between text-3xs text-slate-400">
+                                                                <span>
+                                                                    Kích hoạt:{" "}
+                                                                    <strong className="text-slate-600 font-bold font-mono">
+                                                                        {formatDateVN(t.activatedOn)}
+                                                                    </strong>
+                                                                </span>
+                                                                <span>
+                                                                    {isUnlimited ? (
+                                                                        <strong className="text-indigo-600 font-semibold">
+                                                                            Không cố định hạn
+                                                                        </strong>
+                                                                    ) : (
+                                                                        <>
+                                                                            Hết hạn:{" "}
+                                                                            <strong className="text-slate-700 font-bold font-mono">
+                                                                                {formatDateVN(item.expiresOn)}
+                                                                            </strong>
+                                                                        </>
+                                                                    )}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <span className="px-2 py-1 rounded-lg bg-white border border-slate-200 font-bold font-mono text-slate-800 text-xs shrink-0 shadow-2xs">
-                                                        x{item.quantity}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
 

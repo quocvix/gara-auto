@@ -223,7 +223,7 @@ export default function TraCuuPlatePage() {
                                                         </h3>
                                                         {item.quantity >= 1 && (
                                                             <span className="text-3xs font-extrabold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider shrink-0 font-mono">
-                                                                SL: x{item.quantity}
+                                                                x{item.quantity}
                                                             </span>
                                                         )}
                                                     </div>
@@ -233,10 +233,10 @@ export default function TraCuuPlatePage() {
                                                         <div className="flex items-center justify-between gap-2 text-xs">
                                                             <span className="flex items-center gap-1.5 font-semibold text-slate-700 text-2xs sm:text-xs">
                                                                 <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                                                <span>Thời hạn bảo hành</span>
+                                                                <span>Thời hạn</span>
                                                                 {item.warrantyMonths ? (
                                                                     <span className="text-3xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider font-mono">
-                                                                        {item.warrantyMonths} tháng
+                                                                        BH {item.warrantyMonths}T
                                                                     </span>
                                                                 ) : (
                                                                     !isUnlimited && (
@@ -272,10 +272,10 @@ export default function TraCuuPlatePage() {
                                                         </div>
 
                                                         {/* Dòng ngày tháng chi tiết */}
-                                                        <div className="flex items-center justify-between text-3xs font-mono text-slate-400">
+                                                        <div className="flex items-center justify-between text-3xs text-slate-400">
                                                             <span>
                                                                 Kích hoạt:{" "}
-                                                                <strong className="text-slate-600 font-semibold">
+                                                                <strong className="text-slate-600 font-bold">
                                                                     {formatDateVN(ticket.activatedOn)}
                                                                 </strong>
                                                             </span>
@@ -287,7 +287,7 @@ export default function TraCuuPlatePage() {
                                                                 ) : (
                                                                     <>
                                                                         Hết hạn:{" "}
-                                                                        <strong className="text-slate-600 font-semibold">
+                                                                        <strong className="text-slate-600 font-bold">
                                                                             {formatDateVN(item.expiresOn)}
                                                                         </strong>
                                                                     </>
