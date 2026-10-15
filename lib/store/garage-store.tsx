@@ -28,6 +28,9 @@ import {
   type SaveTicketInput,
 } from '@/lib/repository'
 
+import type { User } from '@supabase/supabase-js'
+import { getSupabaseClient } from '@/lib/supabase/client'
+
 export type { SaveTicketInput, PartInput }
 
 export interface GarageStoreState {
@@ -35,6 +38,8 @@ export interface GarageStoreState {
   isLoading: boolean
   isSaving: boolean
   isAdmin: boolean
+  user: User | null
+  authChecked: boolean
   settings: GarageSettings
   vehicles: Vehicle[]
   tickets: WarrantyTicket[]
@@ -45,8 +50,10 @@ export interface GarageStoreState {
   init: () => Promise<void>
 
   // Auth & Quyền
+  loginWithSupabase: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>
+  signUpWithSupabase: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>
   loginAdmin: () => void
-  logoutAdmin: () => void
+  logoutAdmin: () => Promise<void>
   toggleAdminRole: () => void
 
   // Thao tác bất đồng bộ (Async Actions)
@@ -80,7 +87,9 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
   isLoaded: false,
   isLoading: false,
   isSaving: false,
-  isAdmin: true,
+  isAdmin: false,
+  user: null,
+  authChecked: false,
   settings: INITIAL_SETTINGS,
   vehicles: INITIAL_VEHICLES,
   tickets: INITIAL_TICKETS,
@@ -91,6 +100,22 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
     if (get().isLoaded || get().isLoading) return
     set({ isLoading: true })
     try {
+      const supabase = getSupabaseClient()
+      let currentUser: User | null = null
+      let isUserAdmin = false
+
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession()
+        currentUser = session?.user ?? null
+        isUserAdmin = !!currentUser
+
+        // Lắng nghe sự kiện auth thay đổi trong session
+        supabase.auth.onAuthStateChange((_event, session) => {
+          const u = session?.user ?? null
+          set({ user: u, isAdmin: !!u, authChecked: true })
+        })
+      }
+
       const repo = getGarageRepository()
       const bundle = await repo.loadInitialData()
       set({
@@ -99,14 +124,71 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
         parts: bundle.parts,
         movements: bundle.movements,
         settings: bundle.settings,
-        isAdmin: bundle.isAdmin,
+        isAdmin: supabase ? isUserAdmin : bundle.isAdmin,
+        user: currentUser,
+        authChecked: true,
         isLoaded: true,
         isLoading: false,
       })
     } catch (e) {
       console.error('[GarageStore] Khởi tạo dữ liệu thất bại:', e)
-      set({ isLoaded: true, isLoading: false })
+      set({ isLoaded: true, isLoading: false, authChecked: true })
     }
+  },
+
+  loginWithSupabase: async (email: string, password: string) => {
+    const supabase = getSupabaseClient()
+    if (!supabase) {
+      set({ isAdmin: true, authChecked: true })
+      return { ok: true }
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      return { ok: false, error: error.message }
+    }
+    set({ user: data.user, isAdmin: true, authChecked: true })
+    try {
+      const repo = getGarageRepository()
+      const bundle = await repo.loadInitialData()
+      set({
+        vehicles: bundle.vehicles,
+        tickets: bundle.tickets,
+        parts: bundle.parts,
+        movements: bundle.movements,
+        settings: bundle.settings,
+      })
+    } catch (err) {
+      console.error('[GarageStore] Lỗi tải dữ liệu sau đăng nhập:', err)
+    }
+    return { ok: true }
+  },
+
+  signUpWithSupabase: async (email: string, password: string) => {
+    const supabase = getSupabaseClient()
+    if (!supabase) {
+      return { ok: false, error: 'Chưa cấu hình Supabase' }
+    }
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      return { ok: false, error: error.message }
+    }
+    if (data.session && data.user) {
+      set({ user: data.user, isAdmin: true, authChecked: true })
+      try {
+        const repo = getGarageRepository()
+        const bundle = await repo.loadInitialData()
+        set({
+          vehicles: bundle.vehicles,
+          tickets: bundle.tickets,
+          parts: bundle.parts,
+          movements: bundle.movements,
+          settings: bundle.settings,
+        })
+      } catch (err) {
+        console.error('[GarageStore] Lỗi tải dữ liệu sau đăng ký:', err)
+      }
+    }
+    return { ok: true }
   },
 
   loginAdmin: () => {
@@ -114,8 +196,16 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
     getGarageRepository().setAdminRole(true).catch(console.error)
   },
 
-  logoutAdmin: () => {
-    set({ isAdmin: false })
+  logoutAdmin: async () => {
+    const supabase = getSupabaseClient()
+    if (supabase) {
+      try {
+        await supabase.auth.signOut()
+      } catch (e) {
+        console.error('[GarageStore] Lỗi Supabase signOut:', e)
+      }
+    }
+    set({ user: null, isAdmin: false })
     getGarageRepository().setAdminRole(false).catch(console.error)
   },
 

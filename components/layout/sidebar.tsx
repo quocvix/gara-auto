@@ -20,7 +20,7 @@ import { useHaptic } from '@/hooks/use-haptic'
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { settings, logoutAdmin } = useGarageStore()
+  const { settings, logoutAdmin, user } = useGarageStore()
   const { openTicketModal } = useTicketModal()
   const { trigger } = useHaptic()
 
@@ -141,14 +141,18 @@ export function Sidebar() {
         )}
 
         <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-2xs text-slate-500 px-1">
-          <span className="font-mono text-2xs text-slate-400 truncate max-w-[130px]">
-            admin@duyauto.vn
+          <span className="font-mono text-2xs text-slate-400 truncate max-w-[130px]" title={user?.email || 'admin@duyauto.vn'}>
+            {user?.email || 'admin@duyauto.vn'}
           </span>
           <button
             type="button"
-            onClick={logoutAdmin}
+            onClick={async () => {
+              trigger('tap')
+              await logoutAdmin()
+              window.location.href = '/login'
+            }}
             className="hover:text-rose-600 p-1 transition-colors cursor-pointer"
-            title="Đăng xuất"
+            title="Đăng xuất khỏi hệ thống"
           >
             <LogOut className="w-3.5 h-3.5 text-slate-400 hover:text-rose-500" />
           </button>

@@ -165,13 +165,16 @@ export class SupabaseAdapter implements IGarageRepository {
       const movements = (movementsData || []).map(rowToMovement)
       const settings = settingsData ? rowToSettings(settingsData) : INITIAL_SETTINGS
 
+      const { data: { session } } = await supabase.auth.getSession()
+      const isAdmin = Boolean(session?.user)
+
       return {
         vehicles,
         tickets,
         parts,
         movements,
         settings,
-        isAdmin: true,
+        isAdmin,
       }
     } catch (error) {
       console.error('[SupabaseAdapter] Exception loadInitialData:', error)
