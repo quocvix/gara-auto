@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { formatDateVN } from "@/lib/format";
@@ -61,9 +62,12 @@ export default function VehicleDetailPage() {
         );
     }
 
-    const vTickets = tickets
-        .filter((t) => t.vehicleId === vehicle.id)
-        .sort((a, b) => b.activatedOn.localeCompare(a.activatedOn));
+    // Vercel React Best Practices `rerender-memo`
+    const vTickets = useMemo(() => {
+        return tickets
+            .filter((t) => t.vehicleId === vehicle.id)
+            .sort((a, b) => b.activatedOn.localeCompare(a.activatedOn));
+    }, [tickets, vehicle.id]);
 
     const handleCreateNewTicketForThisVehicle = () => {
         trigger("tap");

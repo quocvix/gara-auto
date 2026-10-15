@@ -24,6 +24,68 @@ import {
   Layers,
 } from 'lucide-react'
 
+// Vercel React Best Practices `server-hoist-static-io` & `rendering-hoist-jsx`
+const reasonLabels: Record<
+  string,
+  {
+    label: string
+    shortLabel: string
+    badge: string
+    iconBg: string
+    iconColor: string
+    icon: React.ElementType
+  }
+> = {
+  import: {
+    label: 'Nhập kho (+)',
+    shortLabel: 'Nhập kho',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    iconBg: 'bg-emerald-50 border border-emerald-200/80',
+    iconColor: 'text-emerald-600',
+    icon: ArrowUpRight,
+  },
+  export: {
+    label: 'Xuất kho (-)',
+    shortLabel: 'Xuất kho',
+    badge: 'bg-rose-50 text-rose-700 border-rose-200',
+    iconBg: 'bg-rose-50 border border-rose-200/80',
+    iconColor: 'text-rose-600',
+    icon: ArrowDownRight,
+  },
+  ticket_use: {
+    label: 'Dùng phiếu BH (-)',
+    shortLabel: 'Phiếu BH',
+    badge: 'bg-blue-50 text-blue-700 border-blue-200',
+    iconBg: 'bg-blue-50 border border-blue-200/80',
+    iconColor: 'text-blue-600',
+    icon: Wrench,
+  },
+  ticket_revert: {
+    label: 'Hoàn từ phiếu BH (+)',
+    shortLabel: 'Hoàn phiếu',
+    badge: 'bg-teal-50 text-teal-700 border-teal-200',
+    iconBg: 'bg-teal-50 border border-teal-200/80',
+    iconColor: 'text-teal-600',
+    icon: RefreshCw,
+  },
+  adjust: {
+    label: 'Điều chỉnh kiểm kê',
+    shortLabel: 'Kiểm kê',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    iconBg: 'bg-amber-50 border border-amber-200/80',
+    iconColor: 'text-amber-600',
+    icon: RefreshCw,
+  },
+  initial: {
+    label: 'Khởi tạo ban đầu',
+    shortLabel: 'Ban đầu',
+    badge: 'bg-slate-100 text-slate-700 border-slate-200',
+    iconBg: 'bg-slate-100 border border-slate-200/80',
+    iconColor: 'text-slate-600',
+    icon: Package,
+  },
+}
+
 export default function StockMovementsPage() {
   const router = useRouter()
   const { movements } = useGarageStore()
@@ -42,67 +104,6 @@ export default function StockMovementsPage() {
       document.body.style.overflow = originalOverflow
     }
   }, [isFilterSheetOpen])
-
-  const reasonLabels: Record<
-    string,
-    {
-      label: string
-      shortLabel: string
-      badge: string
-      iconBg: string
-      iconColor: string
-      icon: React.ElementType
-    }
-  > = {
-    import: {
-      label: 'Nhập kho (+)',
-      shortLabel: 'Nhập kho',
-      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      iconBg: 'bg-emerald-50 border border-emerald-200/80',
-      iconColor: 'text-emerald-600',
-      icon: ArrowUpRight,
-    },
-    export: {
-      label: 'Xuất kho (-)',
-      shortLabel: 'Xuất kho',
-      badge: 'bg-rose-50 text-rose-700 border-rose-200',
-      iconBg: 'bg-rose-50 border border-rose-200/80',
-      iconColor: 'text-rose-600',
-      icon: ArrowDownRight,
-    },
-    ticket_use: {
-      label: 'Dùng phiếu BH (-)',
-      shortLabel: 'Phiếu BH',
-      badge: 'bg-blue-50 text-blue-700 border-blue-200',
-      iconBg: 'bg-blue-50 border border-blue-200/80',
-      iconColor: 'text-blue-600',
-      icon: Wrench,
-    },
-    ticket_revert: {
-      label: 'Hoàn từ phiếu BH (+)',
-      shortLabel: 'Hoàn phiếu',
-      badge: 'bg-teal-50 text-teal-700 border-teal-200',
-      iconBg: 'bg-teal-50 border border-teal-200/80',
-      iconColor: 'text-teal-600',
-      icon: RefreshCw,
-    },
-    adjust: {
-      label: 'Điều chỉnh kiểm kê',
-      shortLabel: 'Kiểm kê',
-      badge: 'bg-amber-50 text-amber-700 border-amber-200',
-      iconBg: 'bg-amber-50 border border-amber-200/80',
-      iconColor: 'text-amber-600',
-      icon: RefreshCw,
-    },
-    initial: {
-      label: 'Khởi tạo ban đầu',
-      shortLabel: 'Ban đầu',
-      badge: 'bg-slate-100 text-slate-700 border-slate-200',
-      iconBg: 'bg-slate-100 border border-slate-200/80',
-      iconColor: 'text-slate-600',
-      icon: Package,
-    },
-  }
 
   // Thống kê nhanh 3 chỉ số KPI
   const stats = useMemo(() => {

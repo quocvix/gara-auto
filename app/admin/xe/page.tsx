@@ -34,7 +34,7 @@ type FilterStatus = "all" | "active" | "expiring" | "expired";
 function VehiclesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { getVehicleOverviewList, deleteVehicle, tickets } = useGarageStore();
+    const { getVehicleOverviewList, deleteVehicle, tickets, vehicles: rawVehicles, settings } = useGarageStore();
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
@@ -61,7 +61,11 @@ function VehiclesContent() {
         };
     }, [selectedVehicleForSheet, hideBottomNav, showBottomNav]);
 
-    const vehicles = getVehicleOverviewList();
+    // Vercel React Best Practices `rerender-memo` & `rerender-derived-state-no-effect`
+    const vehicles = useMemo(
+        () => getVehicleOverviewList(),
+        [getVehicleOverviewList, rawVehicles, tickets, settings]
+    );
 
     // Thống kê số lượng theo từng trạng thái
     const statusCounts = useMemo(() => {
