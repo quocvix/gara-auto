@@ -288,8 +288,19 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
 
   getVehicleOverviewList: (): VehicleOverview[] => {
     const { vehicles, tickets, settings } = get()
+    // Vercel React Best Practices `js-index-maps`: Pre-indexing tickets by vehicleId (O(N) thay vì O(N*M))
+    const ticketsByVehicle = new Map<string, WarrantyTicket[]>()
+    for (const t of tickets) {
+      const arr = ticketsByVehicle.get(t.vehicleId)
+      if (arr) {
+        arr.push(t)
+      } else {
+        ticketsByVehicle.set(t.vehicleId, [t])
+      }
+    }
+
     return vehicles.map((v) => {
-      const vTickets = tickets.filter((t) => t.vehicleId === v.id)
+      const vTickets = ticketsByVehicle.get(v.id) || []
       let maxExpiresOn = ''
       let lastActivatedOn = ''
       let itemCount = 0
@@ -316,8 +327,34 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
   },
 
   getVehicleOverviewById: (id: string): VehicleOverview | undefined => {
-    const list = get().getVehicleOverviewList()
-    return list.find((v) => v.id === id || v.plateNormalized === normalizePlate(id))
+    const { vehicles, tickets, settings } = get()
+    const norm = normalizePlate(id)
+    const v = vehicles.find((item) => item.id === id || item.plateNormalized === norm)
+    if (!v) return undefined
+
+    const vTickets = tickets.filter((t) => t.vehicleId === v.id)
+    let maxExpiresOn = ''
+    let lastActivatedOn = ''
+    let itemCount = 0
+
+    for (const t of vTickets) {
+      if (!maxExpiresOn || t.expiresOn > maxExpiresOn) maxExpiresOn = t.expiresOn
+      if (!lastActivatedOn || t.activatedOn > lastActivatedOn) lastActivatedOn = t.activatedOn
+      itemCount += t.items.reduce((sum, it) => sum + it.quantity, 0)
+    }
+
+    const days = daysLeft(maxExpiresOn)
+    const status = getStatus(days, settings.expiringThresholdDays)
+
+    return {
+      ...v,
+      expiresOn: maxExpiresOn,
+      lastActivatedOn,
+      ticketCount: vTickets.length,
+      itemCount,
+      status,
+      daysLeft: days,
+    }
   },
 
   lookupWarranty: (plate: string): WarrantyLookupResult | null => {
