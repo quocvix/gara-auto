@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
+import { todayVN } from "@/lib/warranty";
 import { LicensePlate } from "@/components/domain/license-plate";
 import {
     Car,
@@ -25,15 +26,31 @@ import { useHaptic } from "@/hooks/use-haptic";
 
 export default function AdminDashboardPage() {
     const router = useRouter();
-    const { getKpis, getVehicleOverviewList, parts, settings, vehicles } = useGarageStore();
+    const { getVehicleOverviewList, parts, settings, vehicles, tickets } = useGarageStore();
     const { trigger } = useHaptic();
 
     const [searchPlate, setSearchPlate] = useState("");
 
-    const kpis = getKpis();
-    const allVehicles = getVehicleOverviewList();
-    const expiringVehicles = allVehicles.filter((v) => v.status === "expiring");
-    const lowStockPartsList = parts.filter((p) => p.isActive && p.stock <= settings.lowStockThreshold);
+    // Vercel React Best Practices `rerender-memo` & `rerender-derived-state-no-effect`
+    const allVehicles = useMemo(() => getVehicleOverviewList(), [getVehicleOverviewList, vehicles, tickets, settings]);
+    const expiringVehicles = useMemo(() => allVehicles.filter((v) => v.status === "expiring"), [allVehicles]);
+    const lowStockPartsList = useMemo(
+        () => parts.filter((p) => p.isActive && p.stock <= settings.lowStockThreshold),
+        [parts, settings.lowStockThreshold]
+    );
+
+    const kpis = useMemo(() => {
+        const currentYearMonth = todayVN().slice(0, 7);
+        const ticketsThisMonth = tickets.filter((t) => t.activatedOn.startsWith(currentYearMonth)).length;
+        const activeVehicles = allVehicles.filter((v) => v.status === "active" || v.status === "expiring").length;
+
+        return {
+            activeVehicles,
+            expiringVehicles: expiringVehicles.length,
+            lowStockParts: lowStockPartsList.length,
+            ticketsThisMonth,
+        };
+    }, [allVehicles, expiringVehicles.length, lowStockPartsList.length, tickets]);
 
     const handleQuickSearch = (e: React.FormEvent) => {
         e.preventDefault();

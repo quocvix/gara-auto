@@ -10,12 +10,16 @@ const PartModal = dynamic(() => import("@/components/domain/part-modal").then((m
 import { Package, Plus, Search, AlertTriangle, Edit, Trash2, History, X, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
+import { useAlertDialog } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function InventoryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { parts, deletePart, settings } = useGarageStore();
     const { trigger } = useHaptic();
+    const { confirm } = useAlertDialog();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterLowStock, setFilterLowStock] = useState(searchParams.get("filter") === "low");
@@ -56,9 +60,18 @@ function InventoryContent() {
 
     const handleDelete = async (e: React.MouseEvent, part: Part) => {
         e.stopPropagation();
-        const confirm = window.confirm(`Xác nhận xóa phụ tùng "${part.name}" khỏi danh sách kho?`);
-        if (confirm) {
-            trigger("warning");
+        const ok = await confirm({
+            title: "Xóa phụ tùng",
+            description: (
+                <span>
+                    Bạn có chắc chắn muốn xóa phụ tùng <strong className="text-slate-900 font-semibold">&ldquo;{part.name}&rdquo;</strong> khỏi danh sách kho không? Hành động này sẽ chuyển trạng thái phụ tùng sang ngưng hoạt động.
+                </span>
+            ),
+            variant: "danger",
+            confirmText: "Xóa phụ tùng",
+            cancelText: "Giữ lại",
+        });
+        if (ok) {
             await deletePart(part.id);
             toast.success(`Đã xóa phụ tùng ${part.name}`);
         }
@@ -84,47 +97,44 @@ function InventoryContent() {
                         <span className="hidden sm:inline">Lịch Sử Kho</span>
                     </a>
 
-                    <button
+                    <Button
                         type="button"
                         onClick={() => {
                             trigger("tap");
                             setEditingPart(null);
                             setIsPartModalOpen(true);
                         }}
-                        className="h-10 inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                         <span>Thêm Phụ Tùng</span>
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* Sticky Search & Filter Header trên Mobile */}
             <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar */}
-                <div className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Tìm tên phụ tùng..."
-                        className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200/90 bg-white text-slate-900 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-xs placeholder:text-slate-400 transition-all"
-                    />
-                    {searchQuery.trim().length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                trigger("tap");
-                                setSearchQuery("");
-                            }}
-                            className="w-7 h-7 absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                            aria-label="Xóa tìm kiếm"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Tìm tên phụ tùng..."
+                    leftIcon={<Search className="w-4 h-4" />}
+                    rightIcon={
+                        searchQuery.trim().length > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    trigger("tap");
+                                    setSearchQuery("");
+                                }}
+                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                aria-label="Xóa tìm kiếm"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        ) : null
+                    }
+                />
 
                 {/* Filter Chips Tối Giản: Tất Cả & Sắp Hết Hàng */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">

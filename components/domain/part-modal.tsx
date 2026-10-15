@@ -6,6 +6,8 @@ import { Part } from "@/types/garage";
 import { X, Wrench, Save, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface PartModalProps {
     isOpen: boolean;
@@ -116,12 +118,10 @@ export function PartModal({
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Tên Phụ Tùng *
                         </label>
-                        <input
-                            type="text"
+                        <Input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="VD: Dầu nhớt Motul 300V 5W-40 2L"
-                            className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-2xs transition-all"
                             required
                             autoFocus
                         />
@@ -143,12 +143,12 @@ export function PartModal({
                             >
                                 <Minus className="w-4 h-4" />
                             </button>
-                            <input
+                            <Input
                                 type="number"
                                 min="0"
                                 value={stock}
                                 onChange={(e) => setStock(Math.max(0, Number(e.target.value) || 0))}
-                                className="flex-1 h-11 px-3.5 rounded-xl border border-slate-200 bg-white font-mono text-center font-extrabold text-base text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-2xs transition-all"
+                                className="text-center font-mono font-extrabold text-base"
                                 required
                             />
                             <button
@@ -166,17 +166,17 @@ export function PartModal({
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={onClose}
-                            className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                             Hủy
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
+                            variant="default"
                             disabled={isSubmitting}
-                            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
                         >
                             <Save className={`w-4 h-4 ${isSubmitting ? "animate-spin" : ""}`} />
                             <span>
@@ -186,7 +186,7 @@ export function PartModal({
                                       ? "Lưu Thay Đổi"
                                       : "Tạo Phụ Tùng"}
                             </span>
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

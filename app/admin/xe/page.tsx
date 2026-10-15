@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
+import { useAlertDialog } from "@/components/ui/alert-dialog";
 
 type FilterStatus = "all" | "active" | "expiring" | "expired";
 
@@ -36,6 +37,7 @@ function VehiclesContent() {
     const { getVehicleOverviewList, deleteVehicle, tickets } = useGarageStore();
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
+    const { confirm } = useAlertDialog();
 
     const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
     const [statusFilter, setStatusFilter] = useState<FilterStatus>(
@@ -103,11 +105,23 @@ function VehiclesContent() {
 
     const handleDelete = async (v: VehicleOverview) => {
         setSelectedVehicleForSheet(null);
-        const restore = window.confirm(
-            `Xác nhận xóa xe [${v.plate}]?\n\nBấm OK để xóa và HOÀN LẠI TỒN KHO phụ tùng liên quan.\nBấm Cancel nếu không muốn xóa.`,
-        );
-        if (restore) {
-            trigger("warning");
+        const ok = await confirm({
+            title: `Xác nhận xóa xe [${v.plate}]?`,
+            description: (
+                <div className="space-y-2">
+                    <p>
+                        Xe <strong>{v.plate}</strong> ({v.model}) cùng các phiếu bảo hành liên quan sẽ bị xóa khỏi danh sách quản lý.
+                    </p>
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs font-medium">
+                        Hệ thống sẽ tự động <strong>hoàn lại tồn kho</strong> cho các linh kiện, phụ tùng đã lắp đặt trước đó.
+                    </div>
+                </div>
+            ),
+            variant: "danger",
+            confirmText: "Xóa & hoàn tồn kho",
+            cancelText: "Hủy bỏ",
+        });
+        if (ok) {
             await deleteVehicle(v.id, true);
             toast.success(`Đã xóa xe [${v.plate}] và hoàn lại tồn kho!`);
         }

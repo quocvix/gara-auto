@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, Suspense } from "react";
+import React, { createContext, use, useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
@@ -54,7 +54,7 @@ interface TicketModalContextType {
 const TicketModalContext = createContext<TicketModalContextType | null>(null);
 
 export function useTicketModal() {
-    const context = useContext(TicketModalContext);
+    const context = use(TicketModalContext);
     if (!context) {
         throw new Error("useTicketModal must be used within TicketModalProvider");
     }
@@ -127,7 +127,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     const note = watch("note") || "";
     const selectedItems = watch("items") || [];
 
-    const openTicketModal = (params?: OpenModalParams) => {
+    const openTicketModal = useCallback((params?: OpenModalParams) => {
         setError("");
         setPartSearchQuery("");
         const items = (params?.items || []).map((it) => ({
@@ -169,11 +169,11 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
             setCustomWarrantyIndexes([]);
         }
         setIsOpen(true);
-    };
+    }, [reset]);
 
-    const closeTicketModal = () => {
+    const closeTicketModal = useCallback(() => {
         setIsOpen(false);
-    };
+    }, []);
 
     const hideBottomNav = useUIStore((state) => state.hideBottomNav);
     const showBottomNav = useUIStore((state) => state.showBottomNav);
@@ -259,14 +259,17 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
     // Tính hạn bảo hành dài nhất
     const today = todayVN();
-    let maxWarrantyExpiresOn = today;
-    for (const item of selectedItems) {
-        const wMonths = typeof item.warrantyMonths === "number" ? item.warrantyMonths : 0;
-        if (wMonths > 0) {
-            const exp = addMonthsToDate(today, wMonths);
-            if (exp > maxWarrantyExpiresOn) maxWarrantyExpiresOn = exp;
+    const maxWarrantyExpiresOn = useMemo(() => {
+        let max = today;
+        for (const item of selectedItems) {
+            const wMonths = typeof item.warrantyMonths === "number" ? item.warrantyMonths : 0;
+            if (wMonths > 0) {
+                const exp = addMonthsToDate(today, wMonths);
+                if (exp > max) max = exp;
+            }
         }
-    }
+        return max;
+    }, [selectedItems, today]);
 
     const onSubmit = async (values: TicketFormValues) => {
         if (isSubmitting) return;
@@ -314,10 +317,15 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
         toast.error(firstErrorMessage);
     };
 
+    const contextValue = useMemo(
+        () => ({ openTicketModal, closeTicketModal }),
+        [openTicketModal, closeTicketModal]
+    );
+
     return (
-        <TicketModalContext.Provider value={{ openTicketModal, closeTicketModal }}>
+        <TicketModalContext.Provider value={contextValue}>
             <Suspense fallback={null}>
-                <DeepLinkHandler onTrigger={() => openTicketModal()} />
+                <DeepLinkHandler onTrigger={openTicketModal} />
             </Suspense>
             {children}
 

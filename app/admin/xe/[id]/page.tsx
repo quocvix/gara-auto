@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
+import { useAlertDialog } from "@/components/ui/alert-dialog";
 
 export default function VehicleDetailPage() {
     const params = useParams();
@@ -33,6 +34,7 @@ export default function VehicleDetailPage() {
     const { getVehicleOverviewById, tickets, deleteTicket, settings } = useGarageStore();
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
+    const { confirm } = useAlertDialog();
 
     const vehicle = getVehicleOverviewById(id);
 
@@ -79,11 +81,21 @@ export default function VehicleDetailPage() {
     };
 
     const handleDeleteTicket = async (ticketId: string) => {
-        const restore = window.confirm(
-            "Xác nhận xóa phiếu bảo hành này?\n\nBấm OK để xóa và HOÀN LẠI TỒN KHO cho các phụ tùng trong phiếu.",
-        );
-        if (restore) {
-            trigger("warning");
+        const ok = await confirm({
+            title: "Xóa phiếu bảo hành?",
+            description: (
+                <div className="space-y-2">
+                    <p>Bạn có chắc chắn muốn xóa phiếu bảo hành này khỏi hệ thống không?</p>
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs font-medium">
+                        Số lượng các linh kiện, phụ tùng đã trừ trong phiếu này sẽ được <strong>hoàn lại vào kho hàng</strong>.
+                    </div>
+                </div>
+            ),
+            variant: "danger",
+            confirmText: "Xóa & hoàn phụ tùng",
+            cancelText: "Hủy bỏ",
+        });
+        if (ok) {
             await deleteTicket(ticketId, true);
             toast.success("Đã xóa phiếu bảo hành và hoàn lại tồn kho!");
         }

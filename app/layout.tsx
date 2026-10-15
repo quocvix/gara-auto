@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { GarageStoreProvider } from "@/lib/store/garage-store";
+import { AlertDialogProvider } from "@/components/ui/alert-dialog";
 import { Toaster } from "sonner";
 
 const fontSans = Plus_Jakarta_Sans({
@@ -44,22 +45,24 @@ export default function RootLayout({
         <html
             lang="vi"
             suppressHydrationWarning
-            className={`${fontSans.variable} ${fontPlate.variable} dark`}
+            className={`${fontSans.variable} ${fontPlate.variable}`}
         >
             <body className="min-h-screen bg-background text-foreground antialiased flex flex-col selection:bg-primary/20 selection:text-primary">
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="dark"
+                    defaultTheme="light"
                     enableSystem={false}
                 >
                     <GarageStoreProvider>
-                        <main className="flex-1 flex flex-col">{children}</main>
-                        <Toaster
-                            richColors
-                            position="top-center"
-                            closeButton
-                            duration={3500}
-                        />
+                        <AlertDialogProvider>
+                            <main className="flex-1 flex flex-col">{children}</main>
+                            <Toaster
+                                richColors
+                                position="top-center"
+                                closeButton
+                                duration={3500}
+                            />
+                        </AlertDialogProvider>
                     </GarageStoreProvider>
                 </ThemeProvider>
             </body>
