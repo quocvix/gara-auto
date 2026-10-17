@@ -78,9 +78,7 @@ export default function VehicleDetailPage() {
                 model: vehicle.model,
                 ownerName: vehicle.ownerName,
                 ownerPhone: vehicle.ownerPhone,
-                odo: vehicle.odo,
             },
-            odo: vehicle.odo,
         });
     };
 
@@ -262,7 +260,6 @@ export default function VehicleDetailPage() {
                                                     openTicketModal({
                                                         ticketId: t.id,
                                                         vehicle,
-                                                        odo: t.odo,
                                                         note: t.note,
                                                         items: t.items.map((it) => ({
                                                             partId: it.partId || "",

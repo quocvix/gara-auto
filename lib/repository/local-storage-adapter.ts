@@ -136,7 +136,6 @@ export class LocalStorageAdapter implements IGarageRepository {
         model: input.vehicle.model || vehicle.model,
         ownerName: input.vehicle.ownerName || vehicle.ownerName,
         ownerPhone: input.vehicle.ownerPhone || vehicle.ownerPhone,
-        odo: input.odo || vehicle.odo,
         updatedAt: now,
       }
       updatedVehicles = updatedVehicles.map((v) => (v.id === vehicle!.id ? vehicle! : v))
@@ -149,7 +148,6 @@ export class LocalStorageAdapter implements IGarageRepository {
         model: input.vehicle.model,
         ownerName: input.vehicle.ownerName,
         ownerPhone: input.vehicle.ownerPhone,
-        odo: input.odo,
         createdAt: now,
         updatedAt: now,
       }
@@ -184,7 +182,6 @@ export class LocalStorageAdapter implements IGarageRepository {
             id: Date.now() + Math.floor(Math.random() * 1000),
             partId: oldItem.partId,
             partName: oldItem.partName,
-            partSku: oldItem.partSku,
             delta: oldItem.quantity,
             stockAfter: newStock,
             reason: 'ticket_revert',
@@ -204,7 +201,6 @@ export class LocalStorageAdapter implements IGarageRepository {
       const it = input.items[i]
       const part = updatedParts.find((p) => p.id === it.partId)
       const partName = part ? part.name : 'Dịch vụ / Phụ tùng ngoài'
-      const partSku = part ? part.sku : 'DV-NGOAI'
       const warrantyMonths = it.warrantyMonths ?? (part ? part.warrantyMonths ?? 12 : 12)
       const expDate = addMonths(activatedDate, warrantyMonths)
 
@@ -217,8 +213,6 @@ export class LocalStorageAdapter implements IGarageRepository {
         ticketId,
         partId: it.partId || null,
         partName,
-        partSku,
-        serial: it.serial,
         quantity: it.quantity,
         warrantyMonths,
         expiresOn: expDate,
@@ -235,7 +229,6 @@ export class LocalStorageAdapter implements IGarageRepository {
             id: Date.now() + Math.floor(Math.random() * 1000) + i,
             partId: it.partId,
             partName: part.name,
-            partSku: part.sku,
             delta: -it.quantity,
             stockAfter: newStock,
             reason: 'ticket_use',
@@ -251,7 +244,6 @@ export class LocalStorageAdapter implements IGarageRepository {
     const newTicket: WarrantyTicket = {
       id: ticketId,
       vehicleId: vehicle.id,
-      odo: input.odo,
       activatedOn: oldTicket ? oldTicket.activatedOn : activatedDate,
       expiresOn: maxExpiresOn,
       note: input.note,
@@ -317,7 +309,6 @@ export class LocalStorageAdapter implements IGarageRepository {
             id: Date.now() + Math.floor(Math.random() * 1000),
             partId: item.partId,
             partName: item.partName,
-            partSku: item.partSku,
             delta: item.quantity,
             stockAfter: newStock,
             reason: 'ticket_revert',
@@ -378,7 +369,6 @@ export class LocalStorageAdapter implements IGarageRepository {
               id: Date.now() + Math.floor(Math.random() * 1000),
               partId: item.partId,
               partName: item.partName,
-              partSku: item.partSku,
               delta: item.quantity,
               stockAfter: newStock,
               reason: 'ticket_revert',
@@ -429,11 +419,9 @@ export class LocalStorageAdapter implements IGarageRepository {
       const oldPart = updatedParts[idx]
       savedPart = {
         ...oldPart,
-        sku: input.sku?.trim().toUpperCase() || oldPart.sku,
         name: input.name.trim(),
         category: input.category.trim(),
         warrantyMonths: input.warrantyMonths ?? oldPart.warrantyMonths,
-        price: input.price,
         stock: input.stock,
         isActive: input.isActive ?? true,
         updatedAt: now,
@@ -447,7 +435,6 @@ export class LocalStorageAdapter implements IGarageRepository {
             id: Date.now(),
             partId: savedPart.id,
             partName: savedPart.name,
-            partSku: savedPart.sku,
             delta,
             stockAfter: savedPart.stock,
             reason: 'adjust' as StockReason,
@@ -461,11 +448,9 @@ export class LocalStorageAdapter implements IGarageRepository {
     } else {
       savedPart = {
         id: `part_${Date.now()}`,
-        sku: input.sku?.trim().toUpperCase(),
         name: input.name.trim(),
         category: input.category.trim(),
         warrantyMonths: input.warrantyMonths ?? 12,
-        price: input.price,
         stock: input.stock,
         isActive: true,
         createdAt: now,
@@ -478,7 +463,6 @@ export class LocalStorageAdapter implements IGarageRepository {
           id: Date.now(),
           partId: savedPart.id,
           partName: savedPart.name,
-          partSku: savedPart.sku,
           delta: savedPart.stock,
           stockAfter: savedPart.stock,
           reason: 'initial' as StockReason,
@@ -534,7 +518,6 @@ export class LocalStorageAdapter implements IGarageRepository {
       id: Date.now(),
       partId,
       partName: part.name,
-      partSku: part.sku,
       delta,
       stockAfter: newStock,
       reason,

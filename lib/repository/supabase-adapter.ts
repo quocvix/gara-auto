@@ -44,7 +44,6 @@ function rowToVehicle(r: any): Vehicle {
     model: r.model,
     ownerName: r.owner_name || '',
     ownerPhone: r.owner_phone || '',
-    odo: Number(r.odo) || 0,
     createdAt: r.created_at || new Date().toISOString(),
     updatedAt: r.updated_at || new Date().toISOString(),
   }
@@ -53,11 +52,9 @@ function rowToVehicle(r: any): Vehicle {
 function rowToPart(r: any): Part {
   return {
     id: r.id,
-    sku: r.sku || '',
     name: r.name,
     category: r.category || 'Phụ tùng',
     warrantyMonths: r.warranty_months ?? 12,
-    price: Number(r.price) || 0,
     stock: Number(r.stock) || 0,
     isActive: Boolean(r.is_active),
     createdAt: r.created_at || new Date().toISOString(),
@@ -71,8 +68,6 @@ function rowToTicketItem(r: any): TicketItem {
     ticketId: r.ticket_id,
     partId: r.part_id || null,
     partName: r.part_name,
-    partSku: r.part_sku || '',
-    serial: r.serial || undefined,
     quantity: Number(r.quantity) || 1,
     warrantyMonths: Number(r.warranty_months) || 0,
     expiresOn: r.expires_on,
@@ -83,7 +78,6 @@ function rowToTicket(r: any): WarrantyTicket {
   return {
     id: r.id,
     vehicleId: r.vehicle_id,
-    odo: Number(r.odo) || 0,
     activatedOn: r.activated_on,
     expiresOn: r.expires_on,
     note: r.note || undefined,
@@ -98,7 +92,6 @@ function rowToMovement(r: any): StockMovement {
     id: Number(r.id),
     partId: r.part_id,
     partName: r.part_name,
-    partSku: r.part_sku || undefined,
     delta: Number(r.delta),
     stockAfter: Number(r.stock_after),
     reason: r.reason as StockReason,
@@ -256,7 +249,6 @@ export class SupabaseAdapter implements IGarageRepository {
         model: input.vehicle.model.trim(),
         owner_name: (input.vehicle.ownerName || '').trim(),
         owner_phone: (input.vehicle.ownerPhone || '').trim(),
-        odo: input.odo || 0,
         updated_at: new Date().toISOString(),
       }
 
@@ -278,8 +270,6 @@ export class SupabaseAdapter implements IGarageRepository {
           id: `tkit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           part_id: it.partId,
           part_name: part?.name || 'Phụ tùng',
-          part_sku: part?.sku || '',
-          serial: it.serial || null,
           quantity: it.quantity,
           warranty_months: wMonths,
           expires_on: itExpires,
@@ -291,7 +281,6 @@ export class SupabaseAdapter implements IGarageRepository {
       const ticketRow = {
         id: ticketId,
         vehicle_id: vehicleId,
-        odo: input.odo || 0,
         activated_on: today,
         expires_on: maxExpiresOn,
         note: input.note || null,
@@ -321,7 +310,6 @@ export class SupabaseAdapter implements IGarageRepository {
             await supabase.from('stock_movements').insert({
               part_id: part.id,
               part_name: part.name,
-              part_sku: part.sku || '',
               delta: -it.quantity,
               stock_after: newStock,
               reason: 'ticket_use',
@@ -368,14 +356,13 @@ export class SupabaseAdapter implements IGarageRepository {
         if (items && items.length > 0) {
           for (const it of items) {
             if (it.part_id) {
-              const { data: p } = await supabase.from('parts').select('stock, name, sku').eq('id', it.part_id).maybeSingle()
+              const { data: p } = await supabase.from('parts').select('stock, name').eq('id', it.part_id).maybeSingle()
               if (p) {
                 const restored = Number(p.stock) + Number(it.quantity)
                 await supabase.from('parts').update({ stock: restored }).eq('id', it.part_id)
                 await supabase.from('stock_movements').insert({
                   part_id: it.part_id,
                   part_name: p.name,
-                  part_sku: p.sku || '',
                   delta: Number(it.quantity),
                   stock_after: restored,
                   reason: 'ticket_revert',
@@ -449,11 +436,9 @@ export class SupabaseAdapter implements IGarageRepository {
 
       const row = {
         id: partId,
-        sku: input.sku || '',
         name: input.name.trim(),
         category: input.category || 'Phụ tùng',
         warranty_months: input.warrantyMonths ?? 12,
-        price: input.price || 0,
         stock: input.stock || 0,
         is_active: input.isActive ?? true,
         updated_at: new Date().toISOString(),
@@ -466,7 +451,6 @@ export class SupabaseAdapter implements IGarageRepository {
         await supabase.from('stock_movements').insert({
           part_id: partId,
           part_name: input.name,
-          part_sku: input.sku || '',
           delta: input.stock,
           stock_after: input.stock,
           reason: 'initial',
@@ -527,7 +511,6 @@ export class SupabaseAdapter implements IGarageRepository {
       await supabase.from('stock_movements').insert({
         part_id: partId,
         part_name: p.name,
-        part_sku: p.sku || '',
         delta,
         stock_after: newStock,
         reason,

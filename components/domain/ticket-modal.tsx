@@ -35,14 +35,12 @@ interface SelectedItem {
     partId: string;
     quantity: number;
     warrantyMonths?: number;
-    serial?: string;
 }
 
 interface OpenModalParams {
     ticketId?: string;
     vehicle?: Partial<Vehicle>;
     items?: SelectedItem[];
-    odo?: number;
     note?: string;
 }
 
@@ -134,7 +132,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
             partId: it.partId,
             quantity: it.quantity,
             warrantyMonths: typeof it.warrantyMonths === "number" ? it.warrantyMonths : 12,
-            serial: it.serial,
         }));
 
         if (params) {
@@ -286,7 +283,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                     ownerName: (values.ownerName || "").trim(),
                     ownerPhone: (values.ownerPhone || "").trim(),
                 },
-                odo: 0,
                 items: values.items,
                 note: (values.note || "").trim(),
             });

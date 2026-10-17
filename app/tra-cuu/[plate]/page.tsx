@@ -5,13 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { normalizePlate } from "@/lib/plate";
-import { formatDateVN, formatOdo } from "@/lib/format";
+import { formatDateVN } from "@/lib/format";
 import { progressPercent } from "@/lib/warranty";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { WarrantyNotFound } from "@/components/domain/warranty-not-found";
 import { GarageSupportActions } from "@/components/domain/garage-support-actions";
 import { getWarrantyStatusConfig } from "@/lib/warranty-status";
-import { Phone, ArrowLeft, Calendar, User, FileText, Gauge, Clock, ClipboardClock } from "lucide-react";
+import { Phone, ArrowLeft, Calendar, User, FileText, Clock, ClipboardClock } from "lucide-react";
 
 export default function TraCuuPlatePage() {
     const params = useParams();
@@ -103,14 +103,6 @@ export default function TraCuuPlatePage() {
                                     <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight mt-1 text-balance">
                                         {data.model}
                                     </h1>
-                                    {/* <div className="text-xs text-slate-500 font-mono mt-1 flex items-center justify-center sm:justify-start gap-1.5">
-                                        <Gauge className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                        <span>
-                                            ODO:{" "}
-                                            <strong className="text-slate-800 font-bold">{formatOdo(data.odo)}</strong>{" "}
-                                            km
-                                        </span>
-                                    </div> */}
                                 </div>
                             </div>
                         </div>

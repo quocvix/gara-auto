@@ -11,7 +11,6 @@ export const ticketItemSchema = z.object({
   partId: z.string().min(1, 'Vui lòng chọn phụ tùng'),
   quantity: z.number().int().min(1, 'Số lượng tối thiểu là 1'),
   warrantyMonths: z.number().int().min(0, 'Thời hạn bảo hành không được âm'),
-  serial: z.string().optional(),
 })
 
 export type TicketItemFormValues = z.infer<typeof ticketItemSchema>
@@ -58,7 +57,6 @@ export const partSchema = z.object({
   name: z.string().trim().min(1, 'Vui lòng nhập tên phụ tùng'),
   category: z.string().trim().optional().default('Phụ tùng'),
   warrantyMonths: z.number().int().min(0, 'Thời hạn bảo hành không được âm').default(0),
-  price: z.number().min(0, 'Đơn giá không được âm').default(0),
   stock: z.number().int().min(0, 'Số lượng tồn kho không được âm').default(0),
   isActive: z.boolean().default(true),
 })

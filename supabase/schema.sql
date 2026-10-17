@@ -1,6 +1,10 @@
 -- ==============================================================================
--- DUY AUTO - SUPABASE POSTGRESQL SCHEMA MIGRATION
--- Chạy script này trên Supabase SQL Editor khi tạo project mới
+-- DUY AUTO - SUPABASE POSTGRESQL SCHEMA MIGRATION (OPTIMIZED)
+-- Tối ưu hóa theo chuẩn Supabase Postgres Best Practices:
+-- - Loại bỏ các cột không sử dụng (sku, price, odo, part_sku, serial)
+-- - Loại bỏ index thừa (idx_parts_sku) giảm dung lượng và overhead ghi
+-- - Bổ sung index cho foreign key (ticket_items.part_id, stock_movements.ticket_id)
+-- - Tối ưu hóa biểu thức RLS Policies cho authenticated users
 -- ==============================================================================
 
 -- 1. Bảng Cài đặt Gara (garage_settings)
@@ -24,7 +28,6 @@ CREATE TABLE IF NOT EXISTS vehicles (
     model TEXT NOT NULL,
     owner_name TEXT NOT NULL DEFAULT '',
     owner_phone TEXT NOT NULL DEFAULT '',
-    odo INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -34,25 +37,21 @@ CREATE INDEX IF NOT EXISTS idx_vehicles_plate_normalized ON vehicles(plate_norma
 -- 3. Bảng Phụ tùng / Linh kiện kho (parts)
 CREATE TABLE IF NOT EXISTS parts (
     id TEXT PRIMARY KEY,
-    sku TEXT DEFAULT '',
     name TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'Khác',
     warranty_months INT NOT NULL DEFAULT 12,
-    price BIGINT NOT NULL DEFAULT 0,
     stock INT NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_parts_sku ON parts(sku);
 CREATE INDEX IF NOT EXISTS idx_parts_is_active ON parts(is_active);
 
 -- 4. Bảng Phiếu Bảo Hành (warranty_tickets)
 CREATE TABLE IF NOT EXISTS warranty_tickets (
     id TEXT PRIMARY KEY,
     vehicle_id TEXT NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
-    odo INT NOT NULL DEFAULT 0,
     activated_on DATE NOT NULL DEFAULT CURRENT_DATE,
     expires_on DATE NOT NULL,
     note TEXT,
@@ -69,8 +68,6 @@ CREATE TABLE IF NOT EXISTS ticket_items (
     ticket_id TEXT NOT NULL REFERENCES warranty_tickets(id) ON DELETE CASCADE,
     part_id TEXT REFERENCES parts(id) ON DELETE SET NULL,
     part_name TEXT NOT NULL,
-    part_sku TEXT DEFAULT '',
-    serial TEXT,
     quantity INT NOT NULL DEFAULT 1,
     warranty_months INT NOT NULL DEFAULT 12,
     expires_on DATE NOT NULL,
@@ -78,13 +75,14 @@ CREATE TABLE IF NOT EXISTS ticket_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ticket_items_ticket_id ON ticket_items(ticket_id);
+-- Bổ sung index cho FK part_id (schema-foreign-key-indexes best practice)
+CREATE INDEX IF NOT EXISTS idx_ticket_items_part_id ON ticket_items(part_id);
 
 -- 6. Bảng Lịch sử Biến động Tồn kho (stock_movements)
 CREATE TABLE IF NOT EXISTS stock_movements (
     id BIGSERIAL PRIMARY KEY,
     part_id TEXT NOT NULL,
     part_name TEXT NOT NULL,
-    part_sku TEXT DEFAULT '',
     delta INT NOT NULL,
     stock_after INT NOT NULL,
     reason TEXT NOT NULL CHECK (reason IN ('initial', 'import', 'export', 'adjust', 'ticket_use', 'ticket_revert')),
@@ -94,6 +92,7 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_movements_part_id ON stock_movements(part_id);
+CREATE INDEX IF NOT EXISTS idx_movements_ticket_id ON stock_movements(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_movements_created_at ON stock_movements(created_at DESC);
 
 -- 7. Seed dữ liệu cài đặt mặc định
@@ -115,10 +114,10 @@ CREATE POLICY "Public read warranty tickets" ON warranty_tickets FOR SELECT USIN
 CREATE POLICY "Public read ticket items" ON ticket_items FOR SELECT USING (true);
 CREATE POLICY "Public read settings" ON garage_settings FOR SELECT USING (true);
 
--- Authenticated Users (Admin) được toàn quyền CRUD
-CREATE POLICY "Admin full access vehicles" ON vehicles FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full access tickets" ON warranty_tickets FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full access ticket items" ON ticket_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full access parts" ON parts FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full access movements" ON stock_movements FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full access settings" ON garage_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Authenticated Users (Admin) được toàn quyền CRUD (tối ưu hóa per security-rls-performance)
+CREATE POLICY "Admin full access vehicles" ON vehicles FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);
+CREATE POLICY "Admin full access tickets" ON warranty_tickets FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);
+CREATE POLICY "Admin full access ticket items" ON ticket_items FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);
+CREATE POLICY "Admin full access parts" ON parts FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);
+CREATE POLICY "Admin full access movements" ON stock_movements FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);
+CREATE POLICY "Admin full access settings" ON garage_settings FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);

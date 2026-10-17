@@ -136,12 +136,14 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
     }
   },
 
-  loginWithSupabase: async (email: string, password: string) => {
+  loginWithSupabase: async (identifier: string, password: string) => {
     const supabase = getSupabaseClient()
     if (!supabase) {
       set({ isAdmin: true, authChecked: true })
       return { ok: true }
     }
+    const cleanId = identifier.trim()
+    const email = cleanId.includes('@') ? cleanId : `${cleanId}@duyauto.vn`
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       return { ok: false, error: error.message }
@@ -469,7 +471,6 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
       id: t.id,
       activatedOn: t.activatedOn,
       expiresOn: t.expiresOn,
-      odo: t.odo,
       note: t.note,
       items: t.items.map((it) => {
         totalItems += 1
@@ -502,7 +503,6 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
         return {
           id: it.id,
           name: it.partName,
-          serial: it.serial,
           quantity: it.quantity,
           warrantyMonths: wMonths,
           expiresOn: itExpires,
@@ -527,7 +527,6 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
       ownerName: vehicle.ownerName,
       ownerPhoneMasked: maskedPhone,
       ownerPhoneFull: cleanPhone,
-      odo: vehicle.odo,
       expiresOn: maxExpiresOn,
       status,
       daysLeft: days,

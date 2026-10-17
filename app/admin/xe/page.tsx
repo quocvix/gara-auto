@@ -142,7 +142,6 @@ function VehiclesContent() {
         openTicketModal({
             ticketId: latest?.id,
             vehicle: v,
-            odo: latest?.odo || v.odo,
             note: latest?.note,
             items: latest?.items.map((it) => ({
                 partId: it.partId || "",

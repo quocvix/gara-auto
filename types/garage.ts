@@ -8,7 +8,6 @@ export interface Vehicle {
   model: string
   ownerName: string
   ownerPhone: string
-  odo: number
   createdAt: string
   updatedAt: string
 }
@@ -18,8 +17,6 @@ export interface TicketItem {
   ticketId: string
   partId: string | null
   partName: string
-  partSku?: string
-  serial?: string
   quantity: number
   warrantyMonths: number
   expiresOn: string
@@ -28,7 +25,6 @@ export interface TicketItem {
 export interface WarrantyTicket {
   id: string
   vehicleId: string
-  odo: number
   activatedOn: string
   expiresOn: string
   note?: string
@@ -39,11 +35,9 @@ export interface WarrantyTicket {
 
 export interface Part {
   id: string
-  sku?: string
   name: string
   category: string
   warrantyMonths?: number
-  price: number
   stock: number
   isActive: boolean
   createdAt: string
@@ -56,7 +50,6 @@ export interface StockMovement {
   id: number
   partId: string
   partName: string
-  partSku?: string
   delta: number
   stockAfter: number
   reason: StockReason
@@ -89,7 +82,6 @@ export type ItemWarrantyStatus = 'active' | 'expiring' | 'expired' | 'unlimited'
 export interface LookupItem {
   id?: string
   name: string
-  serial?: string
   quantity: number
   warrantyMonths: number // 0 = Không có hạn cố định
   expiresOn: string // YYYY-MM-DD hoặc rỗng
@@ -101,7 +93,6 @@ export interface LookupTicket {
   id: string
   activatedOn: string
   expiresOn: string
-  odo: number
   note?: string
   items: LookupItem[]
 }
@@ -114,7 +105,6 @@ export interface WarrantyLookupResult {
   ownerName: string
   ownerPhoneMasked: string
   ownerPhoneFull?: string
-  odo: number
   expiresOn?: string
   status?: WarrantyStatus
   daysLeft?: number

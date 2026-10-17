@@ -16,11 +16,9 @@ export interface SaveTicketInput {
     ownerName: string
     ownerPhone: string
   }
-  odo: number
   items: {
     partId: string
     quantity: number
-    serial?: string
     warrantyMonths?: number
   }[]
   note?: string

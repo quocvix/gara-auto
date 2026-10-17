@@ -61,7 +61,6 @@ export function PartModal({
                 name: name.trim(),
                 category: initialPart?.category || "Phụ tùng",
                 warrantyMonths: initialPart?.warrantyMonths || 0,
-                price: initialPart?.price || 0,
                 stock: Math.max(0, Number(stock) || 0),
                 isActive: true,
             });
