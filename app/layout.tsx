@@ -34,6 +34,15 @@ export const metadata: Metadata = {
     title: "DUY AUTO — Tra Cứu & Quản Lý Bảo Hành Ô Tô",
     description:
         "Hệ thống Quản lý và Tra cứu bảo hành điện tử chính hãng Duy Auto dành cho gara và khách hàng.",
+    icons: {
+        icon: [
+            { url: "/icon.png", sizes: "32x32", type: "image/png" },
+            { url: "/favicon.ico", sizes: "any" },
+        ],
+        apple: [
+            { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+        ],
+    },
 };
 
 export default function RootLayout({
