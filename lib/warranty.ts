@@ -30,3 +30,10 @@ export const addMonthsToDate = (dateStr: string, months: number): string => {
   d.setMonth(d.getMonth() + months)
   return d.toISOString().split('T')[0]
 }
+
+export const addDaysToDate = (dateStr: string, days: number): string => {
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+

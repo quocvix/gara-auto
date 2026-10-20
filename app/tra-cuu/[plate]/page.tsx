@@ -192,10 +192,11 @@ export default function TraCuuPlatePage() {
                                     {/* Danh sách từng phụ kiện: Mỗi linh kiện là 1 Card độc lập có accent border */}
                                     <div className="p-3 sm:p-4 space-y-3 bg-slate-50/70">
                                         {ticket.items.map((item, iIdx) => {
+                                            const itemActivatedOn = item.activatedOn || ticket.activatedOn;
                                             const isUnlimited = item.status === "unlimited";
                                             const percent = isUnlimited
                                                 ? 100
-                                                : progressPercent(ticket.activatedOn, item.expiresOn);
+                                                : progressPercent(itemActivatedOn, item.expiresOn);
 
                                             // Lấy cấu hình trạng thái từ file chung lib/warranty-status.ts
                                             const currentStatus = getWarrantyStatusConfig(item.status, item.daysLeft);
@@ -267,8 +268,8 @@ export default function TraCuuPlatePage() {
                                                         <div className="flex items-center justify-between text-3xs text-slate-400">
                                                             <span>
                                                                 Kích hoạt:{" "}
-                                                                <strong className="text-slate-600 font-bold">
-                                                                    {formatDateVN(ticket.activatedOn)}
+                                                                <strong className="text-slate-600 font-bold font-mono">
+                                                                    {formatDateVN(itemActivatedOn)}
                                                                 </strong>
                                                             </span>
                                                             <span>

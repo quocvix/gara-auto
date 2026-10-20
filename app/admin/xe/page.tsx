@@ -143,9 +143,12 @@ function VehiclesContent() {
             ticketId: latest?.id,
             vehicle: v,
             note: latest?.note,
+            activatedOn: latest?.activatedOn,
             items: latest?.items.map((it) => ({
                 partId: it.partId || "",
                 quantity: it.quantity,
+                warrantyMonths: it.warrantyMonths,
+                activatedOn: it.activatedOn || latest?.activatedOn,
             })),
         });
     };

@@ -70,6 +70,7 @@ function rowToTicketItem(r: any): TicketItem {
     partName: r.part_name,
     quantity: Number(r.quantity) || 1,
     warrantyMonths: Number(r.warranty_months) || 0,
+    activatedOn: r.activated_on || undefined,
     expiresOn: r.expires_on,
   }
 }
@@ -225,7 +226,7 @@ export class SupabaseAdapter implements IGarageRepository {
     }
 
     try {
-      const today = todayVN()
+      const ticketActivatedOn = input.activatedOn || todayVN()
       const normPlate = normalizePlate(input.vehicle.plate)
 
       // 1. Tìm hoặc tạo xe
@@ -256,11 +257,12 @@ export class SupabaseAdapter implements IGarageRepository {
       const { data: partsList } = await supabase.from('parts').select('*').in('id', partIds)
       const partsMap = new Map((partsList || []).map((p) => [p.id, p]))
 
-      let maxExpiresOn = today
+      let maxExpiresOn = ticketActivatedOn
       const computedItems = input.items.map((it) => {
         const part = partsMap.get(it.partId)
         const wMonths = typeof it.warrantyMonths === 'number' ? it.warrantyMonths : (part?.warranty_months ?? 12)
-        const itExpires = wMonths > 0 ? addMonthsToDate(today, wMonths) : today
+        const itemActivatedOn = it.activatedOn || ticketActivatedOn
+        const itExpires = wMonths > 0 ? addMonthsToDate(itemActivatedOn, wMonths) : itemActivatedOn
         if (itExpires > maxExpiresOn) maxExpiresOn = itExpires
 
         return {
@@ -269,6 +271,7 @@ export class SupabaseAdapter implements IGarageRepository {
           part_name: part?.name || 'Phụ tùng',
           quantity: it.quantity,
           warranty_months: wMonths,
+          activated_on: itemActivatedOn,
           expires_on: itExpires,
         }
       })
@@ -278,7 +281,7 @@ export class SupabaseAdapter implements IGarageRepository {
       const ticketRow = {
         id: ticketId,
         vehicle_id: vehicleId,
-        activated_on: today,
+        activated_on: ticketActivatedOn,
         expires_on: maxExpiresOn,
         note: input.note || null,
         updated_at: new Date().toISOString(),

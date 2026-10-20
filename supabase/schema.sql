@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS ticket_items (
     part_name TEXT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     warranty_months INT NOT NULL DEFAULT 12,
+    activated_on DATE,
     expires_on DATE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

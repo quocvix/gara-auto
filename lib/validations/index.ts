@@ -11,6 +11,7 @@ export const ticketItemSchema = z.object({
   partId: z.string().min(1, 'Vui lòng chọn phụ tùng'),
   quantity: z.number().int().min(1, 'Số lượng tối thiểu là 1'),
   warrantyMonths: z.number().int().min(0, 'Thời hạn bảo hành không được âm'),
+  activatedOn: z.string().optional(),
 })
 
 export type TicketItemFormValues = z.infer<typeof ticketItemSchema>
@@ -44,6 +45,7 @@ export const ticketSchema = z.object({
   items: z
     .array(ticketItemSchema)
     .min(1, 'Vui lòng chọn ít nhất 1 phụ tùng cần bảo hành'),
+  activatedOn: z.string().optional(),
   note: z.string(),
 })
 

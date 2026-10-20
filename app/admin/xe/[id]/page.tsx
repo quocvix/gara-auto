@@ -261,9 +261,12 @@ export default function VehicleDetailPage() {
                                                         ticketId: t.id,
                                                         vehicle,
                                                         note: t.note,
+                                                        activatedOn: t.activatedOn,
                                                         items: t.items.map((it) => ({
                                                             partId: it.partId || "",
                                                             quantity: it.quantity,
+                                                            warrantyMonths: it.warrantyMonths,
+                                                            activatedOn: it.activatedOn || t.activatedOn,
                                                         })),
                                                     });
                                                 }}
@@ -291,6 +294,7 @@ export default function VehicleDetailPage() {
                                         </span>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                             {t.items.map((item, iIdx) => {
+                                                const itemActivatedOn = item.activatedOn || t.activatedOn;
                                                 const isUnlimited = !item.expiresOn || item.warrantyMonths === 0;
                                                 const itemDaysLeft = isUnlimited ? null : daysLeft(item.expiresOn);
                                                 const itemStatus = isUnlimited
@@ -298,7 +302,7 @@ export default function VehicleDetailPage() {
                                                     : getStatus(itemDaysLeft!, settings?.expiringThresholdDays ?? 30);
                                                 const percent = isUnlimited
                                                     ? 100
-                                                    : progressPercent(t.activatedOn, item.expiresOn);
+                                                    : progressPercent(itemActivatedOn, item.expiresOn);
                                                 const statusConfig = getWarrantyStatusConfig(itemStatus, itemDaysLeft);
 
                                                 return (
@@ -367,7 +371,7 @@ export default function VehicleDetailPage() {
                                                                 <span>
                                                                     Kích hoạt:{" "}
                                                                     <strong className="text-slate-600 font-bold font-mono">
-                                                                        {formatDateVN(t.activatedOn)}
+                                                                        {formatDateVN(itemActivatedOn)}
                                                                     </strong>
                                                                 </span>
                                                                 <span>

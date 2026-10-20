@@ -583,6 +583,7 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
           name: it.partName,
           quantity: it.quantity,
           warrantyMonths: wMonths,
+          activatedOn: it.activatedOn || t.activatedOn,
           expiresOn: itExpires,
           status: itemStatus,
           daysLeft: itemDaysLeft,

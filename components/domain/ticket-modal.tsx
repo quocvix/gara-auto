@@ -4,7 +4,7 @@ import React, { createContext, use, useState, useEffect, useMemo, useCallback, S
 import { useGarageStore } from "@/lib/store/garage-store";
 import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
-import { addMonthsToDate, todayVN } from "@/lib/warranty";
+import { addMonthsToDate, addDaysToDate, todayVN } from "@/lib/warranty";
 import { Vehicle } from "@/types/garage";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ interface SelectedItem {
     partId: string;
     quantity: number;
     warrantyMonths?: number;
+    activatedOn?: string;
 }
 
 interface OpenModalParams {
@@ -42,6 +43,7 @@ interface OpenModalParams {
     vehicle?: Partial<Vehicle>;
     items?: SelectedItem[];
     note?: string;
+    activatedOn?: string;
 }
 
 interface TicketModalContextType {
@@ -112,6 +114,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
             model: "",
             ownerName: "",
             ownerPhone: "",
+            activatedOn: todayVN(),
             items: [],
             note: "",
         },
@@ -122,16 +125,19 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     const model = watch("model") || "";
     const ownerName = watch("ownerName") || "";
     const ownerPhone = watch("ownerPhone") || "";
+    const activatedOn = watch("activatedOn") || todayVN();
     const note = watch("note") || "";
     const selectedItems = watch("items") || [];
 
     const openTicketModal = useCallback((params?: OpenModalParams) => {
         setError("");
         setPartSearchQuery("");
+        const ticketDate = params?.activatedOn || todayVN();
         const items = (params?.items || []).map((it) => ({
             partId: it.partId,
             quantity: it.quantity,
             warrantyMonths: typeof it.warrantyMonths === "number" ? it.warrantyMonths : 12,
+            activatedOn: it.activatedOn || ticketDate,
         }));
 
         if (params) {
@@ -142,6 +148,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                 model: params.vehicle?.model || "",
                 ownerName: params.vehicle?.ownerName || "",
                 ownerPhone: params.vehicle?.ownerPhone || "",
+                activatedOn: ticketDate,
                 note: params.note || "",
                 items,
             });
@@ -160,6 +167,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                 model: "",
                 ownerName: "",
                 ownerPhone: "",
+                activatedOn: todayVN(),
                 note: "",
                 items: [],
             });
@@ -216,6 +224,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                     quantity: 1,
                     warrantyMonths:
                         typeof part?.warrantyMonths === "number" && part.warrantyMonths > 0 ? part.warrantyMonths : 12,
+                    activatedOn: activatedOn || todayVN(),
                 },
             ];
         }
@@ -239,6 +248,12 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
         setValue("items", updated, { shouldValidate: true });
     };
 
+    const updateItemActivatedOn = (index: number, dateStr: string) => {
+        const updated = [...selectedItems];
+        updated[index].activatedOn = dateStr;
+        setValue("items", updated, { shouldValidate: true });
+    };
+
     const removeItem = (index: number) => {
         const updated = selectedItems.filter((_, idx) => idx !== index);
         setValue("items", updated, { shouldValidate: true });
@@ -257,16 +272,17 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     // Tính hạn bảo hành dài nhất
     const today = todayVN();
     const maxWarrantyExpiresOn = useMemo(() => {
-        let max = today;
+        let max = activatedOn || today;
         for (const item of selectedItems) {
             const wMonths = typeof item.warrantyMonths === "number" ? item.warrantyMonths : 0;
+            const itemDate = item.activatedOn || activatedOn || today;
             if (wMonths > 0) {
-                const exp = addMonthsToDate(today, wMonths);
+                const exp = addMonthsToDate(itemDate, wMonths);
                 if (exp > max) max = exp;
             }
         }
         return max;
-    }, [selectedItems, today]);
+    }, [selectedItems, activatedOn, today]);
 
     const onSubmit = async (values: TicketFormValues) => {
         if (isSubmitting) return;
@@ -274,8 +290,10 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
         try {
             setIsSubmitting(true);
+            const ticketActivatedDate = values.activatedOn || todayVN();
             const res = await saveTicket({
                 ticketId,
+                activatedOn: ticketActivatedDate,
                 vehicle: {
                     plate: values.plate.trim().toUpperCase(),
                     plateColor: values.plateColor,
@@ -283,7 +301,12 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                     ownerName: (values.ownerName || "").trim(),
                     ownerPhone: (values.ownerPhone || "").trim(),
                 },
-                items: values.items,
+                items: values.items.map((it) => ({
+                    partId: it.partId,
+                    quantity: it.quantity,
+                    warrantyMonths: it.warrantyMonths,
+                    activatedOn: it.activatedOn || ticketActivatedDate,
+                })),
                 note: (values.note || "").trim(),
             });
 
@@ -377,6 +400,46 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                         1. Thông tin phương tiện
                                     </span>
                                     {plate && <LicensePlate plate={plate} color={plateColor} size="sm" />}
+                                </div>
+
+                                {/* NGÀY TẠO / KÍCH HOẠT PHIẾU */}
+                                <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                                            NGÀY TẠO / KÍCH HOẠT PHIẾU
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setValue("activatedOn", todayVN(), { shouldValidate: true })}
+                                                className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all ${
+                                                    activatedOn === todayVN()
+                                                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                                }`}
+                                            >
+                                                Hôm nay
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setValue("activatedOn", addDaysToDate(todayVN(), -1), { shouldValidate: true })}
+                                                className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all ${
+                                                    activatedOn === addDaysToDate(todayVN(), -1)
+                                                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                                }`}
+                                            >
+                                                Hôm qua
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="date"
+                                        value={activatedOn}
+                                        onChange={(e) => setValue("activatedOn", e.target.value, { shouldValidate: true })}
+                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                    />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -673,7 +736,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
                                             const wMonths =
                                                 typeof item.warrantyMonths === "number" ? item.warrantyMonths : 12;
-                                            const itemExpires = wMonths > 0 ? addMonthsToDate(today, wMonths) : null;
+                                            const itemActivatedOn = item.activatedOn || activatedOn || today;
+                                            const itemExpires = wMonths > 0 ? addMonthsToDate(itemActivatedOn, wMonths) : null;
                                             const isCustom =
                                                 customWarrantyIndexes.includes(idx) ||
                                                 !STANDARD_VALUES.includes(wMonths);
@@ -689,7 +753,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                             <div className="font-semibold text-sm text-slate-900 leading-snug">
                                                                 {part.name}
                                                             </div>
-                                                            <div className="flex items-center gap-2 mt-1">
+                                                            <div className="flex flex-wrap items-center gap-2 mt-1">
                                                                 <span className="text-[11px] text-slate-500 font-mono">
                                                                     Kho còn:{" "}
                                                                     <strong className="text-slate-700">
@@ -698,11 +762,11 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                                 </span>
                                                                 {wMonths > 0 && itemExpires ? (
                                                                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 font-mono">
-                                                                        Đến {formatDateVN(itemExpires)}
+                                                                        {formatDateVN(itemActivatedOn)} → {formatDateVN(itemExpires)}
                                                                     </span>
                                                                 ) : (
                                                                     <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
-                                                                        Không có hạn
+                                                                        Kích hoạt {formatDateVN(itemActivatedOn)} (Không có hạn)
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -718,8 +782,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                         </button>
                                                     </div>
 
-                                                    {/* Row 2: Bộ chọn số lượng & Dropdown thời gian bảo hành */}
-                                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1 border-t border-slate-100">
+                                                    {/* Row 2: Bộ chọn số lượng, Ngày kích hoạt riêng & Thời gian bảo hành */}
+                                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1.5 border-t border-slate-100">
                                                         {/* Stepper số lượng */}
                                                         <div className="flex items-center gap-1.5">
                                                             <span className="text-xs text-slate-500 font-medium">
@@ -748,6 +812,20 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                                     +
                                                                 </button>
                                                             </div>
+                                                        </div>
+
+                                                        {/* Ngày kích hoạt riêng cho món */}
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-xs text-slate-500 font-medium">
+                                                                Ngày:
+                                                            </span>
+                                                            <input
+                                                                type="date"
+                                                                value={item.activatedOn || activatedOn || today}
+                                                                onChange={(e) => updateItemActivatedOn(idx, e.target.value)}
+                                                                className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
+                                                                title="Ngày kích hoạt riêng cho món này"
+                                                            />
                                                         </div>
 
                                                         {/* Dropdown bảo hành tiết kiệm không gian */}

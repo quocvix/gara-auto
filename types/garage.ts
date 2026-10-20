@@ -19,6 +19,7 @@ export interface TicketItem {
   partName: string
   quantity: number
   warrantyMonths: number
+  activatedOn?: string
   expiresOn: string
 }
 
@@ -84,6 +85,7 @@ export interface LookupItem {
   name: string
   quantity: number
   warrantyMonths: number // 0 = Không có hạn cố định
+  activatedOn?: string // YYYY-MM-DD
   expiresOn: string // YYYY-MM-DD hoặc rỗng
   status: ItemWarrantyStatus
   daysLeft?: number

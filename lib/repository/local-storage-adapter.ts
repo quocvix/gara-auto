@@ -121,7 +121,7 @@ export class LocalStorageAdapter implements IGarageRepository {
     }
 
     const now = new Date().toISOString()
-    const activatedDate = todayVN()
+    const activatedDate = input.activatedOn || todayVN()
 
     // 1. Tìm hoặc tạo xe
     let vehicle = vehicles.find((v) => normalizePlate(v.plate) === normPlate)
@@ -202,7 +202,8 @@ export class LocalStorageAdapter implements IGarageRepository {
       const part = updatedParts.find((p) => p.id === it.partId)
       const partName = part ? part.name : 'Dịch vụ / Phụ tùng ngoài'
       const warrantyMonths = it.warrantyMonths ?? (part ? part.warrantyMonths ?? 12 : 12)
-      const expDate = addMonths(activatedDate, warrantyMonths)
+      const itemActivatedOn = it.activatedOn || activatedDate
+      const expDate = addMonths(itemActivatedOn, warrantyMonths)
 
       if (expDate > maxExpiresOn) {
         maxExpiresOn = expDate
@@ -215,6 +216,7 @@ export class LocalStorageAdapter implements IGarageRepository {
         partName,
         quantity: it.quantity,
         warrantyMonths,
+        activatedOn: itemActivatedOn,
         expiresOn: expDate,
       })
 

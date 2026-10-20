@@ -9,6 +9,7 @@ import type {
 
 export interface SaveTicketInput {
   ticketId?: string
+  activatedOn?: string
   vehicle: {
     plate: string
     plateColor: 'white' | 'yellow'
@@ -20,6 +21,7 @@ export interface SaveTicketInput {
     partId: string
     quantity: number
     warrantyMonths?: number
+    activatedOn?: string
   }[]
   note?: string
 }
