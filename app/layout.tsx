@@ -31,46 +31,26 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-    title: "DUY AUTO — Tra Cứu & Quản Lý Bảo Hành Ô Tô",
-    description:
-        "Hệ thống Quản lý và Tra cứu bảo hành điện tử chính hãng Duy Auto dành cho gara và khách hàng.",
+    title: "DUY.LAMXEDAO.THUDUC",
+    description: "Tra Cứu Bảo Hành Ô Tô",
     icons: {
         icon: [
             { url: "/icon.png", sizes: "32x32", type: "image/png" },
             { url: "/favicon.ico", sizes: "any" },
         ],
-        apple: [
-            { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-        ],
+        apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
     },
 };
 
-export default function RootLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html
-            lang="vi"
-            suppressHydrationWarning
-            className={`${fontSans.variable} ${fontPlate.variable}`}
-        >
+        <html lang="vi" suppressHydrationWarning className={`${fontSans.variable} ${fontPlate.variable}`}>
             <body className="min-h-screen bg-background text-foreground antialiased flex flex-col selection:bg-primary/20 selection:text-primary">
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="light"
-                    enableSystem={false}
-                >
+                <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
                     <GarageStoreProvider>
                         <AlertDialogProvider>
                             <main className="flex-1 flex flex-col">{children}</main>
-                            <Toaster
-                                richColors
-                                position="top-center"
-                                closeButton
-                                duration={3500}
-                            />
+                            <Toaster richColors position="top-center" closeButton duration={3500} />
                         </AlertDialogProvider>
                     </GarageStoreProvider>
                 </ThemeProvider>

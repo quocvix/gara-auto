@@ -108,11 +108,11 @@ ALTER TABLE ticket_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE parts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stock_movements ENABLE ROW LEVEL SECURITY;
 
--- Khách vãng lai được phép tra cứu thông tin xe & phiếu bảo hành
-CREATE POLICY "Public read vehicles for warranty lookup" ON vehicles FOR SELECT USING (true);
-CREATE POLICY "Public read warranty tickets" ON warranty_tickets FOR SELECT USING (true);
-CREATE POLICY "Public read ticket items" ON ticket_items FOR SELECT USING (true);
-CREATE POLICY "Public read settings" ON garage_settings FOR SELECT USING (true);
+-- Khách vãng lai được phép tra cứu thông tin xe & phiếu bảo hành (tối ưu TO anon)
+CREATE POLICY "Public read vehicles for warranty lookup" ON vehicles FOR SELECT TO anon USING (true);
+CREATE POLICY "Public read warranty tickets" ON warranty_tickets FOR SELECT TO anon USING (true);
+CREATE POLICY "Public read ticket items" ON ticket_items FOR SELECT TO anon USING (true);
+CREATE POLICY "Public read settings" ON garage_settings FOR SELECT TO anon USING (true);
 
 -- Authenticated Users (Admin) được toàn quyền CRUD (tối ưu hóa per security-rls-performance)
 CREATE POLICY "Admin full access vehicles" ON vehicles FOR ALL TO authenticated USING ((select auth.uid()) IS NOT NULL) WITH CHECK ((select auth.uid()) IS NOT NULL);

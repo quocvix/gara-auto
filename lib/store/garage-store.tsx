@@ -83,6 +83,44 @@ export interface GarageStoreState {
   }
 }
 
+const CACHE_KEY = 'gara_cache_bundle_v1'
+
+function getCachedBundle(): {
+  vehicles: Vehicle[]
+  tickets: WarrantyTicket[]
+  parts: Part[]
+  movements: StockMovement[]
+  settings: GarageSettings
+} | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (parsed && Array.isArray(parsed.vehicles)) {
+      return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function saveCacheBundle(bundle: {
+  vehicles: Vehicle[]
+  tickets: WarrantyTicket[]
+  parts: Part[]
+  movements: StockMovement[]
+  settings: GarageSettings
+}) {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(bundle))
+  } catch {
+    // ignore
+  }
+}
+
 export const useGarageStore = create<GarageStoreState>((set, get) => ({
   isLoaded: false,
   isLoading: false,
@@ -97,27 +135,60 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
   movements: INITIAL_MOVEMENTS,
 
   init: async () => {
-    if (get().isLoaded || get().isLoading) return
+    // 1. Fast-path: Khôi phục cache tức thì (0ms) nếu đã có phiên trước
+    const cached = getCachedBundle()
+    if (cached && !get().isLoaded) {
+      set({
+        vehicles: cached.vehicles,
+        tickets: cached.tickets,
+        parts: cached.parts,
+        movements: cached.movements,
+        settings: cached.settings,
+        isLoaded: true,
+      })
+    }
+
+    if (get().isLoading) return
     set({ isLoading: true })
+
     try {
       const supabase = getSupabaseClient()
       let currentUser: User | null = null
       let isUserAdmin = false
 
       if (supabase) {
+        // Đọc session trực tiếp từ local storage (<10ms) và mở khóa authChecked ngay lập tức!
         const { data: { session } } = await supabase.auth.getSession()
         currentUser = session?.user ?? null
         isUserAdmin = !!currentUser
+
+        set({
+          user: currentUser,
+          isAdmin: isUserAdmin,
+          authChecked: true,
+        })
 
         // Lắng nghe sự kiện auth thay đổi trong session
         supabase.auth.onAuthStateChange((_event, session) => {
           const u = session?.user ?? null
           set({ user: u, isAdmin: !!u, authChecked: true })
         })
+      } else {
+        set({ authChecked: true, isAdmin: true })
       }
 
+      // Tải dữ liệu mới nhất ngầm từ repository (Stale-While-Revalidate)
       const repo = getGarageRepository()
       const bundle = await repo.loadInitialData()
+
+      saveCacheBundle({
+        vehicles: bundle.vehicles,
+        tickets: bundle.tickets,
+        parts: bundle.parts,
+        movements: bundle.movements,
+        settings: bundle.settings,
+      })
+
       set({
         vehicles: bundle.vehicles,
         tickets: bundle.tickets,
@@ -207,7 +278,14 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
         console.error('[GarageStore] Lỗi Supabase signOut:', e)
       }
     }
-    set({ user: null, isAdmin: false })
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem(CACHE_KEY)
+      } catch {
+        // ignore
+      }
+    }
+    set({ user: null, isAdmin: false, authChecked: true })
     getGarageRepository().setAdminRole(false).catch(console.error)
   },
 

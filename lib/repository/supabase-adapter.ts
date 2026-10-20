@@ -144,7 +144,7 @@ export class SupabaseAdapter implements IGarageRepository {
         supabase.from('vehicles').select('*').order('created_at', { ascending: false }),
         supabase.from('warranty_tickets').select('*, items:ticket_items(*)').order('activated_on', { ascending: false }),
         supabase.from('parts').select('*').order('name', { ascending: true }),
-        supabase.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(200),
+        supabase.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(50),
         supabase.from('garage_settings').select('*').eq('id', 1).maybeSingle(),
       ])
 
@@ -158,16 +158,13 @@ export class SupabaseAdapter implements IGarageRepository {
       const movements = (movementsData || []).map(rowToMovement)
       const settings = settingsData ? rowToSettings(settingsData) : INITIAL_SETTINGS
 
-      const { data: { session } } = await supabase.auth.getSession()
-      const isAdmin = Boolean(session?.user)
-
       return {
         vehicles,
         tickets,
         parts,
         movements,
         settings,
-        isAdmin,
+        isAdmin: true,
       }
     } catch (error) {
       console.error('[SupabaseAdapter] Exception loadInitialData:', error)
