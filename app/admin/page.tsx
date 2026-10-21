@@ -81,14 +81,15 @@ export default function AdminDashboardPage() {
             {/* 2. BENTO KPI TELEMETRY CARDS (Tương phản cao, đổ bóng có màu, dải phân cấp chiều sâu rõ rệt) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                 {/* KPI 1: Xe Còn Hạn (Emerald Tone) */}
-                <div
-                    onClick={() => router.push("/admin/xe?status=active")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-emerald-50/40 border border-emerald-300/80 border-t-4 border-t-emerald-500 shadow-md shadow-emerald-900/5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                <Link
+                    href="/admin/xe?status=active"
+                    onClick={() => trigger("tap")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-emerald-50/40 border border-emerald-300/80 border-t-4 border-t-emerald-500 shadow-md shadow-emerald-900/5 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-700">Xe Còn Hạn</span>
                         <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <Car className="w-4 h-4 stroke-[2.5]" />
+                            <Car className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
@@ -96,20 +97,21 @@ export default function AdminDashboardPage() {
                             {kpis.activeVehicles}
                         </div>
                         <div className="text-[11px] text-emerald-800 mt-1 flex items-center gap-1 font-semibold truncate">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                             <span>Đang bảo hành</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* KPI 2: Sắp Hết Hạn (CARD ƯU TIÊN - Amber Solar Alert) */}
-                <div
-                    onClick={() => router.push("/admin/xe?status=expiring")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white border-2 border-amber-400 border-t-4 border-t-amber-500 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+                <Link
+                    href="/admin/xe?status=expiring"
+                    onClick={() => trigger("tap")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white border-2 border-amber-400 border-t-4 border-t-amber-500 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
                 >
                     {kpis.expiringVehicles > 0 && (
-                        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+                        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5" aria-hidden="true">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
                         </span>
@@ -119,7 +121,7 @@ export default function AdminDashboardPage() {
                             Sắp Hết Hạn
                         </span>
                         <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <Clock className="w-4 h-4 stroke-[2.5]" />
+                            <Clock className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
@@ -127,22 +129,23 @@ export default function AdminDashboardPage() {
                             {kpis.expiringVehicles}
                         </div>
                         <div className="text-[11px] text-amber-900 mt-1 flex items-center gap-1 font-bold truncate">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden="true" />
                             <span>Cần gọi chăm sóc</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* KPI 3: Kho Sắp Hết (Rose Alert) */}
-                <div
-                    onClick={() => router.push("/admin/kho?filter=low")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 via-rose-50/40 to-white border-2 border-rose-300 border-t-4 border-t-rose-500 shadow-md shadow-rose-500/10 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                <Link
+                    href="/admin/kho?filter=low"
+                    onClick={() => trigger("tap")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 via-rose-50/40 to-white border-2 border-rose-300 border-t-4 border-t-rose-500 shadow-md shadow-rose-500/10 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-rose-950 uppercase tracking-wide">Kho Sắp Hết</span>
                         <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
+                            <AlertTriangle className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
@@ -150,22 +153,23 @@ export default function AdminDashboardPage() {
                             {kpis.lowStockParts}
                         </div>
                         <div className="text-[11px] text-rose-800 mt-1 flex items-center gap-1 font-semibold truncate">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" aria-hidden="true" />
                             <span>≤ {settings.lowStockThreshold} sản phẩm</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* KPI 4: Phiếu Tháng Này (Cobalt Blue) */}
-                <div
-                    onClick={() => router.push("/admin/xe")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-blue-50/40 border border-blue-300/80 border-t-4 border-t-blue-500 shadow-md shadow-blue-900/5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                <Link
+                    href="/admin/xe"
+                    onClick={() => trigger("tap")}
+                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-blue-50/40 border border-blue-300/80 border-t-4 border-t-blue-500 shadow-md shadow-blue-900/5 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-700 truncate">Phiếu Tháng Này</span>
                         <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <FileCheck2 className="w-4 h-4 stroke-[2.5]" />
+                            <FileCheck2 className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
@@ -173,12 +177,12 @@ export default function AdminDashboardPage() {
                             {kpis.ticketsThisMonth}
                         </div>
                         <div className="text-[11px] text-blue-800 mt-1 flex items-center gap-1 font-semibold truncate">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true" />
                             <span>Hồ sơ phát hành</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
                         </div>
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* 3. KHỐI TRỌNG TÂM: XE SẮP HẾT HẠN CẦN CHĂM SÓC KHÁCH HÀNG */}
@@ -328,10 +332,11 @@ export default function AdminDashboardPage() {
                             const percent = Math.min(100, Math.round((p.stock / maxThreshold) * 100));
 
                             return (
-                                <div
+                                <Link
                                     key={p.id}
-                                    onClick={() => router.push("/admin/kho?filter=low")}
-                                    className="p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:border-rose-300 hover:bg-rose-50/30 flex items-center justify-between gap-3 text-xs transition-all cursor-pointer group shadow-2xs"
+                                    href="/admin/kho?filter=low"
+                                    onClick={() => trigger("tap")}
+                                    className="p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:border-rose-300 hover:bg-rose-50/30 flex items-center justify-between gap-3 text-xs transition-all cursor-pointer group shadow-2xs focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
                                 >
                                     <div className="min-w-0 flex-1">
                                         <div className="font-bold text-slate-900 truncate group-hover:text-rose-700 transition-colors">
@@ -348,10 +353,10 @@ export default function AdminDashboardPage() {
                                             />
                                         </div>
                                     </div>
-                                    <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-xs shrink-0 shadow-xs">
+                                    <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-xs shrink-0 shadow-xs tabular-nums">
                                         Còn {p.stock}
                                     </span>
-                                </div>
+                                </Link>
                             );
                         })}
                     </div>

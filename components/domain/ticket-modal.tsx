@@ -84,7 +84,7 @@ const STANDARD_MONTH_OPTIONS = [
     { value: 24, label: "24 tháng (2 năm)" },
     { value: 36, label: "36 tháng (3 năm)" },
     { value: 0, label: "Không bảo hành (0T)" },
-    { value: -1, label: "Số tháng khác..." },
+    { value: -1, label: "Số tháng khác…" },
 ];
 
 const STANDARD_VALUES = [12, 3, 6, 18, 24, 36, 0];
@@ -1153,7 +1153,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             >
                                 <FileCheck2 className={`w-4 h-4 ${isSubmitting ? "animate-spin" : ""}`} />
                                 <span>
-                                    {isSubmitting ? "Đang Lưu..." : ticketId ? "Cập Nhật Phiếu" : "Kích Hoạt Bảo Hành"}
+                                    {isSubmitting ? "Đang lưu…" : ticketId ? "Cập Nhật Phiếu" : "Kích Hoạt Bảo Hành"}
                                 </span>
                             </button>
                         </div>

@@ -46,10 +46,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="vi" suppressHydrationWarning className={`${fontSans.variable} ${fontPlate.variable}`}>
             <body className="min-h-screen bg-background text-foreground antialiased flex flex-col selection:bg-primary/20 selection:text-primary">
+                {/* Skip link for keyboard accessibility */}
+                <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:font-bold focus:rounded-xl focus:shadow-lg focus:outline-none"
+                >
+                    Chuyển đến nội dung chính
+                </a>
                 <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
                     <GarageStoreProvider>
                         <AlertDialogProvider>
-                            <main className="flex-1 flex flex-col">{children}</main>
+                            <main id="main-content" className="flex-1 flex flex-col">{children}</main>
                             <Toaster richColors position="top-center" closeButton duration={3500} />
                         </AlertDialogProvider>
                     </GarageStoreProvider>

@@ -200,13 +200,16 @@ function VehiclesContent() {
             <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2.5 bg-[#E1E7EF]/90 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar - Chống lóa mắt, bo góc mềm mại */}
                 <div className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                     <input
-                        type="text"
+                        type="search"
+                        name="q"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Tìm biển số, dòng xe, chủ xe, SĐT..."
-                        className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200/80 bg-white/95 text-slate-900 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-[0_2px_8px_rgba(15,23,42,0.04)] placeholder:text-slate-400 transition-all"
+                        placeholder="Tìm biển số, dòng xe, chủ xe, SĐT…"
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200/80 bg-white/95 text-slate-900 text-sm focus:border-blue-500 focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:outline-none shadow-[0_2px_8px_rgba(15,23,42,0.04)] placeholder:text-slate-400 transition-all"
                     />
                     {searchQuery.trim().length > 0 && (
                         <button
@@ -215,10 +218,10 @@ function VehiclesContent() {
                                 trigger("tap");
                                 setSearchQuery("");
                             }}
-                            className="w-8 h-8 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer"
+                            className="w-8 h-8 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors cursor-pointer"
                             aria-label="Xóa tìm kiếm"
                         >
-                            <X className="w-4 h-4" />
+                            <X className="w-4 h-4" aria-hidden="true" />
                         </button>
                     )}
                 </div>
@@ -231,7 +234,7 @@ function VehiclesContent() {
                             trigger("tap");
                             setStatusFilter("all");
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                             statusFilter === "all"
                                 ? "bg-blue-600 text-white shadow-xs shadow-blue-600/30 font-bold"
                                 : "bg-white/80 border border-slate-200/70 text-slate-700 hover:bg-white shadow-2xs"
@@ -239,8 +242,8 @@ function VehiclesContent() {
                     >
                         <span>Tất cả</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                                statusFilter === "all" ? "bg-blue-700 text-white" : "bg-slate-150 text-slate-600"
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                                statusFilter === "all" ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-600"
                             }`}
                         >
                             {statusCounts.all}
@@ -253,7 +256,7 @@ function VehiclesContent() {
                             trigger("tap");
                             setStatusFilter("active");
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                             statusFilter === "active"
                                 ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/30 font-bold"
                                 : "bg-white/80 border border-slate-200/70 text-slate-700 hover:bg-white shadow-2xs"
@@ -261,7 +264,7 @@ function VehiclesContent() {
                     >
                         <span>Còn hạn</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                                 statusFilter === "active"
                                     ? "bg-emerald-700 text-white"
                                     : "bg-emerald-100 text-emerald-800"
@@ -277,7 +280,7 @@ function VehiclesContent() {
                             trigger("tap");
                             setStatusFilter("expiring");
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none ${
                             statusFilter === "expiring"
                                 ? "bg-amber-500 text-white shadow-xs shadow-amber-500/30 font-bold"
                                 : "bg-white/80 border border-slate-200/70 text-slate-700 hover:bg-white shadow-2xs"
@@ -285,7 +288,7 @@ function VehiclesContent() {
                     >
                         <span>Sắp hết hạn</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                                 statusFilter === "expiring" ? "bg-amber-600 text-white" : "bg-amber-100 text-amber-900"
                             }`}
                         >
@@ -299,7 +302,7 @@ function VehiclesContent() {
                             trigger("tap");
                             setStatusFilter("expired");
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none ${
                             statusFilter === "expired"
                                 ? "bg-rose-600 text-white shadow-xs shadow-rose-600/30 font-bold"
                                 : "bg-white/80 border border-slate-200/70 text-slate-700 hover:bg-white shadow-2xs"
@@ -307,7 +310,7 @@ function VehiclesContent() {
                     >
                         <span>Hết hạn</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                                 statusFilter === "expired" ? "bg-rose-700 text-white" : "bg-rose-100 text-rose-800"
                             }`}
                         >
@@ -325,8 +328,16 @@ function VehiclesContent() {
                         {filteredVehicles.map((v) => (
                             <div
                                 key={v.id}
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => handleCardClick(v)}
-                                className="group relative p-4.5 rounded-2xl border border-slate-300/50 bg-white shadow-[0_4px_16px_-3px_rgba(15,23,42,0.08),0_1px_4px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_28px_-6px_rgba(15,23,42,0.12),0_4px_10px_-2px_rgba(15,23,42,0.05)] active:scale-[0.99] transition-all cursor-pointer space-y-3.5 overflow-hidden"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        handleCardClick(v);
+                                    }
+                                }}
+                                className="group relative p-4.5 rounded-2xl border border-slate-300/50 bg-white shadow-[0_4px_16px_-3px_rgba(15,23,42,0.08),0_1px_4px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_28px_-6px_rgba(15,23,42,0.12),0_4px_10px_-2px_rgba(15,23,42,0.05)] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-all cursor-pointer space-y-3.5 overflow-hidden"
                             >
                                 {/* Hàng 1: Biển số + Màu sơn xe (chữ nhật) + Status Badge + Nút Options */}
                                 <div className="flex items-center justify-between gap-2">

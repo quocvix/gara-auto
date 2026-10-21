@@ -124,10 +124,13 @@ function InventoryContent() {
             <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar */}
                 <Input
+                    name="search"
+                    autoComplete="off"
+                    spellCheck={false}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Tìm tên phụ tùng..."
-                    leftIcon={<Search className="w-4 h-4" />}
+                    placeholder="Tìm tên phụ tùng…"
+                    leftIcon={<Search className="w-4 h-4" aria-hidden="true" />}
                     rightIcon={
                         searchQuery.trim().length > 0 ? (
                             <button
@@ -136,10 +139,10 @@ function InventoryContent() {
                                     trigger("tap");
                                     setSearchQuery("");
                                 }}
-                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors cursor-pointer"
                                 aria-label="Xóa tìm kiếm"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4" aria-hidden="true" />
                             </button>
                         ) : null
                     }
@@ -153,7 +156,7 @@ function InventoryContent() {
                             trigger("tap");
                             setFilterLowStock(false);
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                             !filterLowStock
                                 ? "bg-blue-600 text-white shadow-xs shadow-blue-600/30"
                                 : "bg-white border border-slate-200 text-slate-600 hover:bg-blue-50/50"
@@ -161,7 +164,7 @@ function InventoryContent() {
                     >
                         <span>Tất cả</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                                 !filterLowStock ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-600"
                             }`}
                         >
@@ -175,16 +178,16 @@ function InventoryContent() {
                             trigger("tap");
                             setFilterLowStock(!filterLowStock);
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none ${
                             filterLowStock
                                 ? "bg-rose-600 text-white shadow-xs shadow-rose-600/30"
                                 : "bg-white border border-slate-200 text-slate-600 hover:bg-rose-50/50"
                         }`}
                     >
-                        <AlertTriangle className={`w-3.5 h-3.5 ${filterLowStock ? "text-white" : "text-rose-500"}`} />
+                        <AlertTriangle className={`w-3.5 h-3.5 ${filterLowStock ? "text-white" : "text-rose-500"}`} aria-hidden="true" />
                         <span>Sắp hết (≤ {settings.lowStockThreshold})</span>
                         <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                                 filterLowStock ? "bg-rose-700 text-white" : "bg-rose-100 text-rose-700"
                             }`}
                         >

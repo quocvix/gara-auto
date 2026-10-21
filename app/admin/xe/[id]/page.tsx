@@ -126,9 +126,9 @@ export default function VehicleDetailPage() {
                 <Link
                     href="/admin/xe"
                     onClick={() => trigger("tap")}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-all cursor-pointer"
                 >
-                    <ArrowLeft className="w-4 h-4 text-slate-500" />
+                    <ArrowLeft className="w-4 h-4 text-slate-500" aria-hidden="true" />
                     <span>Danh sách xe</span>
                 </Link>
 
@@ -136,10 +136,10 @@ export default function VehicleDetailPage() {
                     href={`/tra-cuu/${vehicle.plateNormalized}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-indigo-200/80 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold active:scale-95 transition-all shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-indigo-200/80 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all shadow-2xs"
                     title="Mở cổng tra cứu công khai như khách xem"
                 >
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                     <span className="hidden sm:inline">Cổng tra cứu khách</span>
                     <span className="sm:hidden">Tra cứu</span>
                 </a>

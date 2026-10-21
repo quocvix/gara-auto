@@ -172,30 +172,30 @@ export default function StockMovementsPage() {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs">
           <div className="text-slate-400 text-2xs uppercase tracking-wider font-bold mb-1 flex items-center gap-1 truncate">
-            <Activity className="w-3 h-3 text-blue-600 shrink-0" />
+            <Activity className="w-3 h-3 text-blue-600 shrink-0" aria-hidden="true" />
             <span className="truncate">Giao dịch</span>
           </div>
-          <div className="font-mono font-black text-slate-900 text-base sm:text-xl">
+          <div className="font-mono font-black text-slate-900 text-base sm:text-xl tabular-nums">
             {stats.totalTransactions}
           </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs">
           <div className="text-slate-400 text-2xs uppercase tracking-wider font-bold mb-1 flex items-center gap-1 truncate">
-            <TrendingUp className="w-3 h-3 text-emerald-600 shrink-0" />
+            <TrendingUp className="w-3 h-3 text-emerald-600 shrink-0" aria-hidden="true" />
             <span className="truncate">Đã nhập</span>
           </div>
-          <div className="font-mono font-black text-emerald-600 text-base sm:text-xl">
+          <div className="font-mono font-black text-emerald-600 text-base sm:text-xl tabular-nums">
             +{stats.totalInQty}
           </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs">
           <div className="text-slate-400 text-2xs uppercase tracking-wider font-bold mb-1 flex items-center gap-1 truncate">
-            <TrendingDown className="w-3 h-3 text-rose-600 shrink-0" />
+            <TrendingDown className="w-3 h-3 text-rose-600 shrink-0" aria-hidden="true" />
             <span className="truncate">Đã xuất</span>
           </div>
-          <div className="font-mono font-black text-rose-600 text-base sm:text-xl">
+          <div className="font-mono font-black text-rose-600 text-base sm:text-xl tabular-nums">
             -{stats.totalOutQty}
           </div>
         </div>
@@ -205,13 +205,16 @@ export default function StockMovementsPage() {
       <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md flex items-center gap-2 transition-all">
         {/* Search Bar */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
+            name="q"
+            autoComplete="off"
+            spellCheck={false}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm tên phụ tùng, ghi chú..."
-            className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200/90 bg-white text-slate-900 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-xs placeholder:text-slate-400 transition-all"
+            placeholder="Tìm tên phụ tùng, ghi chú…"
+            className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200/90 bg-white text-slate-900 text-sm focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:outline-none shadow-xs placeholder:text-slate-400 transition-all"
           />
           {searchQuery.trim().length > 0 && (
             <button
@@ -220,10 +223,10 @@ export default function StockMovementsPage() {
                 trigger('tap')
                 setSearchQuery('')
               }}
-              className="w-7 h-7 absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="w-7 h-7 absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors cursor-pointer"
               aria-label="Xóa tìm kiếm"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
         </div>

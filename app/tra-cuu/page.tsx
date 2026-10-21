@@ -122,7 +122,7 @@ export default function TraCuuPage() {
                 <div className="rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-md border border-blue-200/90 shadow-xl shadow-blue-600/10 ring-1 ring-blue-500/15 overflow-hidden transition-all">
                     <div className="p-3.5 sm:p-5 space-y-3 sm:space-y-4 bg-linear-to-b from-blue-50/40 via-white to-white">
                         <form onSubmit={handleSearch} className="space-y-5">
-                            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight text-center">
+                            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight text-center text-balance">
                                 Tra Cứu Bảo Hành
                             </h1>
                             <div className="space-y-1.5">
@@ -132,7 +132,7 @@ export default function TraCuuPage() {
                                         className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5"
                                     >
                                         <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center">
-                                            <Search className="w-3 h-3 stroke-[2.5]" />
+                                            <Search className="w-3 h-3 stroke-[2.5]" aria-hidden="true" />
                                         </span>
                                         <span>Biển số xe</span>
                                     </label>
@@ -142,10 +142,11 @@ export default function TraCuuPage() {
                                 <div className="relative">
                                     <input
                                         id="plate-input"
+                                        name="plate"
                                         type="text"
                                         value={inputPlate}
                                         onChange={(e) => setInputPlate(sanitizePlateInput(e.target.value))}
-                                        placeholder="VD: 51K-889.99 hoặc 51K88999"
+                                        placeholder="VD: 51K-889.99 hoặc 51K88999…"
                                         autoCapitalize="characters"
                                         autoComplete="off"
                                         autoCorrect="off"
@@ -162,9 +163,10 @@ export default function TraCuuPage() {
                                             type="button"
                                             onClick={() => setInputPlate("")}
                                             className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 active:scale-90 transition-all cursor-pointer"
+                                            aria-label="Xóa biển số đã nhập"
                                             title="Xóa biển số"
                                         >
-                                            <X className="w-4 h-4 stroke-[2.5]" />
+                                            <X className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
                                         </button>
                                     )}
                                 </div>

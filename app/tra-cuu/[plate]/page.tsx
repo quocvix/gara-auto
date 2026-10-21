@@ -81,7 +81,7 @@ export default function TraCuuPlatePage() {
                     href="/tra-cuu"
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 min-h-9.5 px-3.5 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 transition-all cursor-pointer shadow-2xs active:scale-95"
                 >
-                    <ArrowLeft className="w-4 h-4 text-slate-500" />
+                    <ArrowLeft className="w-4 h-4 text-slate-500" aria-hidden="true" />
                     <span>Tra cứu khác</span>
                 </Link>
 
@@ -204,8 +204,8 @@ export default function TraCuuPlatePage() {
                                         </div>
 
                                         <div className="flex items-center gap-1.5 text-slate-500 font-medium text-xs shrink-0">
-                                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                            <span className=" text-slate-700 font-bold text-2xs sm:text-xs">
+                                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" aria-hidden="true" />
+                                            <span className=" text-slate-700 font-bold text-2xs sm:text-xs tabular-nums font-mono">
                                                 {formatDateVN(ticket.activatedOn)}
                                             </span>
                                         </div>
@@ -237,7 +237,7 @@ export default function TraCuuPlatePage() {
                                                             {item.name}
                                                         </h3>
                                                         {item.quantity >= 1 && (
-                                                            <span className="text-3xs font-extrabold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider shrink-0 font-mono">
+                                                            <span className="text-3xs font-extrabold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 tracking-wider shrink-0 font-mono tabular-nums">
                                                                 x{item.quantity}
                                                             </span>
                                                         )}
