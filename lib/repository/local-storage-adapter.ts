@@ -134,6 +134,7 @@ export class LocalStorageAdapter implements IGarageRepository {
         plateNormalized: normPlate,
         plateColor: input.vehicle.plateColor,
         model: input.vehicle.model || vehicle.model,
+        color: input.vehicle.color !== undefined ? input.vehicle.color : (vehicle.color || ''),
         ownerName: input.vehicle.ownerName || vehicle.ownerName,
         ownerPhone: input.vehicle.ownerPhone || vehicle.ownerPhone,
         updatedAt: now,
@@ -146,6 +147,7 @@ export class LocalStorageAdapter implements IGarageRepository {
         plateNormalized: normPlate,
         plateColor: input.vehicle.plateColor,
         model: input.vehicle.model,
+        color: input.vehicle.color || '',
         ownerName: input.vehicle.ownerName,
         ownerPhone: input.vehicle.ownerPhone,
         createdAt: now,
@@ -538,6 +540,19 @@ export class LocalStorageAdapter implements IGarageRepository {
         movements: updatedMovements,
       },
     }
+  }
+
+  async updateVehicleColor(vehicleId: string, color: string): Promise<{
+    ok: boolean
+    error?: string
+    vehicles?: Vehicle[]
+  }> {
+    const vehicles = this.getItem<Vehicle[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES)
+    const updated = vehicles.map((v) =>
+      v.id === vehicleId ? { ...v, color: color.trim(), updatedAt: new Date().toISOString() } : v
+    )
+    this.setItem(STORAGE_KEYS.VEHICLES, updated)
+    return { ok: true, vehicles: updated }
   }
 
   async resetData(): Promise<GarageDataBundle> {

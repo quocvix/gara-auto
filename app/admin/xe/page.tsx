@@ -7,6 +7,7 @@ import { useUIStore } from "@/lib/store/ui-store";
 import { normalizePlate } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
+import { CarColorPicker } from "@/components/domain/car-color-picker";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { useTicketModal } from "@/components/domain/ticket-modal";
 import { VehicleOverview } from "@/types/garage";
@@ -62,10 +63,7 @@ function VehiclesContent() {
     }, [selectedVehicleForSheet, hideBottomNav, showBottomNav]);
 
     // Vercel React Best Practices `rerender-memo` & `rerender-derived-state-no-effect`
-    const vehicles = useMemo(
-        () => getVehicleOverviewList(),
-        [getVehicleOverviewList, rawVehicles, tickets, settings]
-    );
+    const vehicles = useMemo(() => getVehicleOverviewList(), [getVehicleOverviewList, rawVehicles, tickets, settings]);
 
     // Thống kê số lượng theo từng trạng thái
     const statusCounts = useMemo(() => {
@@ -114,10 +112,12 @@ function VehiclesContent() {
             description: (
                 <div className="space-y-2">
                     <p>
-                        Xe <strong>{v.plate}</strong> ({v.model}) cùng các phiếu bảo hành liên quan sẽ bị xóa khỏi danh sách quản lý.
+                        Xe <strong>{v.plate}</strong> ({v.model}) cùng các phiếu bảo hành liên quan sẽ bị xóa khỏi danh
+                        sách quản lý.
                     </p>
                     <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs font-medium">
-                        Hệ thống sẽ tự động <strong>hoàn lại tồn kho</strong> cho các linh kiện, phụ tùng đã lắp đặt trước đó.
+                        Hệ thống sẽ tự động <strong>hoàn lại tồn kho</strong> cho các linh kiện, phụ tùng đã lắp đặt
+                        trước đó.
                     </div>
                 </div>
             ),
@@ -179,7 +179,7 @@ function VehiclesContent() {
                             trigger("tap");
                             openTicketModal();
                         }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                         <span>Tạo Phiếu</span>
@@ -323,6 +323,7 @@ function VehiclesContent() {
                                 <div className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <LicensePlate plate={v.plate} color={v.plateColor} size="sm" />
+                                        <CarColorPicker vehicleId={v.id} currentColor={v.color} size="sm" />
                                         <StatusBadge
                                             status={v.status}
                                             days={v.daysLeft}
@@ -419,8 +420,11 @@ function VehiclesContent() {
                                         onClick={() => handleCardClick(v)}
                                         className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                                     >
-                                        <td className="py-3.5 px-4">
-                                            <LicensePlate plate={v.plate} color={v.plateColor} size="sm" />
+                                        <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
+                                            <div className="flex items-center gap-2">
+                                                <LicensePlate plate={v.plate} color={v.plateColor} size="sm" />
+                                                <CarColorPicker vehicleId={v.id} currentColor={v.color} size="sm" />
+                                            </div>
                                         </td>
                                         <td className="py-3.5 px-4 font-bold text-slate-900">{v.model}</td>
                                         <td className="py-3.5 px-4">
@@ -450,7 +454,7 @@ function VehiclesContent() {
                                             {v.expiresOn ? formatDateVN(v.expiresOn) : "—"}
                                         </td>
                                         <td className="py-3.5 px-4 text-center">
-                                            <span className="inline-flex items-center justify-center min-w-[28px] h-6 px-1.5 rounded-md bg-slate-100 text-slate-700 font-mono font-bold text-xs">
+                                            <span className="inline-flex items-center justify-center min-w-7 h-6 px-1.5 rounded-md bg-slate-100 text-slate-700 font-mono font-bold text-xs">
                                                 {v.ticketCount}
                                             </span>
                                         </td>

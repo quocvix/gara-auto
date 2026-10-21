@@ -69,6 +69,7 @@ export interface GarageStoreState {
     note?: string
   ) => Promise<{ ok: boolean; error?: string }>
   updateSettings: (newSettings: Partial<GarageSettings>) => Promise<void>
+  updateVehicleColor: (vehicleId: string, color: string) => Promise<{ ok: boolean; error?: string }>
   resetData: () => Promise<void>
 
   // Computed & Selectors
@@ -439,6 +440,33 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
     }
   },
 
+  updateVehicleColor: async (vehicleId: string, color: string) => {
+    try {
+      const repo = getGarageRepository()
+      const res = await repo.updateVehicleColor(vehicleId, color)
+      if (!res.ok) return { ok: false, error: res.error }
+
+      const updatedVehicles =
+        res.vehicles ||
+        get().vehicles.map((v) =>
+          v.id === vehicleId ? { ...v, color: color.trim() } : v
+        )
+
+      set({ vehicles: updatedVehicles })
+      saveCacheBundle({
+        vehicles: updatedVehicles,
+        tickets: get().tickets,
+        parts: get().parts,
+        movements: get().movements,
+        settings: get().settings,
+      })
+      return { ok: true }
+    } catch (e: any) {
+      console.error('[GarageStore] Lỗi cập nhật màu xe:', e)
+      return { ok: false, error: e?.message || 'Có lỗi xảy ra khi cập nhật màu xe' }
+    }
+  },
+
   resetData: async () => {
     try {
       const repo = getGarageRepository()
@@ -603,6 +631,7 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
       plateNormalized: vehicle.plateNormalized,
       plateColor: vehicle.plateColor,
       model: vehicle.model,
+      color: vehicle.color || '',
       ownerName: vehicle.ownerName,
       ownerPhoneMasked: maskedPhone,
       ownerPhoneFull: cleanPhone,

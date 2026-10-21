@@ -11,6 +11,7 @@ import { LicensePlate } from "@/components/domain/license-plate";
 import { WarrantyNotFound } from "@/components/domain/warranty-not-found";
 import { GarageSupportActions } from "@/components/domain/garage-support-actions";
 import { getWarrantyStatusConfig } from "@/lib/warranty-status";
+import { getCarColorConfig } from "@/lib/car-colors";
 import { Phone, ArrowLeft, Calendar, User, FileText, Clock, ClipboardClock } from "lucide-react";
 
 export default function TraCuuPlatePage() {
@@ -70,7 +71,7 @@ export default function TraCuuPlatePage() {
                 <button
                     type="button"
                     onClick={() => router.push("/tra-cuu")}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 min-h-[38px] px-3.5 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 transition-all cursor-pointer shadow-2xs active:scale-95"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 min-h-9.5 px-3.5 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 transition-all cursor-pointer shadow-2xs active:scale-95"
                 >
                     <ArrowLeft className="w-4 h-4 text-slate-500" />
                     <span>Tra cứu khác</span>
@@ -99,10 +100,24 @@ export default function TraCuuPlatePage() {
                                 <div className="flex justify-start">
                                     <LicensePlate plate={data.plate} color={data.plateColor} size="md" />
                                 </div>
-                                <div className="text-center sm:text-left min-w-0">
-                                    <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight mt-1 text-balance">
+                                <div className="text-left min-w-0 space-y-1">
+                                    <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight text-balance">
                                         {data.model}
                                     </h1>
+                                    {getCarColorConfig(data.color) && (
+                                        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
+                                            <span
+                                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+                                                style={{
+                                                    backgroundColor: getCarColorConfig(data.color)?.hex,
+                                                    border: getCarColorConfig(data.color)?.border
+                                                        ? `1px solid ${getCarColorConfig(data.color)?.border}`
+                                                        : "1px solid rgba(0,0,0,0.15)",
+                                                }}
+                                            />
+                                            <span>Màu {getCarColorConfig(data.color)?.name}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -115,7 +130,7 @@ export default function TraCuuPlatePage() {
                                     <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight break-words block">
+                                    <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight wrap-break-word block">
                                         {data.ownerName || "Khách hàng"}
                                     </span>
                                 </div>

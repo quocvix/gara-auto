@@ -31,6 +31,7 @@ export const ticketSchema = z.object({
     .string()
     .trim()
     .min(1, 'Vui lòng nhập dòng xe (VD: Mazda CX-5, Vios)'),
+  color: z.string().optional(),
   ownerName: z
     .string()
     .trim()

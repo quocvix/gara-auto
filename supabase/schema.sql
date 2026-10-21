@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     plate_normalized TEXT NOT NULL,
     plate_color TEXT NOT NULL DEFAULT 'white' CHECK (plate_color IN ('white', 'yellow')),
     model TEXT NOT NULL,
+    color TEXT DEFAULT '',
     owner_name TEXT NOT NULL DEFAULT '',
     owner_phone TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT NOW(),

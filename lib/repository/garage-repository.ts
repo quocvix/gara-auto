@@ -14,6 +14,7 @@ export interface SaveTicketInput {
     plate: string
     plateColor: 'white' | 'yellow'
     model: string
+    color?: string
     ownerName: string
     ownerPhone: string
   }
@@ -88,6 +89,15 @@ export interface IGarageRepository {
       parts: Part[]
       movements: StockMovement[]
     }
+  }>
+
+  /**
+   * Cập nhật màu xe nhanh
+   */
+  updateVehicleColor(vehicleId: string, color: string): Promise<{
+    ok: boolean
+    error?: string
+    vehicles?: Vehicle[]
   }>
 
   /**

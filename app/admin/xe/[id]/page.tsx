@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
+import { CarColorPicker } from "@/components/domain/car-color-picker";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { useTicketModal } from "@/components/domain/ticket-modal";
 import { daysLeft, getStatus, progressPercent } from "@/lib/warranty";
@@ -76,6 +77,7 @@ export default function VehicleDetailPage() {
                 plate: vehicle.plate,
                 plateColor: vehicle.plateColor,
                 model: vehicle.model,
+                color: vehicle.color,
                 ownerName: vehicle.ownerName,
                 ownerPhone: vehicle.ownerPhone,
             },
@@ -89,7 +91,8 @@ export default function VehicleDetailPage() {
                 <div className="space-y-2">
                     <p>Bạn có chắc chắn muốn xóa phiếu bảo hành này khỏi hệ thống không?</p>
                     <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs font-medium">
-                        Số lượng các linh kiện, phụ tùng đã trừ trong phiếu này sẽ được <strong>hoàn lại vào kho hàng</strong>.
+                        Số lượng các linh kiện, phụ tùng đã trừ trong phiếu này sẽ được{" "}
+                        <strong>hoàn lại vào kho hàng</strong>.
                     </div>
                 </div>
             ),
@@ -139,6 +142,7 @@ export default function VehicleDetailPage() {
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2.5 flex-wrap">
                             <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
+                            <CarColorPicker vehicleId={vehicle.id} currentColor={vehicle.color} size="md" />
                             <StatusBadge
                                 status={vehicle.status}
                                 days={vehicle.daysLeft}
@@ -215,7 +219,7 @@ export default function VehicleDetailPage() {
                     <button
                         type="button"
                         onClick={handleCreateNewTicketForThisVehicle}
-                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all cursor-pointer"
+                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                         <span>Tạo Phiếu Bảo Hành Cho Xe Này</span>

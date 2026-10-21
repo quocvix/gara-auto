@@ -42,6 +42,7 @@ function rowToVehicle(r: any): Vehicle {
     plateNormalized: r.plate_normalized,
     plateColor: r.plate_color || 'white',
     model: r.model,
+    color: r.color || '',
     ownerName: r.owner_name || '',
     ownerPhone: r.owner_phone || '',
     createdAt: r.created_at || new Date().toISOString(),
@@ -245,6 +246,7 @@ export class SupabaseAdapter implements IGarageRepository {
         plate_normalized: normPlate,
         plate_color: input.vehicle.plateColor,
         model: input.vehicle.model.trim(),
+        color: input.vehicle.color !== undefined ? input.vehicle.color.trim() : (existingVehicle?.color || ''),
         owner_name: (input.vehicle.ownerName || '').trim(),
         owner_phone: (input.vehicle.ownerPhone || '').trim(),
         updated_at: new Date().toISOString(),
@@ -527,6 +529,36 @@ export class SupabaseAdapter implements IGarageRepository {
       }
     } catch (err: any) {
       return { ok: false, error: err?.message }
+    }
+  }
+
+  async updateVehicleColor(vehicleId: string, color: string): Promise<{
+    ok: boolean
+    error?: string
+    vehicles?: Vehicle[]
+  }> {
+    const supabase = getSupabaseClient()
+    if (!supabase) {
+      return { ok: true }
+    }
+
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ color: color.trim(), updated_at: new Date().toISOString() })
+        .eq('id', vehicleId)
+
+      if (error) {
+        return { ok: false, error: error.message }
+      }
+
+      const { data: vList } = await supabase.from('vehicles').select('*').order('created_at', { ascending: false })
+      return {
+        ok: true,
+        vehicles: (vList || []).map(rowToVehicle),
+      }
+    } catch (e: any) {
+      return { ok: false, error: e?.message || 'Có lỗi xảy ra khi cập nhật màu xe' }
     }
   }
 

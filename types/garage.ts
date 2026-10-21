@@ -6,6 +6,7 @@ export interface Vehicle {
   plateNormalized: string
   plateColor: 'white' | 'yellow'
   model: string
+  color?: string
   ownerName: string
   ownerPhone: string
   createdAt: string
@@ -104,6 +105,7 @@ export interface WarrantyLookupResult {
   plateNormalized: string
   plateColor: 'white' | 'yellow'
   model: string
+  color?: string
   ownerName: string
   ownerPhoneMasked: string
   ownerPhoneFull?: string
