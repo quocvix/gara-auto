@@ -5,27 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { normalizePlate } from "@/lib/plate";
-import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { CarColorPicker } from "@/components/domain/car-color-picker";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { useTicketModal } from "@/components/domain/ticket-modal";
 import { VehicleOverview } from "@/types/garage";
-import {
-    Search,
-    Plus,
-    MoreVertical,
-    Eye,
-    Trash2,
-    Edit,
-    ExternalLink,
-    Car,
-    Phone,
-    X,
-    Calendar,
-    FileText,
-    ChevronRight,
-} from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2, Edit, ExternalLink, Car, Phone, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
 import { useAlertDialog } from "@/components/ui/alert-dialog";
@@ -43,7 +28,7 @@ function VehiclesContent() {
             tickets: s.tickets,
             rawVehicles: s.vehicles,
             settings: s.settings,
-        }))
+        })),
     );
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
@@ -200,7 +185,10 @@ function VehiclesContent() {
             <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2.5 bg-[#E1E7EF]/90 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar - Chống lóa mắt, bo góc mềm mại */}
                 <div className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+                    <Search
+                        className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                        aria-hidden="true"
+                    />
                     <input
                         type="search"
                         name="q"

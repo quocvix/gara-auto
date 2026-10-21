@@ -32,6 +32,8 @@ import { useHaptic } from "@/hooks/use-haptic";
 import dynamic from "next/dynamic";
 const PartModal = dynamic(() => import("./part-modal").then((mod) => mod.PartModal), { ssr: false });
 import { LicensePlate } from "./license-plate";
+import { DatePicker } from "@/components/ui/date-picker";
+import { ColorPickerModal } from "@/components/ui/color-picker";
 import { POPULAR_CAR_COLORS, getCarColorConfig } from "@/lib/car-colors";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUIStore } from "@/lib/store/ui-store";
@@ -107,6 +109,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const [isPartModalOpen, setIsPartModalOpen] = useState(false);
+    const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -440,9 +443,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                         {selectedItems.reduce((sum, it) => sum + it.quantity, 0)}
                                     </span>
                                 )}
-                                {errors.items && (
-                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                                )}
+                                {errors.items && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />}
                             </button>
                         </div>
 
@@ -510,13 +511,13 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                     </button>
                                                 </div>
                                             </div>
-                                            <input
-                                                type="date"
+                                            <DatePicker
+                                                id="ticket-activated-on"
                                                 value={activatedOn}
-                                                onChange={(e) =>
-                                                    setValue("activatedOn", e.target.value, { shouldValidate: true })
+                                                onChange={(dateStr) =>
+                                                    setValue("activatedOn", dateStr, { shouldValidate: true })
                                                 }
-                                                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                                placeholder="Chọn ngày kích hoạt"
                                             />
                                         </div>
 
@@ -626,22 +627,15 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
                                                 {/* Thanh Swatches 1 chạm tối ưu cho mobile */}
                                                 <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-200 rounded-xl overflow-x-auto scrollbar-none">
-                                                    {/* Native Color Picker Pipette */}
-                                                    <label
-                                                        className="w-8 h-8 rounded-lg border border-slate-300 bg-white shrink-0 flex items-center justify-center cursor-pointer shadow-2xs relative transition-all hover:scale-105 active:scale-95"
-                                                        title="Mở bảng pha màu chi tiết của điện thoại"
+                                                    {/* Custom Color Picker Pipette Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsColorPickerOpen(true)}
+                                                        className="w-8 h-8 rounded-lg border border-slate-300 bg-white shrink-0 flex items-center justify-center cursor-pointer shadow-2xs relative transition-all hover:scale-105 active:scale-95 hover:bg-slate-50"
+                                                        title="Mở bảng pha màu chi tiết"
                                                     >
                                                         <Pipette className="w-4 h-4 text-blue-600" />
-                                                        <input
-                                                            type="color"
-                                                            value={colorConfig?.hex || "#2563EB"}
-                                                            onChange={(e) => {
-                                                                const hex = e.target.value.toUpperCase();
-                                                                setValue("color", hex, { shouldValidate: true });
-                                                            }}
-                                                            className="sr-only"
-                                                        />
-                                                    </label>
+                                                    </button>
 
                                                     {/* 10 màu phổ biến */}
                                                     {POPULAR_CAR_COLORS.map((c) => {
@@ -683,7 +677,9 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                     {color && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => setValue("color", "", { shouldValidate: true })}
+                                                            onClick={() =>
+                                                                setValue("color", "", { shouldValidate: true })
+                                                            }
                                                             className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 shrink-0 flex items-center justify-center transition-colors cursor-pointer"
                                                             title="Xóa màu xe"
                                                         >
@@ -691,6 +687,15 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                         </button>
                                                     )}
                                                 </div>
+
+                                                <ColorPickerModal
+                                                    isOpen={isColorPickerOpen}
+                                                    onClose={() => setIsColorPickerOpen(false)}
+                                                    color={colorConfig?.hex || color || "#2563EB"}
+                                                    onChange={(newHex) => {
+                                                        setValue("color", newHex, { shouldValidate: true });
+                                                    }}
+                                                />
                                             </div>
                                         </div>
 
@@ -903,9 +908,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                         })
                                                     ) : (
                                                         <div className="p-4 text-center text-xs text-slate-500 space-y-2">
-                                                            <p>
-                                                                Không tìm thấy phụ tùng &quot;{partSearchQuery}&quot;
-                                                            </p>
+                                                            <p>Không tìm thấy phụ tùng &quot;{partSearchQuery}&quot;</p>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -959,7 +962,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                         typeof item.warrantyMonths === "number"
                                                             ? item.warrantyMonths
                                                             : 12;
-                                                    const itemActivatedOn = item.activatedOn || activatedOn || todayVN();
+                                                    const itemActivatedOn =
+                                                        item.activatedOn || activatedOn || todayVN();
                                                     const itemExpires =
                                                         wMonths > 0 ? addMonthsToDate(itemActivatedOn, wMonths) : null;
                                                     const isCustom =
@@ -988,7 +992,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-[10px] font-semibold text-slate-600 bg-slate-200/70 px-1.5 py-0.2 rounded font-mono">
-                                                                                {formatDateVN(itemActivatedOn)} (Không hạn)
+                                                                                {formatDateVN(itemActivatedOn)} (Không
+                                                                                hạn)
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -1032,15 +1037,16 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                                 </div>
 
                                                                 {/* Ngày kích hoạt riêng cho món */}
-                                                                <div className="flex items-center gap-1">
-                                                                    <input
-                                                                        type="date"
-                                                                        value={item.activatedOn || activatedOn || todayVN()}
-                                                                        onChange={(e) =>
-                                                                            updateItemActivatedOn(idx, e.target.value)
+                                                                <div className="flex items-center gap-1 w-28 shrink-0">
+                                                                    <DatePicker
+                                                                        size="sm"
+                                                                        value={
+                                                                            item.activatedOn || activatedOn || todayVN()
                                                                         }
-                                                                        className="h-7 px-1.5 rounded-lg border border-slate-300/80 bg-white text-[11px] font-mono text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs"
-                                                                        title="Ngày kích hoạt riêng"
+                                                                        onChange={(dateStr) =>
+                                                                            updateItemActivatedOn(idx, dateStr)
+                                                                        }
+                                                                        ariaLabel="Ngày kích hoạt riêng"
                                                                     />
                                                                 </div>
 
@@ -1114,18 +1120,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                                 </p>
                                             </div>
                                         )}
-                                    </div>
-
-                                    {/* Nút Quay lại Tab 1 */}
-                                    <div className="pt-1 flex items-center justify-start">
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveTab("info")}
-                                            className="py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
-                                        >
-                                            <ArrowLeft className="w-4 h-4" />
-                                            <span>Quay lại: Thông tin xe</span>
-                                        </button>
                                     </div>
                                 </div>
                             )}
