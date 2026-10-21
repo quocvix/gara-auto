@@ -19,13 +19,21 @@ import {
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
 import { useAlertDialog } from "@/components/ui/alert-dialog";
+import { useShallow } from "zustand/react/shallow";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function GarageSettingsPage() {
     const router = useRouter();
-    const { settings, updateSettings, resetData, logoutAdmin } = useGarageStore();
+    const { settings, updateSettings, resetData, logoutAdmin } = useGarageStore(
+        useShallow((s) => ({
+            settings: s.settings,
+            updateSettings: s.updateSettings,
+            resetData: s.resetData,
+            logoutAdmin: s.logoutAdmin,
+        }))
+    );
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
 

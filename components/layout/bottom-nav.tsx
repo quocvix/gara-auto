@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Car, Plus, Package, Settings } from "lucide-react";
 import { useTicketModal } from "@/components/domain/ticket-modal";
@@ -80,9 +80,10 @@ export function BottomNav() {
                     const isActive = item.active;
 
                     return (
-                        <a
+                        <Link
                             key={item.href}
-                            href={item.href}
+                            href={item.href!}
+                            onClick={() => trigger("tap")}
                             className={`flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 ${
                                 isActive ? "text-blue-600 font-bold" : "text-slate-400 hover:text-slate-700 font-medium"
                             }`}
@@ -91,7 +92,7 @@ export function BottomNav() {
                                 className={`w-4.5 h-4.5 ${isActive ? "stroke-[2.5] text-blue-600" : "stroke-[1.8]"}`}
                             />
                             <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
-                        </a>
+                        </Link>
                     );
                 })}
             </div>

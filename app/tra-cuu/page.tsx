@@ -14,7 +14,7 @@ const RECENT_PLATES_KEY = "gara_recent_plates_v1";
 
 export default function TraCuuPage() {
     const router = useRouter();
-    const { settings } = useGarageStore();
+    const settings = useGarageStore((s) => s.settings);
     const { trigger } = useHaptic();
 
     const [inputPlate, setInputPlate] = useState("");

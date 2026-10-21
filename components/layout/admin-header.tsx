@@ -1,16 +1,18 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { useGarageStore } from '@/lib/store/garage-store'
 import { ExternalLink, LogOut } from 'lucide-react'
 
 export function AdminHeader() {
-  const { settings, logoutAdmin } = useGarageStore()
+  const settings = useGarageStore((s) => s.settings)
+  const logoutAdmin = useGarageStore((s) => s.logoutAdmin)
 
   return (
     <header className="lg:hidden sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] flex items-center justify-between shadow-2xs">
       <div className="flex items-center gap-2.5 min-w-0">
-        <a href="/admin" className="flex items-center gap-2 min-w-0">
+        <Link href="/admin" className="flex items-center gap-2 min-w-0">
           <img
             src="/logo-duy-auto-remove-bg-v1.png"
             alt={settings.name || "Duy Auto"}
@@ -27,7 +29,7 @@ export function AdminHeader() {
               </span>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">

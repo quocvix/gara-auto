@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useMemo, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
+import { useShallow } from "zustand/react/shallow";
 import dynamic from "next/dynamic";
 import { Part } from "@/types/garage";
 
@@ -17,7 +19,13 @@ import { Input } from "@/components/ui/input";
 function InventoryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { parts, deletePart, settings } = useGarageStore();
+    const { parts, deletePart, settings } = useGarageStore(
+        useShallow((s) => ({
+            parts: s.parts,
+            deletePart: s.deletePart,
+            settings: s.settings,
+        }))
+    );
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
 
@@ -88,14 +96,15 @@ function InventoryContent() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <a
+                    <Link
                         href="/admin/kho/lich-su"
+                        onClick={() => trigger("tap")}
                         className="h-10 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
                         title="Xem lịch sử nhập xuất kho"
                     >
                         <History className="w-4 h-4 text-blue-600" />
                         <span className="hidden sm:inline">Lịch Sử Kho</span>
-                    </a>
+                    </Link>
 
                     <Button
                         type="button"

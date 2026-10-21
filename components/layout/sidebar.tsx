@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useGarageStore } from '@/lib/store/garage-store'
 import { useTicketModal } from '@/components/domain/ticket-modal'
@@ -20,7 +21,9 @@ import { useHaptic } from '@/hooks/use-haptic'
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { settings, logoutAdmin, user } = useGarageStore()
+  const settings = useGarageStore((s) => s.settings)
+  const logoutAdmin = useGarageStore((s) => s.logoutAdmin)
+  const user = useGarageStore((s) => s.user)
   const { openTicketModal } = useTicketModal()
   const { trigger } = useHaptic()
 
@@ -66,7 +69,7 @@ export function Sidebar() {
     <aside className="hidden lg:flex w-64 flex-col border-r border-slate-200/90 bg-white shrink-0 h-screen sticky top-0 shadow-2xs">
       {/* Branding */}
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-        <a href="/admin" className="flex items-center gap-2.5 min-w-0">
+        <Link href="/admin" className="flex items-center gap-2.5 min-w-0">
           <img
             src="/logo-duy-auto-remove-bg-v1.png"
             alt={settings.name || "Duy Auto Logo"}
@@ -83,7 +86,7 @@ export function Sidebar() {
               </span>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
 
       {/* Button Tạo Phiếu Nổi Bật */}
@@ -105,9 +108,10 @@ export function Sidebar() {
           const isActive = link.active
 
           return (
-            <a
+            <Link
               key={link.href}
               href={link.href}
+              onClick={() => trigger('tap')}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                 isActive
                   ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600'
@@ -116,7 +120,7 @@ export function Sidebar() {
             >
               <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
               <span>{link.label}</span>
-            </a>
+            </Link>
           )
         })}
       </nav>

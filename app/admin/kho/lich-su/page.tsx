@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useGarageStore } from '@/lib/store/garage-store'
 import { formatDateVN } from '@/lib/format'
@@ -88,7 +89,7 @@ const reasonLabels: Record<
 
 export default function StockMovementsPage() {
   const router = useRouter()
-  const { movements } = useGarageStore()
+  const movements = useGarageStore((s) => s.movements)
   const { trigger } = useHaptic()
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -153,17 +154,14 @@ export default function StockMovementsPage() {
       {/* Top Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              trigger('tap')
-              router.push('/admin/kho')
-            }}
+          <Link
+            href="/admin/kho"
+            onClick={() => trigger('tap')}
             className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0"
             title="Quay lại Kho hàng"
           >
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Link>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
             Lịch sử kho
           </h1>

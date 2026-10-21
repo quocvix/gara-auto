@@ -91,7 +91,9 @@ const STANDARD_VALUES = [12, 3, 6, 18, 24, 36, 0];
 
 export function TicketModalProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const { vehicles, parts, saveTicket } = useGarageStore();
+    const vehicles = useGarageStore((s) => s.vehicles);
+    const parts = useGarageStore((s) => s.parts);
+    const saveTicket = useGarageStore((s) => s.saveTicket);
     const { trigger } = useHaptic();
 
     const [isOpen, setIsOpen] = useState(false);

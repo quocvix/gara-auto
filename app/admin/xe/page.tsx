@@ -29,13 +29,22 @@ import {
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
 import { useAlertDialog } from "@/components/ui/alert-dialog";
+import { useShallow } from "zustand/react/shallow";
 
 type FilterStatus = "all" | "active" | "expiring" | "expired";
 
 function VehiclesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { getVehicleOverviewList, deleteVehicle, tickets, vehicles: rawVehicles, settings } = useGarageStore();
+    const { getVehicleOverviewList, deleteVehicle, tickets, rawVehicles, settings } = useGarageStore(
+        useShallow((s) => ({
+            getVehicleOverviewList: s.getVehicleOverviewList,
+            deleteVehicle: s.deleteVehicle,
+            tickets: s.tickets,
+            rawVehicles: s.vehicles,
+            settings: s.settings,
+        }))
+    );
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();

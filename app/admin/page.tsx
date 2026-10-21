@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
+import { useShallow } from "zustand/react/shallow";
 import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
 import { todayVN } from "@/lib/warranty";
 import { LicensePlate } from "@/components/domain/license-plate";
@@ -26,7 +28,15 @@ import { useHaptic } from "@/hooks/use-haptic";
 
 export default function AdminDashboardPage() {
     const router = useRouter();
-    const { getVehicleOverviewList, parts, settings, vehicles, tickets } = useGarageStore();
+    const { getVehicleOverviewList, parts, settings, vehicles, tickets } = useGarageStore(
+        useShallow((s) => ({
+            getVehicleOverviewList: s.getVehicleOverviewList,
+            parts: s.parts,
+            settings: s.settings,
+            vehicles: s.vehicles,
+            tickets: s.tickets,
+        }))
+    );
     const { trigger } = useHaptic();
 
     const [searchPlate, setSearchPlate] = useState("");
@@ -193,13 +203,13 @@ export default function AdminDashboardPage() {
                             </p>
                         </div>
                     </div>
-                    <a
+                    <Link
                         href="/admin/xe?status=expiring"
                         className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 transition-colors shrink-0 py-1 px-2.5 rounded-lg hover:bg-blue-50"
                     >
                         <span>Tất cả</span>
                         <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </a>
+                    </Link>
                 </div>
 
                 {expiringVehicles.length > 0 ? (
@@ -303,13 +313,13 @@ export default function AdminDashboardPage() {
                                 </p>
                             </div>
                         </div>
-                        <a
+                        <Link
                             href="/admin/kho?filter=low"
                             className="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition-colors shrink-0 py-1 px-2.5 rounded-lg hover:bg-rose-50"
                         >
                             <span>Kho hàng</span>
                             <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </a>
+                        </Link>
                     </div>
 
                     <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
@@ -350,7 +360,7 @@ export default function AdminDashboardPage() {
 
             {/* 5. PHÍM TẮT TRUY CẬP NHANH (Bảng điều hướng bổ trợ cho Admin) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                <a
+                <Link
                     href="/admin/xe"
                     className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
                 >
@@ -366,9 +376,9 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                </a>
+                </Link>
 
-                <a
+                <Link
                     href="/admin/kho"
                     className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
                 >
@@ -384,9 +394,9 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                </a>
+                </Link>
 
-                <a
+                <Link
                     href="/admin/kho/lich-su"
                     className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
                 >
@@ -402,7 +412,7 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                </a>
+                </Link>
             </div>
         </div>
     );

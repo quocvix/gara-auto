@@ -1,9 +1,11 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useGarageStore } from "@/lib/store/garage-store";
+import { useShallow } from "zustand/react/shallow";
 import { normalizePlate } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
 import { progressPercent } from "@/lib/warranty";
@@ -16,12 +18,17 @@ import { Phone, ArrowLeft, Calendar, User, FileText, Clock, ClipboardClock } fro
 
 export default function TraCuuPlatePage() {
     const params = useParams();
-    const router = useRouter();
     const rawPlate = (params?.plate as string) || "";
     const plateNorm = normalizePlate(rawPlate);
 
-    const { settings, lookupWarranty, isLoaded } = useGarageStore();
-    const data = lookupWarranty(plateNorm);
+    const { settings, lookupWarranty, isLoaded } = useGarageStore(
+        useShallow((s) => ({
+            settings: s.settings,
+            lookupWarranty: s.lookupWarranty,
+            isLoaded: s.isLoaded,
+        })),
+    );
+    const data = useMemo(() => lookupWarranty(plateNorm), [lookupWarranty, plateNorm, isLoaded]);
 
     if (!isLoaded) {
         return (
@@ -70,14 +77,13 @@ export default function TraCuuPlatePage() {
 
             {/* Header Gara: Nút quay lại bên trái, Logo thương hiệu bên phải (bỏ hotline) */}
             <header className="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 px-3.5 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between shadow-2xs">
-                <button
-                    type="button"
-                    onClick={() => router.push("/tra-cuu")}
+                <Link
+                    href="/tra-cuu"
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 min-h-9.5 px-3.5 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 transition-all cursor-pointer shadow-2xs active:scale-95"
                 >
                     <ArrowLeft className="w-4 h-4 text-slate-500" />
                     <span>Tra cứu khác</span>
-                </button>
+                </Link>
 
                 <Link href="/tra-cuu" className="flex items-center hover:opacity-95 transition-opacity">
                     <Image
@@ -105,7 +111,9 @@ export default function TraCuuPlatePage() {
                                         className="w-13 h-8.5 rounded-lg border border-black/15 shadow-xs shrink-0 flex items-center justify-center select-none"
                                         style={{
                                             backgroundColor: carColor.hex,
-                                            boxShadow: carColor.border ? `inset 0 0 0 1px ${carColor.border}` : undefined,
+                                            boxShadow: carColor.border
+                                                ? `inset 0 0 0 1px ${carColor.border}`
+                                                : undefined,
                                         }}
                                         title={`Màu xe: ${carColor.name}`}
                                         aria-label={`Màu xe: ${carColor.name}`}

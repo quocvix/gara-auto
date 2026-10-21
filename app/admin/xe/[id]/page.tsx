@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
+import { useShallow } from "zustand/react/shallow";
 import { formatDateVN } from "@/lib/format";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { CarColorPicker } from "@/components/domain/car-color-picker";
@@ -33,12 +35,23 @@ export default function VehicleDetailPage() {
     const router = useRouter();
     const id = (params?.id as string) || "";
 
-    const { getVehicleOverviewById, tickets, deleteTicket, settings } = useGarageStore();
+    const { getVehicleOverviewById, tickets, deleteTicket, settings, rawVehicles } = useGarageStore(
+        useShallow((s) => ({
+            getVehicleOverviewById: s.getVehicleOverviewById,
+            tickets: s.tickets,
+            deleteTicket: s.deleteTicket,
+            settings: s.settings,
+            rawVehicles: s.vehicles,
+        }))
+    );
     const { openTicketModal } = useTicketModal();
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
 
-    const vehicle = getVehicleOverviewById(id);
+    const vehicle = useMemo(
+        () => getVehicleOverviewById(id),
+        [getVehicleOverviewById, id, rawVehicles, tickets, settings]
+    );
 
     if (!vehicle) {
         return (
@@ -110,17 +123,14 @@ export default function VehicleDetailPage() {
         <div className="space-y-5 sm:space-y-6 max-w-4xl mx-auto pb-8 animate-in fade-in duration-200">
             {/* Top Navigation Bar: Nút quay lại & Tiêu đề */}
             <div className="flex items-center justify-between gap-3">
-                <button
-                    type="button"
-                    onClick={() => {
-                        trigger("tap");
-                        router.push("/admin/xe");
-                    }}
+                <Link
+                    href="/admin/xe"
+                    onClick={() => trigger("tap")}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
                 >
                     <ArrowLeft className="w-4 h-4 text-slate-500" />
                     <span>Danh sách xe</span>
-                </button>
+                </Link>
 
                 <a
                     href={`/tra-cuu/${vehicle.plateNormalized}`}
