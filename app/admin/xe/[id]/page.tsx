@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { formatDateVN } from "@/lib/format";
@@ -135,87 +135,68 @@ export default function VehicleDetailPage() {
                 </a>
             </div>
 
-            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD) - ĐÃ BỎ ODO */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 sm:space-y-5">
-                {/* Header Card: Biển số, Dòng xe & Status Badge */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                    <div className="space-y-1.5">
-                        <div className="flex items-center gap-2.5 flex-wrap">
-                            <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
-                            <CarColorPicker vehicleId={vehicle.id} currentColor={vehicle.color} size="md" />
-                            <StatusBadge
-                                status={vehicle.status}
-                                days={vehicle.daysLeft}
-                                showDays
-                                expiresOn={vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : undefined}
-                            />
-                        </div>
-                        <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">{vehicle.model}</h1>
+            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD - ĐỒNG BỘ TRANG TRA CỨU) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs relative overflow-hidden space-y-4">
+                {/* Header Card */}
+                <div className="space-y-2.5">
+                    {/* HÀNG 1: Biển số xe, Thẻ màu sơn chữ nhật & Trạng thái bảo hành nằm cùng 1 hàng */}
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                        <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
+                        <CarColorPicker vehicleId={vehicle.id} currentColor={vehicle.color} size="md" shape="rect" />
+                        <StatusBadge status={vehicle.status} />
                     </div>
 
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold">
-                            <FileText className="w-3.5 h-3.5 text-slate-400" />
-                            {vTickets.length} lần
-                        </span>
+                    {/* HÀNG 2: Tên xe nằm riêng 1 mình 1 hàng, to bản và nổi bật */}
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                            {vehicle.model}
+                        </h1>
                     </div>
                 </div>
 
-                {/* Thông tin Chủ xe & Hạn bảo hành (Grid 2 cột trên mobile, 3 cột trên tablet+) - ĐÃ BỎ ODO */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs">
-                    {/* Chủ xe */}
-                    <div className="space-y-1">
-                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
-                            <User className="w-3 h-3 text-slate-400" />
-                            Chủ Xe
-                        </span>
-                        <div className="font-bold text-sm text-slate-900 truncate">
-                            {vehicle.ownerName || "Chưa có tên chủ xe"}
+                {/* Khối Chủ xe & Số điện thoại: Đồng bộ giao diện trang tra cứu khách hàng */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
+                    {/* Cột 1: Chủ xe */}
+                    <div className="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                            <User className="w-4.5 h-4.5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight truncate block">
+                                {vehicle.ownerName || "Chưa có tên chủ xe"}
+                            </span>
                         </div>
                     </div>
 
-                    {/* Số điện thoại & Nút gọi 1-chạm */}
-                    <div className="space-y-1">
-                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-slate-400" />
-                            Số Điện Thoại
-                        </span>
-                        <div className="flex items-center gap-2">
-                            {vehicle.ownerPhone ? (
-                                <>
-                                    <span className="font-mono font-bold text-slate-900 text-sm">
-                                        {vehicle.ownerPhone}
-                                    </span>
-                                    <a
-                                        href={`tel:${vehicle.ownerPhone}`}
-                                        onClick={() => trigger("tap")}
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0 transition-colors"
-                                        title={`Gọi ${vehicle.ownerPhone}`}
-                                    >
-                                        <Phone className="w-3 h-3 fill-current" />
-                                        <span>Gọi</span>
-                                    </a>
-                                </>
-                            ) : (
-                                <span className="text-slate-400 font-mono">—</span>
-                            )}
+                    {/* Cột 2: Số điện thoại + Nút gọi 1-chạm */}
+                    <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                                <Phone className="w-4.5 h-4.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <span className="font-mono font-extrabold text-slate-900 text-base sm:text-lg tracking-wider leading-tight truncate block">
+                                    {vehicle.ownerPhone || "—"}
+                                </span>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Hạn dài nhất */}
-                    <div className="space-y-1">
-                        <span className="text-slate-400 uppercase font-bold tracking-wider text-[11px] flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            Hạn BH Dài Nhất
-                        </span>
-                        <div className="font-mono font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                            <span>{vehicle.expiresOn ? formatDateVN(vehicle.expiresOn) : "Chưa có"}</span>
-                        </div>
+                        {vehicle.ownerPhone && (
+                            <a
+                                href={`tel:${vehicle.ownerPhone}`}
+                                onClick={() => trigger("tap")}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0 transition-colors shadow-2xs active:scale-95"
+                                title={`Gọi ${vehicle.ownerPhone}`}
+                            >
+                                <Phone className="w-3.5 h-3.5 fill-current" />
+                                <span>Gọi</span>
+                            </a>
+                        )}
                     </div>
                 </div>
 
                 {/* Action Button: Tạo Phiếu Mới Cho Xe Này */}
-                <div className="pt-1">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                     <button
                         type="button"
                         onClick={handleCreateNewTicketForThisVehicle}
@@ -227,7 +208,7 @@ export default function VehicleDetailPage() {
                 </div>
             </div>
 
-            {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH (TIMELINE CARDS) - ĐÃ BỎ ODO */}
+            {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH (TIMELINE CARDS)*/}
             <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">

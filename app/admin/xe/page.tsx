@@ -324,11 +324,7 @@ function VehiclesContent() {
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <LicensePlate plate={v.plate} color={v.plateColor} size="sm" />
                                         <CarColorPicker vehicleId={v.id} currentColor={v.color} size="sm" />
-                                        <StatusBadge
-                                            status={v.status}
-                                            days={v.daysLeft}
-                                            expiresOn={v.expiresOn ? formatDateVN(v.expiresOn) : undefined}
-                                        />
+                                        <StatusBadge status={v.status} />
                                     </div>
 
                                     <button
@@ -377,19 +373,15 @@ function VehiclesContent() {
                                     )}
                                 </div>
 
-                                {/* Chân Card: Hạn bảo hành & Số phiếu (ĐÃ BỎ ODO) */}
+                                {/* Chân Card: Số phiếu bảo hành */}
                                 <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                        <span>Hạn BH:</span>
-                                        <span className="font-semibold text-slate-800 font-mono">
-                                            {v.expiresOn ? formatDateVN(v.expiresOn) : "Chưa có"}
-                                        </span>
-                                    </div>
+                                    <span className="inline-flex items-center gap-1.5 text-slate-500 font-medium">
+                                        <FileText className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>Lịch sử phiếu bảo hành</span>
+                                    </span>
 
                                     <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono text-[11px] font-bold">
-                                            <FileText className="w-3 h-3 text-slate-400" />
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono text-[11px] font-bold">
                                             {v.ticketCount} phiếu
                                         </span>
                                         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
@@ -399,7 +391,7 @@ function VehiclesContent() {
                         ))}
                     </div>
 
-                    {/* 2. Desktop DataTable View (>= 1024px) - BỎ CỘT ODO */}
+                    {/* 2. Desktop DataTable View (>= 1024px) - BỎ CỘT ODO & HẠN DÀI NHẤT */}
                     <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
                         <table className="w-full text-left text-xs">
                             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider text-[11px]">
@@ -408,7 +400,6 @@ function VehiclesContent() {
                                     <th className="py-3.5 px-4">Dòng Xe</th>
                                     <th className="py-3.5 px-4">Chủ Xe & SĐT</th>
                                     <th className="py-3.5 px-4">Trạng Thái</th>
-                                    <th className="py-3.5 px-4">Hạn Bảo Hành</th>
                                     <th className="py-3.5 px-4 text-center">Số Phiếu</th>
                                     <th className="py-3.5 px-4 text-right">Thao Tác</th>
                                 </tr>
@@ -443,15 +434,7 @@ function VehiclesContent() {
                                             )}
                                         </td>
                                         <td className="py-3.5 px-4">
-                                            <StatusBadge
-                                                status={v.status}
-                                                days={v.daysLeft}
-                                                showDays
-                                                expiresOn={v.expiresOn ? formatDateVN(v.expiresOn) : undefined}
-                                            />
-                                        </td>
-                                        <td className="py-3.5 px-4 font-mono font-medium text-slate-800">
-                                            {v.expiresOn ? formatDateVN(v.expiresOn) : "—"}
+                                            <StatusBadge status={v.status} />
                                         </td>
                                         <td className="py-3.5 px-4 text-center">
                                             <span className="inline-flex items-center justify-center min-w-7 h-6 px-1.5 rounded-md bg-slate-100 text-slate-700 font-mono font-bold text-xs">

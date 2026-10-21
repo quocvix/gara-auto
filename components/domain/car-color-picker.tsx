@@ -12,6 +12,7 @@ interface CarColorPickerProps {
     vehicleId: string;
     currentColor?: string;
     size?: "sm" | "md";
+    shape?: "square" | "rect";
     className?: string;
 }
 
@@ -19,6 +20,7 @@ export function CarColorPicker({
     vehicleId,
     currentColor = "",
     size = "sm",
+    shape = "rect",
     className = "",
 }: CarColorPickerProps) {
     const { updateVehicleColor } = useGarageStore();
@@ -151,8 +153,8 @@ export function CarColorPicker({
     };
 
     const badgeSizes = {
-        sm: "w-6 h-6 rounded-lg",
-        md: "w-8 h-8 rounded-xl",
+        sm: shape === "rect" ? "w-8 h-5 rounded-md" : "w-6 h-6 rounded-lg",
+        md: shape === "rect" ? "w-13 h-8.5 rounded-lg" : "w-8 h-8 rounded-xl",
     };
 
     return (

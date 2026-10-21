@@ -25,12 +25,12 @@ export function StatusBadge({
         return (
             <span
                 title={tooltip}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-emerald-100 bg-emerald-50/75 text-emerald-700 whitespace-nowrap transition-colors ${className}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs shadow-emerald-600/25 border border-emerald-500 whitespace-nowrap transition-all ${className}`}
             >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <ShieldCheck className="w-4 h-4 stroke-[2.5] text-white shrink-0" />
                 <span>Còn hạn</span>
                 {showDays && days !== undefined && (
-                    <span className="font-mono text-[11px] text-emerald-600/80 font-normal">
+                    <span className="font-mono text-[11px] text-emerald-100 font-semibold">
                         ({days} ngày)
                     </span>
                 )}
@@ -42,12 +42,12 @@ export function StatusBadge({
         return (
             <span
                 title={tooltip}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-amber-200/80 bg-amber-50/75 text-amber-800 whitespace-nowrap transition-colors ${className}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-xs shadow-amber-500/25 border border-amber-400 whitespace-nowrap transition-all ${className}`}
             >
-                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <Clock className="w-4 h-4 stroke-[2.5] text-white shrink-0" />
                 <span>Sắp hết hạn</span>
                 {days !== undefined && (
-                    <span className="font-mono text-[11px] text-amber-700 font-normal">
+                    <span className="font-mono text-[11px] text-amber-100 font-semibold">
                         ({days} ngày)
                     </span>
                 )}
@@ -58,10 +58,11 @@ export function StatusBadge({
     return (
         <span
             title={tooltip}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-rose-100 bg-rose-50/75 text-rose-700 whitespace-nowrap transition-colors ${className}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-xs shadow-rose-600/25 border border-rose-500 whitespace-nowrap transition-all ${className}`}
         >
-            <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <ShieldAlert className="w-4 h-4 stroke-[2.5] text-white shrink-0" />
             <span>Hết hạn</span>
         </span>
     );
 }
+
