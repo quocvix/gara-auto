@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, use, useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import React, { createContext, use, useState, useEffect, useMemo, useCallback, useRef, Suspense } from "react";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { normalizePlate, sanitizePlateInput } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
@@ -23,6 +23,9 @@ import {
     Check,
     PackageCheck,
     Pipette,
+    ChevronDown,
+    ArrowRight,
+    ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
@@ -93,13 +96,32 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
     const [isOpen, setIsOpen] = useState(false);
     const [ticketId, setTicketId] = useState<string | undefined>(undefined);
+    const [activeTab, setActiveTab] = useState<"info" | "parts">("info");
     const [customWarrantyIndexes, setCustomWarrantyIndexes] = useState<number[]>([]);
 
-    // Search phụ tùng
+    // Search & dropdown phụ tùng
     const [partSearchQuery, setPartSearchQuery] = useState("");
+    const [isPartDropdownOpen, setIsPartDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
     const [isPartModalOpen, setIsPartModalOpen] = useState(false);
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Đóng dropdown phụ tùng khi click bên ngoài
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setIsPartDropdownOpen(false);
+            }
+        };
+        if (isPartDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isPartDropdownOpen]);
 
     // React Hook Form với Zod validation
     const {
@@ -135,54 +157,59 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
     const colorConfig = getCarColorConfig(color);
 
-    const openTicketModal = useCallback((params?: OpenModalParams) => {
-        setError("");
-        setPartSearchQuery("");
-        const ticketDate = params?.activatedOn || todayVN();
-        const items = (params?.items || []).map((it) => ({
-            partId: it.partId,
-            quantity: it.quantity,
-            warrantyMonths: typeof it.warrantyMonths === "number" ? it.warrantyMonths : 12,
-            activatedOn: it.activatedOn || ticketDate,
-        }));
+    const openTicketModal = useCallback(
+        (params?: OpenModalParams) => {
+            setError("");
+            setPartSearchQuery("");
+            setIsPartDropdownOpen(false);
+            setActiveTab("info");
+            const ticketDate = params?.activatedOn || todayVN();
+            const items = (params?.items || []).map((it) => ({
+                partId: it.partId,
+                quantity: it.quantity,
+                warrantyMonths: typeof it.warrantyMonths === "number" ? it.warrantyMonths : 12,
+                activatedOn: it.activatedOn || ticketDate,
+            }));
 
-        if (params) {
-            setTicketId(params.ticketId);
-            reset({
-                plate: params.vehicle?.plate || "",
-                plateColor: (params.vehicle?.plateColor as "white" | "yellow") || "white",
-                model: params.vehicle?.model || "",
-                color: params.vehicle?.color || "",
-                ownerName: params.vehicle?.ownerName || "",
-                ownerPhone: params.vehicle?.ownerPhone || "",
-                activatedOn: ticketDate,
-                note: params.note || "",
-                items,
-            });
-            // Check if any items have non-standard warranty months
-            const customs: number[] = [];
-            items.forEach((it, idx) => {
-                const m = it.warrantyMonths ?? 12;
-                if (!STANDARD_VALUES.includes(m)) customs.push(idx);
-            });
-            setCustomWarrantyIndexes(customs);
-        } else {
-            setTicketId(undefined);
-            reset({
-                plate: "",
-                plateColor: "white",
-                model: "",
-                color: "",
-                ownerName: "",
-                ownerPhone: "",
-                activatedOn: todayVN(),
-                note: "",
-                items: [],
-            });
-            setCustomWarrantyIndexes([]);
-        }
-        setIsOpen(true);
-    }, [reset]);
+            if (params) {
+                setTicketId(params.ticketId);
+                reset({
+                    plate: params.vehicle?.plate || "",
+                    plateColor: (params.vehicle?.plateColor as "white" | "yellow") || "white",
+                    model: params.vehicle?.model || "",
+                    color: params.vehicle?.color || "",
+                    ownerName: params.vehicle?.ownerName || "",
+                    ownerPhone: params.vehicle?.ownerPhone || "",
+                    activatedOn: ticketDate,
+                    note: params.note || "",
+                    items,
+                });
+                // Check if any items have non-standard warranty months
+                const customs: number[] = [];
+                items.forEach((it, idx) => {
+                    const m = it.warrantyMonths ?? 12;
+                    if (!STANDARD_VALUES.includes(m)) customs.push(idx);
+                });
+                setCustomWarrantyIndexes(customs);
+            } else {
+                setTicketId(undefined);
+                reset({
+                    plate: "",
+                    plateColor: "white",
+                    model: "",
+                    color: "",
+                    ownerName: "",
+                    ownerPhone: "",
+                    activatedOn: todayVN(),
+                    note: "",
+                    items: [],
+                });
+                setCustomWarrantyIndexes([]);
+            }
+            setIsOpen(true);
+        },
+        [reset],
+    );
 
     const closeTicketModal = useCallback(() => {
         setIsOpen(false);
@@ -274,24 +301,9 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     const filteredWarehouseParts = useMemo(() => {
         const active = parts.filter((p) => p.isActive);
         const q = partSearchQuery.trim().toLowerCase();
-        if (!q) return active.slice(0, 10);
+        if (!q) return active;
         return active.filter((p) => p.name.toLowerCase().includes(q));
     }, [parts, partSearchQuery]);
-
-    // Tính hạn bảo hành dài nhất
-    const today = todayVN();
-    const maxWarrantyExpiresOn = useMemo(() => {
-        let max = activatedOn || today;
-        for (const item of selectedItems) {
-            const wMonths = typeof item.warrantyMonths === "number" ? item.warrantyMonths : 0;
-            const itemDate = item.activatedOn || activatedOn || today;
-            if (wMonths > 0) {
-                const exp = addMonthsToDate(itemDate, wMonths);
-                if (exp > max) max = exp;
-            }
-        }
-        return max;
-    }, [selectedItems, activatedOn, today]);
 
     const onSubmit = async (values: TicketFormValues) => {
         if (isSubmitting) return;
@@ -336,6 +348,12 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
     const onInvalid = (fieldErrors: typeof errors) => {
         trigger("error");
+        // Tự động chuyển đến Tab có lỗi tương ứng
+        if (fieldErrors.plate || fieldErrors.model || fieldErrors.ownerName || fieldErrors.ownerPhone) {
+            setActiveTab("info");
+        } else if (fieldErrors.items) {
+            setActiveTab("parts");
+        }
         const firstErrorMessage =
             fieldErrors.plate?.message ||
             fieldErrors.model?.message ||
@@ -346,10 +364,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
         toast.error(firstErrorMessage);
     };
 
-    const contextValue = useMemo(
-        () => ({ openTicketModal, closeTicketModal }),
-        [openTicketModal, closeTicketModal]
-    );
+    const contextValue = useMemo(() => ({ openTicketModal, closeTicketModal }), [openTicketModal, closeTicketModal]);
 
     return (
         <TicketModalContext.Provider value={contextValue}>
@@ -374,9 +389,6 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                     <h3 className="font-bold text-base sm:text-lg text-slate-900 leading-tight">
                                         {ticketId ? "Chỉnh Sửa Phiếu Bảo Hành" : "Tạo Phiếu Bảo Hành Mới"}
                                     </h3>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        Đồng bộ tồn kho & thời hạn bảo hành khách hàng
-                                    </p>
                                 </div>
                             </div>
                             <button
@@ -389,643 +401,732 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             </button>
                         </div>
 
+                        {/* 2-Tab Segmented Navigation */}
+                        <div className="px-3 sm:px-6 pt-3 pb-2.5 bg-white border-b border-slate-200/80 flex items-center gap-2 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab("info")}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                    activeTab === "info"
+                                        ? "bg-blue-600 text-white shadow-xs"
+                                        : "bg-slate-100/90 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+                                }`}
+                            >
+                                <Car className="w-4 h-4" />
+                                <span>1. Thông tin xe</span>
+                                {(errors.plate || errors.model || errors.ownerName || errors.ownerPhone) && (
+                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab("parts")}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                    activeTab === "parts"
+                                        ? "bg-blue-600 text-white shadow-xs"
+                                        : "bg-slate-100/90 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+                                }`}
+                            >
+                                <PackageCheck className="w-4 h-4" />
+                                <span>2. Phụ tùng</span>
+                                {selectedItems.length > 0 && (
+                                    <span
+                                        className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono font-bold ${
+                                            activeTab === "parts" ? "bg-white text-blue-600" : "bg-blue-600 text-white"
+                                        }`}
+                                    >
+                                        {selectedItems.reduce((sum, it) => sum + it.quantity, 0)}
+                                    </span>
+                                )}
+                                {errors.items && (
+                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                                )}
+                            </button>
+                        </div>
+
                         {/* Form Scroll Area */}
                         <form
                             id="ticket-modal-form"
                             onSubmit={handleSubmit(onSubmit, onInvalid)}
-                            className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 bg-slate-100/70"
+                            className="p-3 sm:p-5 overflow-y-auto flex-1 bg-[#E9EEF5]"
                         >
                             {error && (
-                                <div className="p-3 text-xs sm:text-sm rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 font-medium animate-in fade-in shadow-2xs">
+                                <div className="p-3 mb-4 text-xs sm:text-sm rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 font-medium animate-in fade-in shadow-2xs">
                                     <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
                                     <span>{error}</span>
                                 </div>
                             )}
 
-                            {/* KHỐI 1: THÔNG TIN XE */}
-                            <div className="space-y-3.5 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                                        <Car className="w-4 h-4 text-blue-600" />
-                                        1. Thông tin phương tiện
-                                    </span>
-                                    {plate && <LicensePlate plate={plate} color={plateColor} size="sm" />}
-                                </div>
-
-                                {/* NGÀY TẠO / KÍCH HOẠT PHIẾU */}
-                                <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                            <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                                            NGÀY TẠO / KÍCH HOẠT PHIẾU
-                                        </label>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => setValue("activatedOn", todayVN(), { shouldValidate: true })}
-                                                className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all ${
-                                                    activatedOn === todayVN()
-                                                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-                                                }`}
-                                            >
-                                                Hôm nay
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setValue("activatedOn", addDaysToDate(todayVN(), -1), { shouldValidate: true })}
-                                                className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all ${
-                                                    activatedOn === addDaysToDate(todayVN(), -1)
-                                                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-                                                }`}
-                                            >
-                                                Hôm qua
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={activatedOn}
-                                        onChange={(e) => setValue("activatedOn", e.target.value, { shouldValidate: true })}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="sm:col-span-2">
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                            BIỂN SỐ XE *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={plate}
-                                            onChange={(e) => {
-                                                const val = sanitizePlateInput(e.target.value);
-                                                setValue("plate", val, { shouldValidate: true });
-                                            }}
-                                            onBlur={handlePlateBlur}
-                                            placeholder="VD: 51K-889.99"
-                                            className={`w-full h-11 px-3.5 rounded-xl border bg-white font-mono text-base uppercase font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
-                                                errors.plate
-                                                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
-                                                    : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
-                                            }`}
-                                        />
-                                        {errors.plate && (
-                                            <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
-                                                <AlertCircle className="w-3 h-3 shrink-0" />
-                                                <span>{errors.plate.message}</span>
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                            MÀU BIỂN SỐ
-                                        </label>
-                                        <div className="grid grid-cols-2 gap-1.5 h-11 p-1 bg-white border border-slate-200 rounded-xl shadow-2xs">
-                                            <button
-                                                type="button"
-                                                onClick={() => setValue("plateColor", "white", { shouldValidate: true })}
-                                                className={`text-xs font-bold rounded-lg flex items-center justify-center transition-all ${
-                                                    plateColor === "white"
-                                                        ? "bg-slate-100 text-slate-900 border border-slate-300 shadow-2xs"
-                                                        : "text-slate-500 hover:text-slate-900"
-                                                }`}
-                                            >
-                                                Trắng
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setValue("plateColor", "yellow", { shouldValidate: true })}
-                                                className={`text-xs font-bold rounded-lg flex items-center justify-center transition-all ${
-                                                    plateColor === "yellow"
-                                                        ? "bg-amber-400 text-slate-900 shadow-2xs"
-                                                        : "text-slate-500 hover:text-slate-900"
-                                                }`}
-                                            >
-                                                Vàng
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                            DÒNG XE (MODEL) *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={model}
-                                            onChange={(e) => setValue("model", e.target.value, { shouldValidate: true })}
-                                            placeholder="VD: Mazda CX-5 2.0"
-                                            className={`w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
-                                                errors.model
-                                                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
-                                                    : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
-                                            }`}
-                                        />
-                                        {errors.model && (
-                                            <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
-                                                <AlertCircle className="w-3 h-3 shrink-0" />
-                                                <span>{errors.model.message}</span>
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <label className="block text-xs font-semibold text-slate-700">
-                                                MÀU SƠN XE
-                                            </label>
-                                            {colorConfig ? (
-                                                <span className="text-[11px] font-mono font-semibold text-blue-600 flex items-center gap-1">
-                                                    <span>{colorConfig.name}</span>
-                                                    <span className="text-slate-400">({colorConfig.hex})</span>
-                                                </span>
-                                            ) : (
-                                                <span className="text-[11px] text-slate-400">Chưa chọn</span>
-                                            )}
+                            {/* TAB 1: THÔNG TIN PHƯƠNG TIỆN & GHI CHÚ */}
+                            {activeTab === "info" && (
+                                <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-150">
+                                    {/* KHỐI 1: THÔNG TIN XE */}
+                                    <div className="space-y-3.5 p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                                <Car className="w-4 h-4 text-blue-600" />
+                                                Thông tin phương tiện
+                                            </span>
+                                            {plate && <LicensePlate plate={plate} color={plateColor} size="sm" />}
                                         </div>
 
-                                        {/* Thanh Swatches 1 chạm tối ưu cho mobile */}
-                                        <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-200 rounded-xl overflow-x-auto scrollbar-none">
-                                            {/* Native Color Picker Pipette */}
-                                            <label
-                                                className="w-8 h-8 rounded-lg border border-slate-300 bg-white shrink-0 flex items-center justify-center cursor-pointer shadow-2xs relative transition-all hover:scale-105 active:scale-95"
-                                                title="Mở bảng pha màu chi tiết của điện thoại"
-                                            >
-                                                <Pipette className="w-4 h-4 text-blue-600" />
-                                                <input
-                                                    type="color"
-                                                    value={colorConfig?.hex || "#2563EB"}
-                                                    onChange={(e) => {
-                                                        const hex = e.target.value.toUpperCase();
-                                                        setValue("color", hex, { shouldValidate: true });
-                                                    }}
-                                                    className="sr-only"
-                                                />
-                                            </label>
-
-                                            {/* 10 màu phổ biến */}
-                                            {POPULAR_CAR_COLORS.map((c) => {
-                                                const isSelected =
-                                                    color.trim().toLowerCase() === c.hex.toLowerCase() ||
-                                                    color.trim().toLowerCase() === c.name.toLowerCase();
-
-                                                return (
+                                        {/* NGÀY TẠO / KÍCH HOẠT PHIẾU */}
+                                        <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                                                    Ngày lập phiếu
+                                                </label>
+                                                <div className="flex items-center gap-1">
                                                     <button
-                                                        key={c.name}
                                                         type="button"
-                                                        onClick={() => setValue("color", c.hex, { shouldValidate: true })}
-                                                        title={c.name}
-                                                        className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs relative ${
-                                                            isSelected ? "ring-2 ring-blue-600 ring-offset-1 scale-105" : "hover:scale-105"
+                                                        onClick={() =>
+                                                            setValue("activatedOn", todayVN(), { shouldValidate: true })
+                                                        }
+                                                        className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all cursor-pointer ${
+                                                            activatedOn === todayVN()
+                                                                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
                                                         }`}
-                                                        style={{
-                                                            backgroundColor: c.hex,
-                                                            border: c.border ? `1px solid ${c.border}` : "1px solid rgba(0,0,0,0.15)",
-                                                        }}
                                                     >
-                                                        {isSelected && (
-                                                            <Check
-                                                                className="w-4 h-4 stroke-[3]"
-                                                                style={{ color: c.textColor || "#FFFFFF" }}
-                                                            />
-                                                        )}
+                                                        Hôm nay
                                                     </button>
-                                                );
-                                            })}
-
-                                            {/* Nút Xóa màu */}
-                                            {color && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setValue("color", "", { shouldValidate: true })}
-                                                    className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 shrink-0 flex items-center justify-center transition-colors cursor-pointer"
-                                                    title="Xóa màu xe"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                            CHỦ XE *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={ownerName}
-                                            onChange={(e) => setValue("ownerName", e.target.value, { shouldValidate: true })}
-                                            placeholder="Họ tên chủ xe"
-                                            className={`w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
-                                                errors.ownerName
-                                                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
-                                                    : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
-                                            }`}
-                                        />
-                                        {errors.ownerName && (
-                                            <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
-                                                <AlertCircle className="w-3 h-3 shrink-0" />
-                                                <span>{errors.ownerName.message}</span>
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                            SỐ ĐIỆN THOẠI *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={ownerPhone}
-                                            onChange={(e) => setValue("ownerPhone", e.target.value, { shouldValidate: true })}
-                                            placeholder="VD: 0988123456"
-                                            className={`w-full h-11 px-3.5 rounded-xl border bg-white font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
-                                                errors.ownerPhone
-                                                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
-                                                    : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
-                                            }`}
-                                        />
-                                        {errors.ownerPhone && (
-                                            <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
-                                                <AlertCircle className="w-3 h-3 shrink-0" />
-                                                <span>{errors.ownerPhone.message}</span>
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* KHỐI 2: CHỌN PHỤ TÙNG TỪ KHO */}
-                            <div className="space-y-3.5 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                                        <Wrench className="w-4 h-4 text-blue-600" />
-                                        2. Chọn phụ tùng từ kho
-                                    </span>
-                                    <span className="text-[11px] text-slate-500 font-medium">
-                                        {filteredWarehouseParts.length} mặt hàng
-                                    </span>
-                                </div>
-
-                                {/* 1. Thanh tìm kiếm nhanh phụ tùng kho + Nút Thêm mới */}
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
-                                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                        <input
-                                            type="text"
-                                            value={partSearchQuery}
-                                            onChange={(e) => setPartSearchQuery(e.target.value)}
-                                            placeholder="Tìm nhanh khi kho có nhiều phụ tùng..."
-                                            className="w-full h-10 sm:h-11 pl-10 pr-9 rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
-                                        />
-                                        {partSearchQuery && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setPartSearchQuery("")}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-                                                title="Xóa tìm kiếm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsPartModalOpen(true)}
-                                        className="h-10 sm:h-11 px-3 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm rounded-xl flex items-center gap-1.5 shrink-0 shadow-2xs transition-all active:scale-95"
-                                        title="Thêm mới phụ tùng vào kho"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        <span>Thêm mới</span>
-                                    </button>
-                                </div>
-
-                                {/* 2. Danh sách phụ tùng kho hiển thị trực tiếp để chọn nhanh */}
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                                        <span>Chọn từ kho phụ tùng ({filteredWarehouseParts.length})</span>
-                                        {partSearchQuery && (
-                                            <span className="text-blue-600 font-normal normal-case">
-                                                Lọc theo &ldquo;{partSearchQuery}&rdquo;
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 sm:max-h-52 overflow-y-auto p-0.5">
-                                        {filteredWarehouseParts.length > 0 ? (
-                                            filteredWarehouseParts.map((p) => {
-                                                const selectedItem = selectedItems.find((it) => it.partId === p.id);
-                                                const isChosen = !!selectedItem;
-                                                const isOutOfStock = p.stock <= 0;
-
-                                                return (
                                                     <button
-                                                        key={p.id}
                                                         type="button"
-                                                        disabled={isOutOfStock}
-                                                        onClick={() => addItem(p.id)}
-                                                        className={`p-2.5 sm:p-3 rounded-xl border text-left flex items-center justify-between gap-2.5 transition-all active:scale-[0.98] ${
-                                                            isChosen
-                                                                ? "border-blue-500 bg-blue-50/90 text-blue-950 font-medium ring-1 ring-blue-500/30 shadow-xs"
-                                                                : "border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300 text-slate-800 shadow-2xs"
-                                                        } ${isOutOfStock ? "opacity-40 cursor-not-allowed bg-slate-100" : "cursor-pointer"}`}
+                                                        onClick={() =>
+                                                            setValue("activatedOn", addDaysToDate(todayVN(), -1), {
+                                                                shouldValidate: true,
+                                                            })
+                                                        }
+                                                        className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-all cursor-pointer ${
+                                                            activatedOn === addDaysToDate(todayVN(), -1)
+                                                                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                                        }`}
                                                     >
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="font-semibold text-xs sm:text-sm text-slate-900 truncate">
-                                                                {p.name}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-mono">
-                                                                <span
-                                                                    className={`inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-semibold ${
-                                                                        p.stock > 0
-                                                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
-                                                                            : "bg-rose-50 text-rose-700 border border-rose-200/60"
-                                                                    }`}
-                                                                >
-                                                                    Tồn: {p.stock}
-                                                                </span>
-                                                                {isChosen && (
-                                                                    <span className="text-blue-700 font-sans font-bold text-[11px] flex items-center gap-0.5">
-                                                                        <Check className="w-3 h-3 text-blue-600" />
-                                                                        Đã chọn ({selectedItem.quantity})
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <span
-                                                            className={`p-1.5 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
-                                                                isChosen
-                                                                    ? "bg-blue-600 text-white"
-                                                                    : "bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white"
-                                                            }`}
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                        </span>
+                                                        Hôm qua
                                                     </button>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="col-span-full p-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl bg-white space-y-2">
-                                                <p>Không tìm thấy phụ tùng &quot;{partSearchQuery}&quot; trong kho</p>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPartModalOpen(true)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 transition-colors"
-                                                >
-                                                    <Plus className="w-3.5 h-3.5" />
-                                                    Thêm &quot;{partSearchQuery}&quot; vào kho ngay
-                                                </button>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* KHỐI 3: PHỤ TÙNG ĐÃ CHỌN VÀO PHIẾU (TÁCH BIỆT THÀNH CARD RIÊNG) */}
-                            <div className="space-y-3.5 p-4 sm:p-5 rounded-2xl bg-white border-2 border-blue-400/90 shadow-xs ring-4 ring-blue-500/5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-2xs">
-                                            <PackageCheck className="w-4 h-4" />
+                                            <input
+                                                type="date"
+                                                value={activatedOn}
+                                                onChange={(e) =>
+                                                    setValue("activatedOn", e.target.value, { shouldValidate: true })
+                                                }
+                                                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                            />
                                         </div>
-                                        <div>
-                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                                                3. Phụ tùng trong phiếu
-                                            </span>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div className="sm:col-span-2">
+                                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                                    BIỂN SỐ XE *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={plate}
+                                                    onChange={(e) => {
+                                                        const val = sanitizePlateInput(e.target.value);
+                                                        setValue("plate", val, { shouldValidate: true });
+                                                    }}
+                                                    onBlur={handlePlateBlur}
+                                                    placeholder="VD: 51K-889.99"
+                                                    className={`w-full h-11 px-3.5 rounded-xl border bg-white font-mono text-base uppercase font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
+                                                        errors.plate
+                                                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
+                                                            : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
+                                                    }`}
+                                                />
+                                                {errors.plate && (
+                                                    <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        <span>{errors.plate.message}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                                    MÀU BIỂN SỐ
+                                                </label>
+                                                <div className="grid grid-cols-2 gap-1.5 h-11 p-1 bg-white border border-slate-200 rounded-xl shadow-2xs">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setValue("plateColor", "white", { shouldValidate: true })
+                                                        }
+                                                        className={`text-xs font-bold rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                                                            plateColor === "white"
+                                                                ? "bg-slate-100 text-slate-900 border border-slate-300 shadow-2xs"
+                                                                : "text-slate-500 hover:text-slate-900"
+                                                        }`}
+                                                    >
+                                                        Trắng
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setValue("plateColor", "yellow", { shouldValidate: true })
+                                                        }
+                                                        className={`text-xs font-bold rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                                                            plateColor === "yellow"
+                                                                ? "bg-amber-400 text-slate-900 shadow-2xs"
+                                                                : "text-slate-500 hover:text-slate-900"
+                                                        }`}
+                                                    >
+                                                        Vàng
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    {selectedItems.length > 0 && (
-                                        <span className="text-xs font-bold text-blue-700 bg-blue-100 border border-blue-300 px-2.5 py-1 rounded-full shadow-2xs">
-                                            {selectedItems.reduce((sum, it) => sum + it.quantity, 0)} món
-                                        </span>
-                                    )}
-                                </div>
 
-                                {errors.items && (
-                                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-                                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-                                        <span>{errors.items.message}</span>
-                                    </div>
-                                )}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                                    DÒNG XE (MODEL) *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={model}
+                                                    onChange={(e) =>
+                                                        setValue("model", e.target.value, { shouldValidate: true })
+                                                    }
+                                                    placeholder="VD: Mazda CX-5 2.0"
+                                                    className={`w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
+                                                        errors.model
+                                                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
+                                                            : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
+                                                    }`}
+                                                />
+                                                {errors.model && (
+                                                    <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        <span>{errors.model.message}</span>
+                                                    </p>
+                                                )}
+                                            </div>
 
-                                {selectedItems.length > 0 ? (
-                                    <div className="space-y-2.5">
-                                        {selectedItems.map((item, idx) => {
-                                            const part = parts.find((p) => p.id === item.partId);
-                                            if (!part) return null;
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <label className="block text-xs font-semibold text-slate-700">
+                                                        MÀU SƠN XE
+                                                    </label>
+                                                    {colorConfig ? (
+                                                        <span className="text-[11px] font-mono font-semibold text-blue-600 flex items-center gap-1">
+                                                            <span>{colorConfig.name}</span>
+                                                            <span className="text-slate-400">({colorConfig.hex})</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[11px] text-slate-400">Chưa chọn</span>
+                                                    )}
+                                                </div>
 
-                                            const wMonths =
-                                                typeof item.warrantyMonths === "number" ? item.warrantyMonths : 12;
-                                            const itemActivatedOn = item.activatedOn || activatedOn || today;
-                                            const itemExpires = wMonths > 0 ? addMonthsToDate(itemActivatedOn, wMonths) : null;
-                                            const isCustom =
-                                                customWarrantyIndexes.includes(idx) ||
-                                                !STANDARD_VALUES.includes(wMonths);
+                                                {/* Thanh Swatches 1 chạm tối ưu cho mobile */}
+                                                <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-200 rounded-xl overflow-x-auto scrollbar-none">
+                                                    {/* Native Color Picker Pipette */}
+                                                    <label
+                                                        className="w-8 h-8 rounded-lg border border-slate-300 bg-white shrink-0 flex items-center justify-center cursor-pointer shadow-2xs relative transition-all hover:scale-105 active:scale-95"
+                                                        title="Mở bảng pha màu chi tiết của điện thoại"
+                                                    >
+                                                        <Pipette className="w-4 h-4 text-blue-600" />
+                                                        <input
+                                                            type="color"
+                                                            value={colorConfig?.hex || "#2563EB"}
+                                                            onChange={(e) => {
+                                                                const hex = e.target.value.toUpperCase();
+                                                                setValue("color", hex, { shouldValidate: true });
+                                                            }}
+                                                            className="sr-only"
+                                                        />
+                                                    </label>
 
-                                            return (
-                                                <div
-                                                    key={item.partId}
-                                                    className="p-3 sm:p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-blue-600 bg-white space-y-3 shadow-xs"
-                                                >
-                                                    {/* Row 1: Tên phụ tùng + nút xóa */}
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="font-semibold text-sm text-slate-900 leading-snug">
-                                                                {part.name}
-                                                            </div>
-                                                            <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                                <span className="text-[11px] text-slate-500 font-mono">
-                                                                    Kho còn:{" "}
-                                                                    <strong className="text-slate-700">
-                                                                        {part.stock}
-                                                                    </strong>
-                                                                </span>
-                                                                {wMonths > 0 && itemExpires ? (
-                                                                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 font-mono">
-                                                                        {formatDateVN(itemActivatedOn)} → {formatDateVN(itemExpires)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
-                                                                        Kích hoạt {formatDateVN(itemActivatedOn)} (Không có hạn)
-                                                                    </span>
+                                                    {/* 10 màu phổ biến */}
+                                                    {POPULAR_CAR_COLORS.map((c) => {
+                                                        const isSelected =
+                                                            color.trim().toLowerCase() === c.hex.toLowerCase() ||
+                                                            color.trim().toLowerCase() === c.name.toLowerCase();
+
+                                                        return (
+                                                            <button
+                                                                key={c.name}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setValue("color", c.hex, { shouldValidate: true })
+                                                                }
+                                                                title={c.name}
+                                                                className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs relative ${
+                                                                    isSelected
+                                                                        ? "ring-2 ring-blue-600 ring-offset-1 scale-105"
+                                                                        : "hover:scale-105"
+                                                                }`}
+                                                                style={{
+                                                                    backgroundColor: c.hex,
+                                                                    border: c.border
+                                                                        ? `1px solid ${c.border}`
+                                                                        : "1px solid rgba(0,0,0,0.15)",
+                                                                }}
+                                                            >
+                                                                {isSelected && (
+                                                                    <Check
+                                                                        className="w-4 h-4 stroke-[3]"
+                                                                        style={{ color: c.textColor || "#FFFFFF" }}
+                                                                    />
                                                                 )}
-                                                            </div>
-                                                        </div>
+                                                            </button>
+                                                        );
+                                                    })}
 
+                                                    {/* Nút Xóa màu */}
+                                                    {color && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => removeItem(idx)}
-                                                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
-                                                            title="Bỏ phụ tùng này"
+                                                            onClick={() => setValue("color", "", { shouldValidate: true })}
+                                                            className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 shrink-0 flex items-center justify-center transition-colors cursor-pointer"
+                                                            title="Xóa màu xe"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
-                                                    </div>
-
-                                                    {/* Row 2: Bộ chọn số lượng, Ngày kích hoạt riêng & Thời gian bảo hành */}
-                                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1.5 border-t border-slate-100">
-                                                        {/* Stepper số lượng */}
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-xs text-slate-500 font-medium">
-                                                                SL:
-                                                            </span>
-                                                            <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden shadow-2xs">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        updateItemQty(idx, item.quantity - 1)
-                                                                    }
-                                                                    className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 font-bold text-xs text-slate-700 transition-colors"
-                                                                >
-                                                                    -
-                                                                </button>
-                                                                <span className="w-8 text-center text-xs font-mono font-bold text-slate-900 bg-white h-8 flex items-center justify-center border-x border-slate-200">
-                                                                    {item.quantity}
-                                                                </span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        updateItemQty(idx, item.quantity + 1)
-                                                                    }
-                                                                    className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 font-bold text-xs text-blue-600 transition-colors"
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Ngày kích hoạt riêng cho món */}
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-xs text-slate-500 font-medium">
-                                                                Ngày:
-                                                            </span>
-                                                            <input
-                                                                type="date"
-                                                                value={item.activatedOn || activatedOn || today}
-                                                                onChange={(e) => updateItemActivatedOn(idx, e.target.value)}
-                                                                className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
-                                                                title="Ngày kích hoạt riêng cho món này"
-                                                            />
-                                                        </div>
-
-                                                        {/* Dropdown bảo hành tiết kiệm không gian */}
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-xs text-slate-500 font-medium">
-                                                                BH:
-                                                            </span>
-                                                            <select
-                                                                value={isCustom ? -1 : wMonths}
-                                                                onChange={(e) => {
-                                                                    const val = Number(e.target.value);
-                                                                    if (val === -1) {
-                                                                        setCustomWarrantyIndexes((prev) =>
-                                                                            prev.includes(idx) ? prev : [...prev, idx],
-                                                                        );
-                                                                    } else {
-                                                                        setCustomWarrantyIndexes((prev) =>
-                                                                            prev.filter((i) => i !== idx),
-                                                                        );
-                                                                        updateItemWarranty(idx, val);
-                                                                    }
-                                                                }}
-                                                                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 cursor-pointer shadow-2xs"
-                                                            >
-                                                                {STANDARD_MONTH_OPTIONS.map((opt) => (
-                                                                    <option key={opt.value} value={opt.value}>
-                                                                        {opt.label}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-
-                                                            {/* Ô nhập số tháng tùy chỉnh khi chọn Số tháng khác */}
-                                                            {isCustom && (
-                                                                <div className="flex items-center gap-1">
-                                                                    <input
-                                                                        type="number"
-                                                                        min={0}
-                                                                        max={120}
-                                                                        value={wMonths}
-                                                                        onChange={(e) =>
-                                                                            updateItemWarranty(
-                                                                                idx,
-                                                                                Math.max(
-                                                                                    0,
-                                                                                    parseInt(e.target.value) || 0,
-                                                                                ),
-                                                                            )
-                                                                        }
-                                                                        placeholder="Tháng"
-                                                                        className="w-14 h-8 px-1.5 text-center text-xs font-mono font-bold text-slate-900 bg-white border border-blue-500 rounded-lg focus:outline-none shadow-2xs"
-                                                                    />
-                                                                    <span className="text-xs text-slate-500 font-medium">
-                                                                        tháng
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                    )}
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-6 px-4 text-xs text-slate-500 border border-dashed border-blue-200 rounded-xl bg-white/70 space-y-1">
-                                        <p className="font-semibold text-slate-700">Chưa có phụ tùng nào trong phiếu</p>
-                                        <p className="text-slate-400">
-                                            Chạm vào phụ tùng ở Khối 2 bên trên để đưa vào phiếu bảo hành
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* KHỐI 4: GHI CHÚ */}
-                            <div className="space-y-2 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-800">
-                                    4. Ghi chú hồ sơ / tình trạng xe
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={note}
-                                    onChange={(e) => setValue("note", e.target.value, { shouldValidate: true })}
-                                    placeholder="Ghi chú về phụ tùng, khuyến cáo lần bảo dưỡng tới..."
-                                    className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
-                                />
-                            </div>
-
-                            {/* TÓM TẮT THỜI HẠN */}
-                            {selectedItems.length > 0 && (
-                                <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50 border border-emerald-300/80 shadow-xs flex items-center justify-between text-xs sm:text-sm">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="p-1.5 rounded-lg bg-emerald-600 text-white shrink-0 shadow-2xs">
-                                            <Calendar className="w-4 h-4" />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="text-emerald-950 font-bold block sm:inline">
-                                                Thời hạn bảo hành thẻ:
-                                            </span>
-                                            <span className="text-[11px] text-emerald-700/80 font-medium sm:ml-1">
-                                                Tự động lấy hạn dài nhất
-                                            </span>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                                    CHỦ XE *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={ownerName}
+                                                    onChange={(e) =>
+                                                        setValue("ownerName", e.target.value, { shouldValidate: true })
+                                                    }
+                                                    placeholder="Họ tên chủ xe"
+                                                    className={`w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
+                                                        errors.ownerName
+                                                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
+                                                            : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
+                                                    }`}
+                                                />
+                                                {errors.ownerName && (
+                                                    <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        <span>{errors.ownerName.message}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                                    SỐ ĐIỆN THOẠI *
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    value={ownerPhone}
+                                                    onChange={(e) =>
+                                                        setValue("ownerPhone", e.target.value, { shouldValidate: true })
+                                                    }
+                                                    placeholder="VD: 0988123456"
+                                                    className={`w-full h-11 px-3.5 rounded-xl border bg-white font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 shadow-2xs transition-colors ${
+                                                        errors.ownerPhone
+                                                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20"
+                                                            : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
+                                                    }`}
+                                                />
+                                                {errors.ownerPhone && (
+                                                    <p className="text-2xs text-rose-600 font-semibold mt-1 flex items-center gap-1 animate-in fade-in">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        <span>{errors.ownerPhone.message}</span>
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-emerald-700 font-mono text-sm sm:text-base">
-                                        Đến {formatDateVN(maxWarrantyExpiresOn)}
-                                    </span>
+
+                                    {/* KHỐI: GHI CHÚ PHIẾU */}
+                                    <div className="space-y-2 p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-800">
+                                            Ghi chú phiếu
+                                        </label>
+                                        <textarea
+                                            rows={2}
+                                            value={note}
+                                            onChange={(e) => setValue("note", e.target.value, { shouldValidate: true })}
+                                            placeholder="Ghi chú về phụ tùng hoặc dặn dò khách hàng..."
+                                            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                        />
+                                    </div>
+
+                                    {/* Nút Tiếp tục chuyển sang Tab 2 */}
+                                    <div className="pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab("parts")}
+                                            className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] cursor-pointer"
+                                        >
+                                            <span>Tiếp tục: Chọn phụ tùng vào phiếu</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Bottom padding for sticky footer space */}
-                            <div className="h-2" />
+                            {/* TAB 2: CHỌN & QUẢN LÝ PHỤ TÙNG */}
+                            {activeTab === "parts" && (
+                                <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-150">
+                                    {/* KHỐI 2: CHỌN PHỤ TÙNG TỪ KHO (DROPDOWN) */}
+                                    <div className="space-y-3 p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                                <Wrench className="w-4 h-4 text-blue-600" />
+                                                Chọn phụ tùng từ kho
+                                            </span>
+                                            <span className="text-[11px] text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md font-mono">
+                                                {parts.filter((p) => p.isActive).length} mặt hàng
+                                            </span>
+                                        </div>
+
+                                        {/* Dropdown Input & Popover Container */}
+                                        <div ref={dropdownRef} className="relative">
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative flex-1">
+                                                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                                    <input
+                                                        type="text"
+                                                        value={partSearchQuery}
+                                                        onFocus={() => setIsPartDropdownOpen(true)}
+                                                        onChange={(e) => {
+                                                            setPartSearchQuery(e.target.value);
+                                                            setIsPartDropdownOpen(true);
+                                                        }}
+                                                        placeholder="Tìm hoặc bấm để chọn phụ tùng..."
+                                                        className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsPartDropdownOpen((prev) => !prev)}
+                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                                                        title="Mở danh sách phụ tùng"
+                                                    >
+                                                        <ChevronDown
+                                                            className={`w-4 h-4 transition-transform duration-200 ${
+                                                                isPartDropdownOpen ? "rotate-180" : ""
+                                                            }`}
+                                                        />
+                                                    </button>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsPartModalOpen(true)}
+                                                    className="h-11 px-3 sm:px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs sm:text-sm rounded-xl border border-blue-200 flex items-center gap-1 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                                    title="Thêm mới phụ tùng vào kho"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                    <span className="hidden xs:inline sm:inline">Tạo mới</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Dropdown Popover List */}
+                                            {isPartDropdownOpen && (
+                                                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                                                    {filteredWarehouseParts.length > 0 ? (
+                                                        filteredWarehouseParts.map((p) => {
+                                                            const selectedItem = selectedItems.find(
+                                                                (it) => it.partId === p.id,
+                                                            );
+                                                            const isChosen = !!selectedItem;
+                                                            const isOutOfStock = p.stock <= 0;
+
+                                                            return (
+                                                                <button
+                                                                    key={p.id}
+                                                                    type="button"
+                                                                    disabled={isOutOfStock}
+                                                                    onClick={() => {
+                                                                        addItem(p.id);
+                                                                        setPartSearchQuery("");
+                                                                        setIsPartDropdownOpen(false);
+                                                                    }}
+                                                                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between gap-2.5 transition-all ${
+                                                                        isChosen
+                                                                            ? "bg-blue-50/80 text-blue-950 font-medium ring-1 ring-blue-500/20"
+                                                                            : "hover:bg-slate-50 text-slate-800"
+                                                                    } ${
+                                                                        isOutOfStock
+                                                                            ? "opacity-40 cursor-not-allowed bg-slate-50"
+                                                                            : "cursor-pointer"
+                                                                    }`}
+                                                                >
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="font-semibold text-xs sm:text-sm truncate">
+                                                                            {p.name}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-mono">
+                                                                            <span
+                                                                                className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                                                                                    p.stock > 0
+                                                                                        ? "bg-slate-200/60 text-slate-700"
+                                                                                        : "bg-rose-50 text-rose-700"
+                                                                                }`}
+                                                                            >
+                                                                                Kho: {p.stock}
+                                                                            </span>
+                                                                            {p.warrantyMonths ? (
+                                                                                <span className="text-[10px] text-slate-400">
+                                                                                    Mặc định BH {p.warrantyMonths}th
+                                                                                </span>
+                                                                            ) : null}
+                                                                            {isChosen && (
+                                                                                <span className="text-blue-700 font-sans font-bold text-[10px] ml-auto flex items-center gap-0.5">
+                                                                                    <Check className="w-2.5 h-2.5 text-blue-600 stroke-[3]" />
+                                                                                    Đã chọn ({selectedItem.quantity})
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <span
+                                                                        className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center ${
+                                                                            isChosen
+                                                                                ? "bg-blue-600 text-white"
+                                                                                : "bg-slate-100 text-slate-500"
+                                                                        }`}
+                                                                    >
+                                                                        <Plus className="w-3.5 h-3.5" />
+                                                                    </span>
+                                                                </button>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="p-4 text-center text-xs text-slate-500 space-y-2">
+                                                            <p>
+                                                                Không tìm thấy phụ tùng &quot;{partSearchQuery}&quot;
+                                                            </p>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setIsPartDropdownOpen(false);
+                                                                    setIsPartModalOpen(true);
+                                                                }}
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 cursor-pointer"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                Thêm &quot;{partSearchQuery}&quot; vào kho ngay
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* KHỐI 3: PHỤ TÙNG ĐÃ CHỌN VÀO PHIẾU */}
+                                    <div className="space-y-3 p-3.5 sm:p-5 rounded-2xl bg-white border-2 border-blue-400 shadow-[0_4px_16px_-4px_rgba(37,99,235,0.1),0_1px_3px_rgba(15,23,42,0.04)]">
+                                        <div className="flex items-center justify-between pb-2 border-b border-blue-100">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1 rounded-md bg-blue-600 text-white shadow-2xs">
+                                                    <PackageCheck className="w-3.5 h-3.5" />
+                                                </div>
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                                                    Phụ tùng trong phiếu
+                                                </span>
+                                            </div>
+                                            {selectedItems.length > 0 && (
+                                                <span className="text-xs font-bold text-blue-700 bg-blue-100/90 border border-blue-300 px-2.5 py-0.5 rounded-full font-mono">
+                                                    {selectedItems.reduce((sum, it) => sum + it.quantity, 0)} món
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {errors.items && (
+                                            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                                                <AlertCircle className="w-3 h-3 shrink-0 text-rose-500" />
+                                                <span>{errors.items.message}</span>
+                                            </div>
+                                        )}
+
+                                        {selectedItems.length > 0 ? (
+                                            <div className="space-y-2.5">
+                                                {selectedItems.map((item, idx) => {
+                                                    const part = parts.find((p) => p.id === item.partId);
+                                                    if (!part) return null;
+
+                                                    const wMonths =
+                                                        typeof item.warrantyMonths === "number"
+                                                            ? item.warrantyMonths
+                                                            : 12;
+                                                    const itemActivatedOn = item.activatedOn || activatedOn || todayVN();
+                                                    const itemExpires =
+                                                        wMonths > 0 ? addMonthsToDate(itemActivatedOn, wMonths) : null;
+                                                    const isCustom =
+                                                        customWarrantyIndexes.includes(idx) ||
+                                                        !STANDARD_VALUES.includes(wMonths);
+
+                                                    return (
+                                                        <div
+                                                            key={item.partId}
+                                                            className="p-3 rounded-xl border border-slate-200/90 border-l-4 border-l-blue-600 bg-slate-50/50 space-y-2.5 shadow-2xs"
+                                                        >
+                                                            {/* Row 1: Tên phụ tùng + nút xóa */}
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="font-semibold text-xs sm:text-sm text-slate-900 leading-snug">
+                                                                        {part.name}
+                                                                    </div>
+                                                                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                                        <span className="text-[10px] text-slate-500 font-mono bg-slate-200/60 px-1.5 py-0.2 rounded">
+                                                                            Kho: {part.stock}
+                                                                        </span>
+                                                                        {wMonths > 0 && itemExpires ? (
+                                                                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60 font-mono">
+                                                                                {formatDateVN(itemActivatedOn)} →{" "}
+                                                                                {formatDateVN(itemExpires)}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-[10px] font-semibold text-slate-600 bg-slate-200/70 px-1.5 py-0.2 rounded font-mono">
+                                                                                {formatDateVN(itemActivatedOn)} (Không hạn)
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeItem(idx)}
+                                                                    className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+                                                                    title="Bỏ phụ tùng này"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Row 2: Bộ chọn số lượng, Ngày kích hoạt riêng & Thời gian bảo hành */}
+                                                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                                {/* Stepper số lượng */}
+                                                                <div className="flex items-center border border-slate-300/80 rounded-lg bg-white overflow-hidden shadow-2xs">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            updateItemQty(idx, item.quantity - 1)
+                                                                        }
+                                                                        className="w-7 h-7 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 font-bold text-xs text-slate-700 transition-colors cursor-pointer"
+                                                                    >
+                                                                        -
+                                                                    </button>
+                                                                    <span className="w-7 text-center text-xs font-mono font-bold text-slate-900 bg-slate-50 h-7 flex items-center justify-center border-x border-slate-200">
+                                                                        {item.quantity}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            updateItemQty(idx, item.quantity + 1)
+                                                                        }
+                                                                        className="w-7 h-7 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 font-bold text-xs text-blue-600 transition-colors cursor-pointer"
+                                                                    >
+                                                                        +
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Ngày kích hoạt riêng cho món */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <input
+                                                                        type="date"
+                                                                        value={item.activatedOn || activatedOn || todayVN()}
+                                                                        onChange={(e) =>
+                                                                            updateItemActivatedOn(idx, e.target.value)
+                                                                        }
+                                                                        className="h-7 px-1.5 rounded-lg border border-slate-300/80 bg-white text-[11px] font-mono text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs"
+                                                                        title="Ngày kích hoạt riêng"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Dropdown bảo hành tiết kiệm không gian */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <select
+                                                                        value={isCustom ? -1 : wMonths}
+                                                                        onChange={(e) => {
+                                                                            const val = Number(e.target.value);
+                                                                            if (val === -1) {
+                                                                                setCustomWarrantyIndexes((prev) =>
+                                                                                    prev.includes(idx)
+                                                                                        ? prev
+                                                                                        : [...prev, idx],
+                                                                                );
+                                                                            } else {
+                                                                                setCustomWarrantyIndexes((prev) =>
+                                                                                    prev.filter((i) => i !== idx),
+                                                                                );
+                                                                                updateItemWarranty(idx, val);
+                                                                            }
+                                                                        }}
+                                                                        className="h-7 px-2 rounded-lg border border-slate-300/80 bg-white text-[11px] font-semibold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs"
+                                                                    >
+                                                                        {STANDARD_MONTH_OPTIONS.map((opt) => (
+                                                                            <option key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+
+                                                                    {/* Ô nhập số tháng tùy chỉnh khi chọn Số tháng khác */}
+                                                                    {isCustom && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                max={120}
+                                                                                value={wMonths}
+                                                                                onChange={(e) =>
+                                                                                    updateItemWarranty(
+                                                                                        idx,
+                                                                                        Math.max(
+                                                                                            0,
+                                                                                            parseInt(e.target.value) ||
+                                                                                                0,
+                                                                                        ),
+                                                                                    )
+                                                                                }
+                                                                                placeholder="Tháng"
+                                                                                className="w-12 h-7 px-1 text-center text-xs font-mono font-bold text-slate-900 bg-white border border-blue-500 rounded-lg focus:outline-none shadow-2xs"
+                                                                            />
+                                                                            <span className="text-[10px] text-slate-500 font-medium">
+                                                                                th
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-6 px-3 text-xs text-slate-500 border border-dashed border-blue-200 rounded-xl bg-blue-50/30 space-y-1">
+                                                <p className="font-semibold text-slate-700">
+                                                    Chưa có phụ tùng nào trong phiếu
+                                                </p>
+                                                <p className="text-[11px] text-slate-400">
+                                                    Bấm vào dropdown bên trên để chọn phụ tùng đưa vào phiếu
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Nút Quay lại Tab 1 */}
+                                    <div className="pt-1 flex items-center justify-start">
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab("info")}
+                                            className="py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" />
+                                            <span>Quay lại: Thông tin xe</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </form>
 
                         {/* Sticky Action Footer */}

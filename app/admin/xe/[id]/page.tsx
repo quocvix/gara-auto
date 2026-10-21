@@ -116,7 +116,7 @@ export default function VehicleDetailPage() {
                         trigger("tap");
                         router.push("/admin/xe");
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
                 >
                     <ArrowLeft className="w-4 h-4 text-slate-500" />
                     <span>Danh sách xe</span>
@@ -126,7 +126,7 @@ export default function VehicleDetailPage() {
                     href={`/tra-cuu/${vehicle.plateNormalized}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/70 hover:bg-indigo-100/70 text-indigo-700 text-xs font-semibold active:scale-95 transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-indigo-200/80 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold active:scale-95 transition-all shadow-2xs"
                     title="Mở cổng tra cứu công khai như khách xem"
                 >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -135,10 +135,16 @@ export default function VehicleDetailPage() {
                 </a>
             </div>
 
-            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD - ĐỒNG BỘ TRANG TRA CỨU) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs relative overflow-hidden space-y-4">
+            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD - TÔNG SLATE ĐẬM SANG TRỌNG, TƯƠNG PHẢN CAO VỚI LIST PHIẾU TRẮNG) */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-[0_8px_30px_-6px_rgba(15,23,42,0.25)] relative overflow-hidden space-y-4 text-white">
+                {/* Ambient Aura Glow trang trí nhẹ góc thẻ */}
+                <div
+                    className="pointer-events-none absolute -right-16 -top-16 w-56 h-56 rounded-full bg-blue-500/10 blur-3xl"
+                    aria-hidden="true"
+                />
+
                 {/* Header Card */}
-                <div className="space-y-2.5">
+                <div className="relative z-10 space-y-2.5">
                     {/* HÀNG 1: Biển số xe, Thẻ màu sơn chữ nhật & Trạng thái bảo hành nằm cùng 1 hàng */}
                     <div className="flex items-center gap-2.5 flex-wrap">
                         <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
@@ -146,36 +152,42 @@ export default function VehicleDetailPage() {
                         <StatusBadge status={vehicle.status} />
                     </div>
 
-                    {/* HÀNG 2: Tên xe nằm riêng 1 mình 1 hàng, to bản và nổi bật */}
+                    {/* HÀNG 2: Tên xe nằm riêng 1 mình 1 hàng, to bản và nổi bật trên nền tối */}
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
                             {vehicle.model}
                         </h1>
                     </div>
                 </div>
 
-                {/* Khối Chủ xe & Số điện thoại: Đồng bộ giao diện trang tra cứu khách hàng */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
+                {/* Khối Chủ xe & Số điện thoại: Dạng thẻ Surface Tonal tối mờ cao cấp */}
+                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
                     {/* Cột 1: Chủ xe */}
-                    <div className="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                    <div className="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30 shadow-2xs">
                             <User className="w-4.5 h-4.5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight truncate block">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                                Chủ xe
+                            </span>
+                            <span className="font-black text-white text-base sm:text-lg leading-tight truncate block mt-0.5">
                                 {vehicle.ownerName || "Chưa có tên chủ xe"}
                             </span>
                         </div>
                     </div>
 
                     {/* Cột 2: Số điện thoại + Nút gọi 1-chạm */}
-                    <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                    <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/60">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30 shadow-2xs">
                                 <Phone className="w-4.5 h-4.5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <span className="font-mono font-extrabold text-slate-900 text-base sm:text-lg tracking-wider leading-tight truncate block">
+                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                                    Số điện thoại
+                                </span>
+                                <span className="font-mono font-black text-white text-base sm:text-lg tracking-wider leading-tight truncate block mt-0.5">
                                     {vehicle.ownerPhone || "—"}
                                 </span>
                             </div>
@@ -185,7 +197,7 @@ export default function VehicleDetailPage() {
                             <a
                                 href={`tel:${vehicle.ownerPhone}`}
                                 onClick={() => trigger("tap")}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0 transition-colors shadow-2xs active:scale-95"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold shrink-0 transition-all shadow-xs shadow-emerald-500/25 active:scale-95"
                                 title={`Gọi ${vehicle.ownerPhone}`}
                             >
                                 <Phone className="w-3.5 h-3.5 fill-current" />
@@ -196,11 +208,11 @@ export default function VehicleDetailPage() {
                 </div>
 
                 {/* Action Button: Tạo Phiếu Mới Cho Xe Này */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
                     <button
                         type="button"
                         onClick={handleCreateNewTicketForThisVehicle}
-                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all cursor-pointer"
+                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                         <span>Tạo Phiếu Bảo Hành Cho Xe Này</span>
@@ -218,20 +230,20 @@ export default function VehicleDetailPage() {
                 </div>
 
                 {vTickets.length > 0 ? (
-                    <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-5">
                         {vTickets.map((t, idx) => (
                             <div key={t.id} className="relative group">
-                                {/* Ticket Card */}
-                                <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-white shadow-xs hover:shadow-md transition-all space-y-3.5">
+                                {/* Ticket Card - Nền trắng sạch sẽ, nổi khối trên nền Slate Muted */}
+                                <div className="p-4 sm:p-5 rounded-2xl border border-slate-300/50 bg-white shadow-[0_3px_12px_-2px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md transition-all space-y-3.5">
                                     {/* Header phiếu: Đợt X, Ngày kích hoạt, Hạn BH & Nút hành động */}
-                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pb-1">
                                         <div className="space-y-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="font-extrabold text-sm text-slate-900">
+                                            <div className="flex items-center gap-2 flex-wrap uppercase">
+                                                <span className="font-black text-sm text-slate-900">
                                                     Lần {vTickets.length - idx}
                                                 </span>
-                                                <span className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold">
-                                                    Ngày {formatDateVN(t.activatedOn)}
+                                                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/70 font-mono font-bold shadow-2xs">
+                                                    {formatDateVN(t.activatedOn)}
                                                 </span>
                                             </div>
                                         </div>
@@ -255,7 +267,7 @@ export default function VehicleDetailPage() {
                                                         })),
                                                     });
                                                 }}
-                                                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95"
+                                                className="h-8.5 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
                                             >
                                                 <Edit className="w-3.5 h-3.5 text-amber-600" />
                                                 <span>Sửa</span>
@@ -263,7 +275,7 @@ export default function VehicleDetailPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteTicket(t.id)}
-                                                className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                                                className="w-8.5 h-8.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center shadow-2xs transition-all cursor-pointer active:scale-95"
                                                 title="Xóa phiếu"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -273,10 +285,6 @@ export default function VehicleDetailPage() {
 
                                     {/* Danh sách phụ tùng trong phiếu */}
                                     <div className="space-y-2.5">
-                                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                                            <Wrench className="w-3 h-3 text-slate-400" />
-                                            Phụ tùng lắp đặt ({t.items.length})
-                                        </span>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                             {t.items.map((item, iIdx) => {
                                                 const itemActivatedOn = item.activatedOn || t.activatedOn;
@@ -293,12 +301,12 @@ export default function VehicleDetailPage() {
                                                 return (
                                                     <div
                                                         key={item.id || iIdx}
-                                                        className={`rounded-xl border border-slate-200/90 border-l-[3.5px] ${statusConfig.accentBorder} bg-white p-3 sm:p-3.5 space-y-2 shadow-2xs transition-all hover:shadow-xs`}
+                                                        className={`rounded-xl border border-slate-200/70 border-l-4 ${statusConfig.accentBorder} bg-slate-50/70 hover:bg-slate-50 p-3 sm:p-3.5 space-y-2.5 shadow-2xs transition-all`}
                                                     >
                                                         {/* 1. Tên linh kiện & số lượng */}
                                                         <div className="flex items-center justify-between gap-2.5 min-w-0">
                                                             <h4
-                                                                className="font-bold text-slate-900 text-xs sm:text-sm leading-snug truncate min-w-0 flex-1"
+                                                                className="font-black text-slate-900 text-xs sm:text-sm leading-snug truncate min-w-0 flex-1"
                                                                 title={item.partName}
                                                             >
                                                                 {item.partName}
@@ -339,8 +347,8 @@ export default function VehicleDetailPage() {
                                                                 </span>
                                                             </div>
 
-                                                            {/* Thanh tiến trình thời gian */}
-                                                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                            {/* Thanh tiến trình thời gian - Ray màu xám đậm hơn để không bị chìm */}
+                                                            <div className="h-1.5 w-full bg-slate-200/80 rounded-full overflow-hidden">
                                                                 <div
                                                                     className={`h-full rounded-full transition-all duration-500 ${statusConfig.barGradient}`}
                                                                     style={{
@@ -383,8 +391,8 @@ export default function VehicleDetailPage() {
 
                                     {/* Ghi chú đợt nếu có */}
                                     {t.note && (
-                                        <div className="text-xs text-slate-600 bg-slate-50/90 p-2.5 rounded-xl border border-slate-200">
-                                            <span className="font-bold text-slate-700">Ghi chú:</span> {t.note}
+                                        <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                            <span className="font-bold text-slate-800">Ghi chú:</span> {t.note}
                                         </div>
                                     )}
                                 </div>

@@ -16,12 +16,7 @@ interface PartModalProps {
     onCreatedSuccess?: (newPartId: string) => void;
 }
 
-export function PartModal({
-    isOpen,
-    onClose,
-    initialPart,
-    onCreatedSuccess,
-}: PartModalProps) {
+export function PartModal({ isOpen, onClose, initialPart, onCreatedSuccess }: PartModalProps) {
     const { savePart } = useGarageStore();
     const { trigger } = useHaptic();
 
@@ -93,7 +88,6 @@ export function PartModal({
                             <h3 className="font-bold text-base text-slate-900 leading-tight">
                                 {initialPart ? "Chỉnh Sửa Phụ Tùng" : "Thêm Phụ Tùng Vào Kho"}
                             </h3>
-                            <p className="text-xs text-slate-500">Chỉnh sửa tên và cập nhật số lượng tồn kho</p>
                         </div>
                     </div>
                     <button
@@ -165,26 +159,12 @@ export function PartModal({
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onClose}
-                        >
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Hủy
                         </Button>
-                        <Button
-                            type="submit"
-                            variant="default"
-                            disabled={isSubmitting}
-                        >
+                        <Button type="submit" variant="default" disabled={isSubmitting}>
                             <Save className={`w-4 h-4 ${isSubmitting ? "animate-spin" : ""}`} />
-                            <span>
-                                {isSubmitting
-                                    ? "Đang Lưu..."
-                                    : initialPart
-                                      ? "Lưu Thay Đổi"
-                                      : "Tạo Phụ Tùng"}
-                            </span>
+                            <span>{isSubmitting ? "Đang Lưu..." : initialPart ? "Lưu Thay Đổi" : "Tạo Phụ Tùng"}</span>
                         </Button>
                     </div>
                 </form>

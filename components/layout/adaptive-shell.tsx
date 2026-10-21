@@ -9,25 +9,30 @@ import { TicketModalProvider } from '@/components/domain/ticket-modal'
 export function AdaptiveShell({ children }: { children: React.ReactNode }) {
   return (
     <TicketModalProvider>
-      <div className="min-h-screen flex flex-col lg:flex-row bg-slate-100/70 text-slate-900 force-light relative selection:bg-blue-600/10 selection:text-blue-600">
-        {/* PatternCraft: Cool Blue Glow Right - Tông nền Slate Automotive Tech chống chói và giảm bớt flat trắng */}
+      <div className="min-h-screen flex flex-col lg:flex-row bg-[#E1E7EF] text-slate-900 force-light relative selection:bg-blue-600/10 selection:text-blue-600">
+        {/* Slate Muted Tech Canvas - Tông nền tương phản giúp nổi bật các card trắng */}
         <div
           className="pointer-events-none fixed inset-0 z-0"
           style={{
-            background: '#f1f5f9',
+            background: '#e1e7ef',
             backgroundImage: `
               radial-gradient(
                 circle at top right,
-                rgba(59, 130, 246, 0.15),
-                transparent 65%
+                rgba(59, 130, 246, 0.14),
+                transparent 60%
               ),
               radial-gradient(
-                circle at 20% 80%,
-                rgba(30, 58, 138, 0.08),
+                circle at 10% 80%,
+                rgba(99, 102, 241, 0.08),
                 transparent 50%
+              ),
+              radial-gradient(
+                circle at 80% 50%,
+                rgba(16, 185, 129, 0.05),
+                transparent 45%
               )
             `,
-            filter: 'blur(60px)',
+            filter: 'blur(50px)',
             backgroundRepeat: 'no-repeat',
           }}
           aria-hidden="true"

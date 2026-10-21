@@ -38,6 +38,8 @@ export default function TraCuuPlatePage() {
         return <WarrantyNotFound plate={rawPlate} settings={settings} />;
     }
 
+    const carColor = getCarColorConfig(data.color);
+
     // ==========================================
     // MÀN HÌNH ĐÃ TÌM THẤY HỒ SƠ XE (REDESIGN AUTOMOTIVE TECH)
     // ==========================================
@@ -93,32 +95,29 @@ export default function TraCuuPlatePage() {
             <main className="relative z-10 flex-1 max-w-2xl w-full mx-auto px-3.5 py-4 sm:p-6 space-y-3.5 sm:space-y-5 animate-fade-in">
                 {/* THẺ HỒ SƠ PHƯƠNG TIỆN */}
                 <section className="rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs relative overflow-hidden">
-                    <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4">
-                        {/* Biển số xe & Tên dòng xe: Mobile xếp dọc thoáng mắt, Desktop xếp ngang */}
-                        <div className="flex sm:flex-col items-start gap-3 sm:gap-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                                <div className="flex justify-start">
-                                    <LicensePlate plate={data.plate} color={data.plateColor} size="md" />
-                                </div>
-                                <div className="text-left min-w-0 space-y-1">
-                                    <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight text-balance">
-                                        {data.model}
-                                    </h1>
-                                    {getCarColorConfig(data.color) && (
-                                        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
-                                            <span
-                                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                                                style={{
-                                                    backgroundColor: getCarColorConfig(data.color)?.hex,
-                                                    border: getCarColorConfig(data.color)?.border
-                                                        ? `1px solid ${getCarColorConfig(data.color)?.border}`
-                                                        : "1px solid rgba(0,0,0,0.15)",
-                                                }}
-                                            />
-                                            <span>Màu {getCarColorConfig(data.color)?.name}</span>
-                                        </div>
-                                    )}
-                                </div>
+                    <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+                        {/* HÀNG 1: Biển số xe & Thẻ màu sơn chữ nhật nằm ngang (Đồng bộ chuẩn Admin) */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                                <LicensePlate plate={data.plate} color={data.plateColor} size="md" />
+                                {carColor && (
+                                    <span
+                                        className="w-13 h-8.5 rounded-lg border border-black/15 shadow-xs shrink-0 flex items-center justify-center select-none"
+                                        style={{
+                                            backgroundColor: carColor.hex,
+                                            boxShadow: carColor.border ? `inset 0 0 0 1px ${carColor.border}` : undefined,
+                                        }}
+                                        title={`Màu xe: ${carColor.name}`}
+                                        aria-label={`Màu xe: ${carColor.name}`}
+                                    />
+                                )}
+                            </div>
+
+                            {/* HÀNG 2: Tên dòng xe nằm 1 hàng riêng thoáng mắt, nổi bật trên Mobile */}
+                            <div>
+                                <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight text-balance">
+                                    {data.model}
+                                </h1>
                             </div>
                         </div>
 
