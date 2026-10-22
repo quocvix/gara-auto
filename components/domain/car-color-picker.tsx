@@ -66,7 +66,7 @@ export function CarColorPicker({
     };
 
     const badgeSizes = {
-        sm: shape === "rect" ? "w-9 h-6 rounded-md" : "w-6 h-6 rounded-md",
+        sm: shape === "rect" ? "w-10 h-7 rounded-sm" : "w-10 h-7 rounded-md",
         md: shape === "rect" ? "w-13 h-8.5 rounded-lg" : "w-8 h-8 rounded-xl",
     };
 

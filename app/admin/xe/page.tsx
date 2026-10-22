@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsString, parseAsStringLiteral } from "nuqs";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { normalizePlate } from "@/lib/plate";
@@ -16,11 +17,11 @@ import { useHaptic } from "@/hooks/use-haptic";
 import { useAlertDialog } from "@/components/ui/alert-dialog";
 import { useShallow } from "zustand/react/shallow";
 
-type FilterStatus = "all" | "active" | "expiring" | "expired";
+const STATUS_OPTIONS = ["all", "active", "expiring", "expired"] as const;
+type FilterStatus = (typeof STATUS_OPTIONS)[number];
 
 function VehiclesContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { getVehicleOverviewList, deleteVehicle, tickets, rawVehicles, settings } = useGarageStore(
         useShallow((s) => ({
             getVehicleOverviewList: s.getVehicleOverviewList,
@@ -34,10 +35,8 @@ function VehiclesContent() {
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
 
-    const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-    const [statusFilter, setStatusFilter] = useState<FilterStatus>(
-        (searchParams.get("status") as FilterStatus) || "all",
-    );
+    const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault("").withOptions({ shallow: true, throttleMs: 250 }));
+    const [statusFilter, setStatusFilter] = useQueryState("status", parseAsStringLiteral(STATUS_OPTIONS).withDefault("all"));
     const [selectedVehicleForSheet, setSelectedVehicleForSheet] = useState<VehicleOverview | null>(null);
     const hideBottomNav = useUIStore((state) => state.hideBottomNav);
     const showBottomNav = useUIStore((state) => state.showBottomNav);
@@ -182,7 +181,7 @@ function VehiclesContent() {
             </div>
 
             {/* Sticky Search & Filter Header trên Mobile */}
-            <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2.5 bg-[#E1E7EF]/90 backdrop-blur-md space-y-2.5 transition-all">
+            <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-[#E1E7EF]/92 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar - Chống lóa mắt, bo góc mềm mại */}
                 <div className="relative">
                     <Search
@@ -204,7 +203,7 @@ function VehiclesContent() {
                             type="button"
                             onClick={() => {
                                 trigger("tap");
-                                setSearchQuery("");
+                                setSearchQuery(null);
                             }}
                             className="w-8 h-8 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors cursor-pointer"
                             aria-label="Xóa tìm kiếm"
@@ -508,8 +507,8 @@ function VehiclesContent() {
                             type="button"
                             onClick={() => {
                                 trigger("tap");
-                                setSearchQuery("");
-                                setStatusFilter("all");
+                                setSearchQuery(null);
+                                setStatusFilter(null);
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                         >

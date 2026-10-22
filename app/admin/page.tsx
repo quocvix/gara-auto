@@ -23,6 +23,7 @@ import {
     History,
     ShieldCheck,
     User,
+    ExternalLink,
 } from "lucide-react";
 import { useHaptic } from "@/hooks/use-haptic";
 
@@ -78,6 +79,59 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+            {/* 1. MOBILE GARA PROFILE & QUICK SEARCH (Hiển thị mượt mà trên mobile khi bỏ fixed header) */}
+            <div className="lg:hidden space-y-3">
+                {/* Brand Banner */}
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <img
+                            src="/logo-duy-auto-remove-bg-v1.png"
+                            alt={settings.name || "Duy Auto"}
+                            className="h-8 w-auto object-contain shrink-0 drop-shadow-2xs"
+                        />
+                        <div className="min-w-0">
+                            <h1 className="text-base font-black tracking-tight text-slate-900 uppercase truncate leading-none">
+                                {settings.name || "DUY AUTO"}
+                            </h1>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                                <span className="text-[11px] text-slate-500 font-medium">Bảng điều khiển quản trị</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a
+                        href="/tra-cuu"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200/90 bg-white/90 text-blue-700 hover:bg-blue-50 text-xs font-bold shadow-2xs transition-all active:scale-95 shrink-0"
+                        title="Mở cổng tra cứu của khách"
+                    >
+                        <span>Trang khách</span>
+                        <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                    </a>
+                </div>
+
+                {/* Quick Search Plate Form */}
+                <form onSubmit={handleQuickSearch} className="relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                        type="text"
+                        value={searchPlate}
+                        onChange={(e) => setSearchPlate(e.target.value)}
+                        placeholder="Tìm nhanh biển số xe (VD: 51K-123.45)..."
+                        className="w-full h-11 pl-10 pr-22 rounded-xl border border-slate-200/90 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs font-medium uppercase transition-all"
+                    />
+                    <button
+                        type="submit"
+                        disabled={!searchPlate.trim()}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-3 rounded-lg bg-blue-600 disabled:opacity-40 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                    >
+                        Tra cứu
+                    </button>
+                </form>
+            </div>
+
             {/* 2. BENTO KPI TELEMETRY CARDS (Tương phản cao, đổ bóng có màu, dải phân cấp chiều sâu rõ rệt) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                 {/* KPI 1: Xe Còn Hạn (Emerald Tone) */}

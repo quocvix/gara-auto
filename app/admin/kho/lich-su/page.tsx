@@ -202,7 +202,7 @@ export default function StockMovementsPage() {
       </div>
 
       {/* Sticky Search & Filter Header trên Mobile */}
-      <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md flex items-center gap-2 transition-all">
+      <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-[#E1E7EF]/92 backdrop-blur-md flex items-center gap-2 transition-all">
         {/* Search Bar */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />

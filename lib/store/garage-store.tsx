@@ -215,7 +215,7 @@ export const useGarageStore = create<GarageStoreState>((set, get) => ({
       return { ok: true }
     }
     const cleanId = identifier.trim()
-    const email = cleanId.includes('@') ? cleanId : `${cleanId}@duyauto.vn`
+    const email = cleanId.includes('@') ? cleanId : `${cleanId}@gmail.com`
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       return { ok: false, error: error.message }

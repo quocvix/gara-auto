@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsString } from "nuqs";
 import Link from "next/link";
 import Image from "next/image";
 import { useGarageStore } from "@/lib/store/garage-store";
@@ -11,8 +12,7 @@ import { useHaptic } from "@/hooks/use-haptic";
 
 function LoginForm() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const redirectTarget = searchParams.get("redirect") || "/admin";
+    const [redirectTarget] = useQueryState("redirect", parseAsString.withDefault("/admin"));
 
     const { loginWithSupabase, settings } = useGarageStore();
     const { trigger } = useHaptic();
@@ -107,12 +107,19 @@ function LoginForm() {
                         <div className="space-y-1.5">
                             <label
                                 htmlFor="username"
-                                className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5"
+                                className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between"
                             >
-                                <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center">
-                                    <User className="w-3 h-3 stroke-[2.5]" />
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center">
+                                        <User className="w-3 h-3 stroke-[2.5]" />
+                                    </span>
+                                    <span>Tài khoản / Email</span>
                                 </span>
-                                <span>Tên đăng nhập</span>
+                                {username.trim().length > 0 && !username.includes("@") && (
+                                    <span className="text-[10px] text-blue-600 font-mono font-semibold bg-blue-50 border border-blue-200/80 px-1.5 py-0.5 rounded-md">
+                                        → {username.trim()}@gmail.com
+                                    </span>
+                                )}
                             </label>
                             <div className="relative">
                                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -132,6 +139,10 @@ function LoginForm() {
                                     className="w-full h-11 sm:h-12 pl-10 pr-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs font-medium transition-all disabled:opacity-60"
                                 />
                             </div>
+                            <p className="text-[11px] text-slate-400 flex items-center gap-1 pl-0.5">
+                                <span>Chỉ cần nhập tên tài khoản, hệ thống sẽ tự thêm</span>
+                                <span className="font-mono font-bold text-slate-600">@gmail.com</span>
+                            </p>
                         </div>
 
                         {/* Mật khẩu */}

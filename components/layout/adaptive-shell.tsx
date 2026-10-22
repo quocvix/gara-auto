@@ -3,7 +3,6 @@
 import React from 'react'
 import { Sidebar } from './sidebar'
 import { BottomNav } from './bottom-nav'
-import { AdminHeader } from './admin-header'
 import { TicketModalProvider } from '@/components/domain/ticket-modal'
 
 export function AdaptiveShell({ children }: { children: React.ReactNode }) {
@@ -42,12 +41,9 @@ export function AdaptiveShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
 
         {/* Main Content Area */}
-        <div className="relative z-10 flex-1 flex flex-col min-w-0 pb-20 lg:pb-8">
-          {/* Header Mobile & Tablet */}
-          <AdminHeader />
-
+        <div className="relative z-10 flex-1 flex flex-col min-w-0 pb-24 lg:pb-8">
           {/* Page Content */}
-          <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-in fade-in duration-200">
+          <main className="flex-1 pt-[max(0.75rem,env(safe-area-inset-top))] p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-in fade-in duration-200">
             {children}
           </main>
         </div>

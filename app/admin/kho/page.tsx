@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsString } from "nuqs";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { useShallow } from "zustand/react/shallow";
 import dynamic from "next/dynamic";
@@ -18,7 +19,6 @@ import { Input } from "@/components/ui/input";
 
 function InventoryContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { parts, deletePart, settings } = useGarageStore(
         useShallow((s) => ({
             parts: s.parts,
@@ -29,8 +29,9 @@ function InventoryContent() {
     const { trigger } = useHaptic();
     const { confirm } = useAlertDialog();
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [filterLowStock, setFilterLowStock] = useState(searchParams.get("filter") === "low");
+    const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault("").withOptions({ shallow: true, throttleMs: 250 }));
+    const [filter, setFilter] = useQueryState("filter", parseAsString.withDefault(""));
+    const filterLowStock = filter === "low";
     const [isPartModalOpen, setIsPartModalOpen] = useState(false);
     const [editingPart, setEditingPart] = useState<Part | null>(null);
 
@@ -121,7 +122,7 @@ function InventoryContent() {
             </div>
 
             {/* Sticky Search & Filter Header trên Mobile */}
-            <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 py-2 bg-slate-100/90 backdrop-blur-md space-y-2.5 transition-all">
+            <div className="sticky top-0 z-20 -mx-3.5 px-3.5 sm:-mx-6 sm:px-6 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-[#E1E7EF]/92 backdrop-blur-md space-y-2.5 transition-all">
                 {/* Search Bar */}
                 <Input
                     name="search"
@@ -154,7 +155,7 @@ function InventoryContent() {
                         type="button"
                         onClick={() => {
                             trigger("tap");
-                            setFilterLowStock(false);
+                            setFilter(null);
                         }}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                             !filterLowStock
@@ -176,7 +177,7 @@ function InventoryContent() {
                         type="button"
                         onClick={() => {
                             trigger("tap");
-                            setFilterLowStock(!filterLowStock);
+                            setFilter(filterLowStock ? null : "low");
                         }}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none ${
                             filterLowStock
@@ -359,8 +360,8 @@ function InventoryContent() {
                             type="button"
                             onClick={() => {
                                 trigger("tap");
-                                setSearchQuery("");
-                                setFilterLowStock(false);
+                                setSearchQuery(null);
+                                setFilter(null);
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                         >

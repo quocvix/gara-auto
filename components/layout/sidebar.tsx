@@ -145,8 +145,8 @@ export function Sidebar() {
         )}
 
         <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-2xs text-slate-500 px-1">
-          <span className="font-mono text-2xs text-slate-400 truncate max-w-[130px]" title={user?.email || 'admin@duyauto.vn'}>
-            {user?.email || 'admin@duyauto.vn'}
+          <span className="font-mono text-2xs text-slate-400 truncate max-w-[130px]" title={user?.email || 'admin@gmail.com'}>
+            {user?.email || 'admin@gmail.com'}
           </span>
           <button
             type="button"

@@ -23,9 +23,7 @@ import {
     Check,
     PackageCheck,
     Pipette,
-    ChevronDown,
     ArrowRight,
-    ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/use-haptic";
@@ -35,7 +33,8 @@ import { LicensePlate } from "./license-plate";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ColorPickerModal } from "@/components/ui/color-picker";
 import { POPULAR_CAR_COLORS, getCarColorConfig } from "@/lib/car-colors";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsString } from "nuqs";
 import { useUIStore } from "@/lib/store/ui-store";
 
 interface SelectedItem {
@@ -69,12 +68,13 @@ export function useTicketModal() {
 }
 
 function DeepLinkHandler({ onTrigger }: { onTrigger: () => void }) {
-    const searchParams = useSearchParams();
+    const [taoPhieu, setTaoPhieu] = useQueryState("tao-phieu", parseAsString);
     useEffect(() => {
-        if (searchParams.get("tao-phieu") === "1") {
+        if (taoPhieu === "1") {
             onTrigger();
+            setTaoPhieu(null);
         }
-    }, [searchParams, onTrigger]);
+    }, [taoPhieu, onTrigger, setTaoPhieu]);
     return null;
 }
 
@@ -103,30 +103,14 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
     const [activeTab, setActiveTab] = useState<"info" | "parts">("info");
     const [customWarrantyIndexes, setCustomWarrantyIndexes] = useState<number[]>([]);
 
-    // Search & dropdown phụ tùng
+    // Search & danh mục phụ tùng kho (Inline Catalog)
     const [partSearchQuery, setPartSearchQuery] = useState("");
-    const [isPartDropdownOpen, setIsPartDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
     const [isPartModalOpen, setIsPartModalOpen] = useState(false);
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Đóng dropdown phụ tùng khi click bên ngoài
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsPartDropdownOpen(false);
-            }
-        };
-        if (isPartDropdownOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isPartDropdownOpen]);
 
     // React Hook Form với Zod validation
     const {
@@ -166,7 +150,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
         (params?: OpenModalParams) => {
             setError("");
             setPartSearchQuery("");
-            setIsPartDropdownOpen(false);
+            setSelectedCategory("all");
             setActiveTab("info");
             const ticketDate = params?.activatedOn || todayVN();
             const items = (params?.items || []).map((it) => ({
@@ -302,13 +286,36 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
         trigger("tap");
     };
 
-    // Danh sách phụ tùng kho được lọc theo ô tìm kiếm
+    // Danh sách phân loại danh mục từ phụ tùng đang hoạt động
+    const partCategories = useMemo(() => {
+        const set = new Set<string>();
+        for (const p of parts) {
+            if (p.isActive && p.category && p.category.trim()) {
+                set.add(p.category.trim());
+            }
+        }
+        return Array.from(set);
+    }, [parts]);
+
+    // Danh sách phụ tùng kho được lọc theo ô tìm kiếm & danh mục
     const filteredWarehouseParts = useMemo(() => {
-        const active = parts.filter((p) => p.isActive);
         const q = partSearchQuery.trim().toLowerCase();
-        if (!q) return active;
-        return active.filter((p) => p.name.toLowerCase().includes(q));
-    }, [parts, partSearchQuery]);
+        return parts.filter((p) => {
+            if (!p.isActive) return false;
+            if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+            if (!q) return true;
+            return p.name.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q));
+        });
+    }, [parts, partSearchQuery, selectedCategory]);
+
+    // Map tra cứu nhanh số lượng đã chọn theo partId: O(1)
+    const selectedItemMap = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const it of selectedItems) {
+            map.set(it.partId, it.quantity);
+        }
+        return map;
+    }, [selectedItems]);
 
     const onSubmit = async (values: TicketFormValues) => {
         if (isSubmitting) return;
@@ -783,8 +790,8 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                             {/* TAB 2: CHỌN & QUẢN LÝ PHỤ TÙNG */}
                             {activeTab === "parts" && (
                                 <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-150">
-                                    {/* KHỐI 2: CHỌN PHỤ TÙNG TỪ KHO (DROPDOWN) */}
-                                    <div className="space-y-3 p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+                                    {/* KHỐI 2: KHO PHỤ TÙNG SẴN CÓ (HIỆN THỰC THÁI TRỰC TIẾP, KHÔNG CẦN BẤM DROPDOWN) */}
+                                    <div className="space-y-3.5 p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
                                         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                                             <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                                                 <Wrench className="w-4 h-4 text-blue-600" />
@@ -795,133 +802,173 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
                                             </span>
                                         </div>
 
-                                        {/* Dropdown Input & Popover Container */}
-                                        <div ref={dropdownRef} className="relative">
-                                            <div className="flex items-center gap-2">
-                                                <div className="relative flex-1">
-                                                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                                    <input
-                                                        type="text"
-                                                        value={partSearchQuery}
-                                                        onFocus={() => setIsPartDropdownOpen(true)}
-                                                        onChange={(e) => {
-                                                            setPartSearchQuery(e.target.value);
-                                                            setIsPartDropdownOpen(true);
-                                                        }}
-                                                        placeholder="Tìm hoặc bấm để chọn phụ tùng..."
-                                                        className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
-                                                    />
+                                        {/* Thanh Tìm Kiếm & Nút Tạo Mới Phụ Tùng */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                                <input
+                                                    type="text"
+                                                    value={partSearchQuery}
+                                                    onChange={(e) => setPartSearchQuery(e.target.value)}
+                                                    placeholder="Gõ tên hoặc loại phụ tùng để lọc nhanh…"
+                                                    className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs transition-colors"
+                                                />
+                                                {partSearchQuery.trim().length > 0 && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => setIsPartDropdownOpen((prev) => !prev)}
-                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                                                        title="Mở danh sách phụ tùng"
+                                                        onClick={() => setPartSearchQuery("")}
+                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer"
+                                                        title="Xóa tìm kiếm"
                                                     >
-                                                        <ChevronDown
-                                                            className={`w-4 h-4 transition-transform duration-200 ${
-                                                                isPartDropdownOpen ? "rotate-180" : ""
-                                                            }`}
-                                                        />
+                                                        <X className="w-3.5 h-3.5" />
                                                     </button>
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPartModalOpen(true)}
-                                                    className="h-11 px-3 sm:px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs sm:text-sm rounded-xl border border-blue-200 flex items-center gap-1 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
-                                                    title="Thêm mới phụ tùng vào kho"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span className="hidden xs:inline sm:inline">Tạo mới</span>
-                                                </button>
+                                                )}
                                             </div>
 
-                                            {/* Dropdown Popover List */}
-                                            {isPartDropdownOpen && (
-                                                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
-                                                    {filteredWarehouseParts.length > 0 ? (
-                                                        filteredWarehouseParts.map((p) => {
-                                                            const selectedItem = selectedItems.find(
-                                                                (it) => it.partId === p.id,
-                                                            );
-                                                            const isChosen = !!selectedItem;
-                                                            const isOutOfStock = p.stock <= 0;
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPartModalOpen(true)}
+                                                className="h-11 px-3 sm:px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs sm:text-sm rounded-xl border border-blue-200 flex items-center gap-1 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                                title="Thêm mới phụ tùng vào kho"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span className="hidden xs:inline sm:inline">Tạo mới</span>
+                                            </button>
+                                        </div>
 
-                                                            return (
-                                                                <button
-                                                                    key={p.id}
-                                                                    type="button"
-                                                                    disabled={isOutOfStock}
-                                                                    onClick={() => {
-                                                                        addItem(p.id);
-                                                                        setPartSearchQuery("");
-                                                                        setIsPartDropdownOpen(false);
-                                                                    }}
-                                                                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between gap-2.5 transition-all ${
-                                                                        isChosen
-                                                                            ? "bg-blue-50/80 text-blue-950 font-medium ring-1 ring-blue-500/20"
-                                                                            : "hover:bg-slate-50 text-slate-800"
-                                                                    } ${
-                                                                        isOutOfStock
-                                                                            ? "opacity-40 cursor-not-allowed bg-slate-50"
-                                                                            : "cursor-pointer"
-                                                                    }`}
-                                                                >
+                                        {/* Thanh lọc Danh mục nếu có nhiều hơn 1 danh mục */}
+                                        {partCategories.length > 1 && (
+                                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedCategory("all")}
+                                                    className={`px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 transition-all cursor-pointer ${
+                                                        selectedCategory === "all"
+                                                            ? "bg-blue-600 text-white font-semibold shadow-2xs"
+                                                            : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
+                                                    }`}
+                                                >
+                                                    Tất cả
+                                                </button>
+                                                {partCategories.map((cat) => (
+                                                    <button
+                                                        key={cat}
+                                                        type="button"
+                                                        onClick={() => setSelectedCategory(cat)}
+                                                        className={`px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 transition-all cursor-pointer ${
+                                                            selectedCategory === cat
+                                                                ? "bg-blue-600 text-white font-semibold shadow-2xs"
+                                                                : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
+                                                        }`}
+                                                    >
+                                                        {cat}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* DANH SÁCH PHỤ TÙNG HIỆN SẴN DẠNG LƯỚI / CARD (KHÔNG POPUP, CHẠM LÀ CHỌN) */}
+                                        <div className="max-h-56 sm:max-h-64 overflow-y-auto pr-1 rounded-xl border border-slate-100 p-2 bg-slate-50/50">
+                                            {filteredWarehouseParts.length > 0 ? (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {filteredWarehouseParts.map((p) => {
+                                                        const chosenQty = selectedItemMap.get(p.id) || 0;
+                                                        const isChosen = chosenQty > 0;
+                                                        const isOutOfStock = p.stock <= 0;
+
+                                                        return (
+                                                            <div
+                                                                key={p.id}
+                                                                onClick={() => {
+                                                                    if (isOutOfStock) return;
+                                                                    addItem(p.id);
+                                                                }}
+                                                                className={`relative p-3 rounded-xl border text-left flex flex-col justify-between gap-2 transition-all select-none ${
+                                                                    isOutOfStock
+                                                                        ? "opacity-50 border-dashed border-slate-200 bg-slate-100/60 cursor-not-allowed"
+                                                                        : isChosen
+                                                                          ? "border-blue-500 bg-blue-50/70 shadow-2xs ring-1 ring-blue-500/20 cursor-pointer hover:bg-blue-50"
+                                                                          : "border-slate-200/80 bg-white hover:border-blue-400 hover:bg-white shadow-2xs cursor-pointer"
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start justify-between gap-2">
                                                                     <div className="min-w-0 flex-1">
-                                                                        <div className="font-semibold text-xs sm:text-sm truncate">
+                                                                        <div className="font-semibold text-xs sm:text-sm text-slate-900 line-clamp-1">
                                                                             {p.name}
                                                                         </div>
-                                                                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-mono">
-                                                                            <span
-                                                                                className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                                                                                    p.stock > 0
-                                                                                        ? "bg-slate-200/60 text-slate-700"
-                                                                                        : "bg-rose-50 text-rose-700"
-                                                                                }`}
-                                                                            >
-                                                                                Kho: {p.stock}
-                                                                            </span>
-                                                                            {p.warrantyMonths ? (
-                                                                                <span className="text-[10px] text-slate-400">
-                                                                                    Mặc định BH {p.warrantyMonths}th
-                                                                                </span>
-                                                                            ) : null}
-                                                                            {isChosen && (
-                                                                                <span className="text-blue-700 font-sans font-bold text-[10px] ml-auto flex items-center gap-0.5">
-                                                                                    <Check className="w-2.5 h-2.5 text-blue-600 stroke-[3]" />
-                                                                                    Đã chọn ({selectedItem.quantity})
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
+                                                                        {p.category && (
+                                                                            <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                                                                                {p.category}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                    <span
-                                                                        className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center ${
-                                                                            isChosen
-                                                                                ? "bg-blue-600 text-white"
-                                                                                : "bg-slate-100 text-slate-500"
+
+                                                                    <button
+                                                                        type="button"
+                                                                        disabled={isOutOfStock}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            if (isOutOfStock) return;
+                                                                            addItem(p.id);
+                                                                        }}
+                                                                        className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center font-bold text-xs transition-transform active:scale-90 ${
+                                                                            isOutOfStock
+                                                                                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                                                                : isChosen
+                                                                                  ? "bg-blue-600 text-white shadow-2xs hover:bg-blue-700"
+                                                                                  : "bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white"
                                                                         }`}
+                                                                        title="Thêm phụ tùng vào phiếu"
                                                                     >
-                                                                        <Plus className="w-3.5 h-3.5" />
-                                                                    </span>
-                                                                </button>
-                                                            );
-                                                        })
-                                                    ) : (
-                                                        <div className="p-4 text-center text-xs text-slate-500 space-y-2">
-                                                            <p>Không tìm thấy phụ tùng &quot;{partSearchQuery}&quot;</p>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setIsPartDropdownOpen(false);
-                                                                    setIsPartModalOpen(true);
-                                                                }}
-                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 cursor-pointer"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                                Thêm &quot;{partSearchQuery}&quot; vào kho ngay
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                                        <Plus className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100/80 text-[11px] font-mono">
+                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                        <span
+                                                                            className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                                                                                p.stock > 0
+                                                                                    ? "bg-slate-200/70 text-slate-700"
+                                                                                    : "bg-rose-100 text-rose-700"
+                                                                            }`}
+                                                                        >
+                                                                            {p.stock > 0
+                                                                                ? `Kho: ${p.stock}`
+                                                                                : "Hết hàng"}
+                                                                        </span>
+                                                                        {p.warrantyMonths ? (
+                                                                            <span className="text-[10px] text-slate-500 font-sans">
+                                                                                BH: {p.warrantyMonths}T
+                                                                            </span>
+                                                                        ) : null}
+                                                                    </div>
+
+                                                                    {isChosen && (
+                                                                        <span className="text-blue-700 font-sans font-bold text-[11px] inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3 text-blue-600 stroke-[3]" />
+                                                                            Đã chọn ({chosenQty})
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="py-6 px-4 text-center text-xs text-slate-500 space-y-2.5">
+                                                    <p className="text-slate-600 font-medium">
+                                                        Không tìm thấy phụ tùng phù hợp với &quot;{partSearchQuery}
+                                                        &quot;
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsPartModalOpen(true)}
+                                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                        Tạo mới phụ tùng vào kho
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>

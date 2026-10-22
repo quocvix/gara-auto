@@ -42,6 +42,8 @@ export const metadata: Metadata = {
     },
 };
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="vi" suppressHydrationWarning className={`${fontSans.variable} ${fontPlate.variable}`}>
@@ -53,14 +55,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 >
                     Chuyển đến nội dung chính
                 </a>
-                <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-                    <GarageStoreProvider>
-                        <AlertDialogProvider>
-                            <main id="main-content" className="flex-1 flex flex-col">{children}</main>
-                            <Toaster richColors position="top-center" closeButton duration={3500} />
-                        </AlertDialogProvider>
-                    </GarageStoreProvider>
-                </ThemeProvider>
+                <NuqsAdapter>
+                    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+                        <GarageStoreProvider>
+                            <AlertDialogProvider>
+                                <main id="main-content" className="flex-1 flex flex-col">{children}</main>
+                                <Toaster richColors position="top-center" closeButton duration={3500} />
+                            </AlertDialogProvider>
+                        </GarageStoreProvider>
+                    </ThemeProvider>
+                </NuqsAdapter>
             </body>
         </html>
     );
