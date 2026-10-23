@@ -10,11 +10,12 @@ import { normalizePlate } from "@/lib/plate";
 import { formatDateVN } from "@/lib/format";
 import { progressPercent } from "@/lib/warranty";
 import { LicensePlate } from "@/components/domain/license-plate";
+import { StatusBadge } from "@/components/domain/status-badge";
 import { WarrantyNotFound } from "@/components/domain/warranty-not-found";
 import { GarageSupportActions } from "@/components/domain/garage-support-actions";
 import { getWarrantyStatusConfig } from "@/lib/warranty-status";
 import { getCarColorConfig } from "@/lib/car-colors";
-import { Phone, ArrowLeft, Calendar, User, FileText, Clock, ClipboardClock } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, Clock } from "lucide-react";
 
 export default function TraCuuPlatePage() {
     const params = useParams();
@@ -46,6 +47,7 @@ export default function TraCuuPlatePage() {
     }
 
     const carColor = getCarColorConfig(data.color);
+    const carColorHex = carColor?.hex || data.color?.trim() || "#3B82F6";
 
     // ==========================================
     // MÀN HÌNH ĐÃ TÌM THẤY HỒ SƠ XE (REDESIGN AUTOMOTIVE TECH)
@@ -99,73 +101,68 @@ export default function TraCuuPlatePage() {
 
             {/* Main Content */}
             <main className="relative z-10 flex-1 max-w-2xl w-full mx-auto px-3.5 py-4 sm:p-6 space-y-3.5 sm:space-y-5 animate-fade-in">
-                {/* THẺ HỒ SƠ PHƯƠNG TIỆN */}
-                <section className="rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs relative overflow-hidden">
-                    <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
-                        {/* HÀNG 1: Biển số xe & Thẻ màu sơn chữ nhật nằm ngang (Đồng bộ chuẩn Admin) */}
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2.5 flex-wrap">
-                                <LicensePlate plate={data.plate} color={data.plateColor} size="md" />
-                                {carColor && (
-                                    <span
-                                        className="w-13 h-8.5 rounded-lg border border-black/15 shadow-xs shrink-0 flex items-center justify-center select-none"
-                                        style={{
-                                            backgroundColor: carColor.hex,
-                                            boxShadow: carColor.border
-                                                ? `inset 0 0 0 1px ${carColor.border}`
-                                                : undefined,
-                                        }}
-                                        title={`Màu xe: ${carColor.name}`}
-                                        aria-label={`Màu xe: ${carColor.name}`}
-                                    />
-                                )}
-                            </div>
+                {/* THẺ HỒ SƠ PHƯƠNG TIỆN - ĐỒNG BỘ CHUẨN HERO CARD 3D VOLUMETRIC */}
+                <section className="relative overflow-hidden rounded-3xl bg-linear-to-b from-[#181326] via-[#10121C] to-[#0A0C14] border border-slate-800/40 shadow-2xl p-5 sm:p-6 text-white space-y-4 sm:space-y-5">
+                    {/* 1. Dynamic Ambient Glow mượt mà, phản chiếu dịu nhẹ theo màu sơn */}
+                    <div
+                        className="pointer-events-none absolute -right-16 -top-16 w-72 h-72 rounded-full opacity-20 blur-3xl transition-colors duration-700"
+                        style={{ backgroundColor: carColorHex }}
+                        aria-hidden="true"
+                    />
 
-                            {/* HÀNG 2: Tên dòng xe nằm 1 hàng riêng thoáng mắt, nổi bật trên Mobile */}
-                            <div>
-                                <h1 className="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight text-balance">
-                                    {data.model}
-                                </h1>
-                            </div>
+                    {/* 2. Header Card: Biển số xe, Thẻ màu sơn chữ nhật & Trạng thái bảo hành */}
+                    <div className="relative z-10 space-y-3">
+                        {/* HÀNG 1: Biển số, Thẻ màu sơn & Trạng thái bảo hành */}
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            <LicensePlate plate={data.plate} color={data.plateColor} size="md" />
+                            {carColor && (
+                                <span
+                                    className="w-13 h-8.5 rounded-xl border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_6px_16px_-3px_rgba(0,0,0,0.4)] shrink-0 flex items-center justify-center select-none"
+                                    style={{ backgroundColor: carColor.hex }}
+                                    title={`Màu xe: ${carColor.name}`}
+                                    aria-label={`Màu xe: ${carColor.name}`}
+                                />
+                            )}
+                            <StatusBadge
+                                status={data.status}
+                                className="border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_6px_16px_-3px_rgba(0,0,0,0.4)] rounded-xl"
+                            />
                         </div>
 
-                        {/* Khối Chủ xe & Số điện thoại: Liền mạch cùng một khối, không border ngăn cách */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1.5">
-                            {/* Hàng 1: Chủ xe */}
-                            <div className="flex items-center gap-2.5 sm:gap-3">
-                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
-                                    <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <span className="font-extrabold text-slate-900 text-base sm:text-lg leading-tight wrap-break-word block">
-                                        {data.ownerName || "Khách hàng"}
-                                    </span>
-                                </div>
-                            </div>
+                        {/* HÀNG 2: Tên dòng xe nổi bật trên nền tối sâu */}
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                                {data.model}
+                            </h1>
+                        </div>
+                    </div>
 
-                            {/* Hàng 2: Số điện thoại */}
-                            <div className="flex items-center gap-2.5 sm:gap-3">
-                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
-                                    <Phone className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <span className="font-mono font-extrabold text-slate-800 text-base sm:text-lg tracking-wider leading-tight block">
-                                        {data.ownerPhoneMasked || "—"}
-                                    </span>
-                                </div>
-                            </div>
+                    {/* 3. Khối Chủ xe & Số điện thoại: Thiết kế nổi khối 3D mềm mại, không viền gắt */}
+                    <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-0.5">
+                        {/* Cột 1: Chủ sở hữu */}
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-linear-to-b from-white/[0.07] to-white/[0.02] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_20px_-4px_rgba(0,0,0,0.45)] backdrop-blur-xs flex flex-col justify-center transition-transform hover:-translate-y-0.5">
+                            <span className="text-xs text-slate-400 font-medium block">Chủ sở hữu</span>
+                            <span className="font-bold text-white text-base sm:text-lg tracking-tight leading-tight block mt-1 truncate">
+                                {data.ownerName || "Khách hàng"}
+                            </span>
+                        </div>
+
+                        {/* Cột 2: Số điện thoại */}
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-linear-to-b from-white/[0.07] to-white/[0.02] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_20px_-4px_rgba(0,0,0,0.45)] backdrop-blur-xs flex flex-col justify-center transition-transform hover:-translate-y-0.5">
+                            <span className="text-xs text-slate-400 font-medium block">Số điện thoại</span>
+                            <span className="font-mono font-bold text-amber-400 text-base sm:text-lg tracking-wider leading-tight block mt-1 truncate">
+                                {data.ownerPhoneMasked || "—"}
+                            </span>
                         </div>
                     </div>
                 </section>
 
                 {/* DANH SÁCH CÁC ĐỢT LÀM XE THEO NGÀY (TIMELINE) */}
-                <section className="space-y-2 sm:space-y-4">
+                <section className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between px-1">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                            <span className="p-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100">
-                                <ClipboardClock className="w-3.5 h-3.5" />
-                            </span>
-                            <span>Lịch sử</span>
+                        <h2 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-blue-600" />
+                            <span>Lịch sử ({data.tickets.length} lần)</span>
                         </h2>
                     </div>
 
@@ -204,7 +201,10 @@ export default function TraCuuPlatePage() {
                                         </div>
 
                                         <div className="flex items-center gap-1.5 text-slate-500 font-medium text-xs shrink-0">
-                                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" aria-hidden="true" />
+                                            <Calendar
+                                                className="w-3.5 h-3.5 text-blue-600 shrink-0"
+                                                aria-hidden="true"
+                                            />
                                             <span className=" text-slate-700 font-bold text-2xs sm:text-xs tabular-nums font-mono">
                                                 {formatDateVN(ticket.activatedOn)}
                                             </span>

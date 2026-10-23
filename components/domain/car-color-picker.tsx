@@ -7,6 +7,7 @@ import { useHaptic } from "@/hooks/use-haptic";
 import { toast } from "sonner";
 import { Pipette } from "lucide-react";
 import { ColorPickerModal } from "@/components/ui/color-picker";
+import { cn } from "@/lib/utils";
 
 export interface CarColorPickerProps {
     vehicleId: string;
@@ -90,11 +91,13 @@ export function CarColorPicker({
                 aria-label={savedConfig ? `Màu xe ${savedConfig.name}` : "Chọn màu sơn xe"}
             >
                 <span
-                    className={`relative shrink-0 flex items-center justify-center transition-all select-none shadow-xs hover:scale-105 ${badgeSizes[size]} ${
+                    className={cn(
+                        "relative shrink-0 flex items-center justify-center transition-all select-none hover:scale-105 rounded-xl border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_16px_-3px_rgba(0,0,0,0.4)]",
+                        badgeSizes[size],
                         savedConfig
-                            ? "border border-black/15 shadow-sm"
-                            : "bg-slate-100/90 hover:bg-blue-50 border border-dashed border-slate-300 hover:border-blue-400 text-slate-400 hover:text-blue-600"
-                    }`}
+                            ? ""
+                            : "bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white"
+                    )}
                     style={
                         savedConfig
                             ? {

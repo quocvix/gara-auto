@@ -2,6 +2,7 @@
 
 import React from "react";
 import { formatPlateDisplay } from "@/lib/plate";
+import { cn } from "@/lib/utils";
 
 interface LicensePlateProps {
     plate: string;
@@ -14,9 +15,9 @@ export function LicensePlate({ plate, color = "white", size = "md", className = 
     const display = formatPlateDisplay(plate);
 
     const sizeClasses = {
-        sm: "text-sm px-2.5 py-1 rounded border-[1.5px] min-w-[100px]",
-        md: "text-base sm:text-lg px-3.5 py-1.5 rounded-md border-2 min-w-[140px]",
-        lg: "text-2xl sm:text-3xl px-5 py-2.5 rounded-lg border-2 sm:border-[3px] min-w-[200px]",
+        sm: "text-sm px-2.5 py-1 rounded min-w-[100px]",
+        md: "text-base sm:text-lg px-3.5 py-1.5 rounded-lg min-w-[140px]",
+        lg: "text-2xl sm:text-3xl px-5 py-2.5 rounded-xl min-w-[200px]",
     };
 
     const screwSize = {
@@ -29,25 +30,28 @@ export function LicensePlate({ plate, color = "white", size = "md", className = 
 
     return (
         <div
-            className={`relative inline-flex items-center justify-center font-bold tracking-wider font-mono select-none shrink-0 whitespace-nowrap plate-embossed transition-transform ${
+            className={cn(
+                "relative inline-flex items-center justify-center font-bold tracking-wider font-mono select-none shrink-0 whitespace-nowrap plate-embossed transition-transform border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_6px_16px_-3px_rgba(0,0,0,0.4)] rounded-xl",
                 isYellow
-                    ? "bg-[#FACC15] text-[#0F172A] border-[#1E293B]"
-                    : "bg-[#FFFFFF] text-[#0F172A] border-[#1E293B]"
-            } ${sizeClasses[size]} ${className}`}
+                    ? "bg-[#FACC15] text-[#0F172A]"
+                    : "bg-[#FFFFFF] text-[#0F172A]",
+                sizeClasses[size],
+                className
+            )}
             style={{ fontFamily: "var(--font-plate), monospace" }}
         >
             {/* 4 Ốc vít ở 4 góc */}
             <span
-                className={`absolute top-1 left-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`}
+                className={`absolute top-1 left-1.5 rounded-full bg-[#64748B]/50 ${screwSize[size]}`}
             />
             <span
-                className={`absolute top-1 right-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`}
+                className={`absolute top-1 right-1.5 rounded-full bg-[#64748B]/50 ${screwSize[size]}`}
             />
             <span
-                className={`absolute bottom-1 left-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`}
+                className={`absolute bottom-1 left-1.5 rounded-full bg-[#64748B]/50 ${screwSize[size]}`}
             />
             <span
-                className={`absolute bottom-1 right-1 rounded-full bg-[#64748B]/60 border border-[#0F172A]/50 ${screwSize[size]}`}
+                className={`absolute bottom-1 right-1.5 rounded-full bg-[#64748B]/50 ${screwSize[size]}`}
             />
 
             {/* Chữ biển số */}

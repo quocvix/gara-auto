@@ -153,7 +153,7 @@ export default function TraCuuPage() {
                                         spellCheck={false}
                                         enterKeyHint="search"
                                         autoFocus
-                                        className="w-full h-11 sm:h-12 px-3.5 pr-10 rounded-xl border-2 border-blue-200/90 bg-slate-50/90 font-mono text-base sm:text-lg font-bold uppercase tracking-wider text-slate-900 placeholder:text-slate-300 placeholder:font-mono placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all text-center shadow-inner"
+                                        className="w-full h-11 sm:h-12 px-3.5 pr-10 rounded-xl border-2 border-blue-200/90 bg-slate-50/90 font-mono text-base sm:text-lg font-bold uppercase  text-slate-900 placeholder:text-slate-300 placeholder:font-medium focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all text-center shadow-inner"
                                         style={{
                                             fontFamily: "var(--font-plate), monospace",
                                         }}

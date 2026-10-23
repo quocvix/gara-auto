@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useGarageStore } from "@/lib/store/garage-store";
 import { useShallow } from "zustand/react/shallow";
 import { formatDateVN } from "@/lib/format";
+import { VehicleHeroCard } from "@/components/domain/vehicle-hero-card";
 import { LicensePlate } from "@/components/domain/license-plate";
 import { CarColorPicker } from "@/components/domain/car-color-picker";
 import { StatusBadge } from "@/components/domain/status-badge";
@@ -145,90 +146,11 @@ export default function VehicleDetailPage() {
                 </a>
             </div>
 
-            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD - TÔNG SLATE ĐẬM SANG TRỌNG, TƯƠNG PHẢN CAO VỚI LIST PHIẾU TRẮNG) */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-[0_8px_30px_-6px_rgba(15,23,42,0.25)] relative overflow-hidden space-y-4 text-white">
-                {/* Ambient Aura Glow trang trí nhẹ góc thẻ */}
-                <div
-                    className="pointer-events-none absolute -right-16 -top-16 w-56 h-56 rounded-full bg-blue-500/10 blur-3xl"
-                    aria-hidden="true"
-                />
-
-                {/* Header Card */}
-                <div className="relative z-10 space-y-2.5">
-                    {/* HÀNG 1: Biển số xe, Thẻ màu sơn chữ nhật & Trạng thái bảo hành nằm cùng 1 hàng */}
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                        <LicensePlate plate={vehicle.plate} color={vehicle.plateColor} size="md" />
-                        <CarColorPicker vehicleId={vehicle.id} currentColor={vehicle.color} size="md" shape="rect" />
-                        <StatusBadge status={vehicle.status} />
-                    </div>
-
-                    {/* HÀNG 2: Tên xe nằm riêng 1 mình 1 hàng, to bản và nổi bật trên nền tối */}
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                            {vehicle.model}
-                        </h1>
-                    </div>
-                </div>
-
-                {/* Khối Chủ xe & Số điện thoại: Dạng thẻ Surface Tonal tối mờ cao cấp */}
-                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
-                    {/* Cột 1: Chủ xe */}
-                    <div className="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/60">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30 shadow-2xs">
-                            <User className="w-4.5 h-4.5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                Chủ xe
-                            </span>
-                            <span className="font-black text-white text-base sm:text-lg leading-tight truncate block mt-0.5">
-                                {vehicle.ownerName || "Chưa có tên chủ xe"}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Cột 2: Số điện thoại + Nút gọi 1-chạm */}
-                    <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/60">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30 shadow-2xs">
-                                <Phone className="w-4.5 h-4.5" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                    Số điện thoại
-                                </span>
-                                <span className="font-mono font-black text-white text-base sm:text-lg tracking-wider leading-tight truncate block mt-0.5">
-                                    {vehicle.ownerPhone || "—"}
-                                </span>
-                            </div>
-                        </div>
-
-                        {vehicle.ownerPhone && (
-                            <a
-                                href={`tel:${vehicle.ownerPhone}`}
-                                onClick={() => trigger("tap")}
-                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold shrink-0 transition-all shadow-xs shadow-emerald-500/25 active:scale-95"
-                                title={`Gọi ${vehicle.ownerPhone}`}
-                            >
-                                <Phone className="w-3.5 h-3.5 fill-current" />
-                                <span>Gọi</span>
-                            </a>
-                        )}
-                    </div>
-                </div>
-
-                {/* Action Button: Tạo Phiếu Mới Cho Xe Này */}
-                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                    <button
-                        type="button"
-                        onClick={handleCreateNewTicketForThisVehicle}
-                        className="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer"
-                    >
-                        <Plus className="w-4 h-4 stroke-[2.5]" />
-                        <span>Tạo Phiếu Bảo Hành Cho Xe Này</span>
-                    </button>
-                </div>
-            </div>
+            {/* THẺ TỔNG QUAN PHƯƠNG TIỆN (HERO CARD) */}
+            <VehicleHeroCard
+                vehicle={vehicle}
+                onCreateTicket={handleCreateNewTicketForThisVehicle}
+            />
 
             {/* LỊCH SỬ CÁC PHIẾU BẢO HÀNH (TIMELINE CARDS)*/}
             <div className="space-y-3 pt-2">
