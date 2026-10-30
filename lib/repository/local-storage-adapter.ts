@@ -136,7 +136,7 @@ export class LocalStorageAdapter implements IGarageRepository {
         model: input.vehicle.model || vehicle.model,
         color: input.vehicle.color !== undefined ? input.vehicle.color : (vehicle.color || ''),
         ownerName: input.vehicle.ownerName || vehicle.ownerName,
-        ownerPhone: input.vehicle.ownerPhone || vehicle.ownerPhone,
+        ownerPhone: input.vehicle.ownerPhone !== undefined ? input.vehicle.ownerPhone : vehicle.ownerPhone,
         updatedAt: now,
       }
       updatedVehicles = updatedVehicles.map((v) => (v.id === vehicle!.id ? vehicle! : v))

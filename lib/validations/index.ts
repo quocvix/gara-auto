@@ -39,8 +39,8 @@ export const ticketSchema = z.object({
   ownerPhone: z
     .string()
     .trim()
-    .min(1, 'Vui lòng nhập số điện thoại chủ xe')
-    .refine((val) => VIETNAMESE_PHONE_REGEX.test(val.replace(/\s+/g, '')), {
+    .optional()
+    .refine((val) => !val || VIETNAMESE_PHONE_REGEX.test(val.replace(/\s+/g, '')), {
       message: 'Số điện thoại không đúng định dạng (10 số, bắt đầu bằng 03, 05, 07, 08, 09)',
     }),
   items: z

@@ -782,7 +782,7 @@ export function TicketModalProvider({ children }: { children: React.ReactNode })
 
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-700 mb-2">
-                                                        SỐ ĐIỆN THOẠI *
+                                                        SỐ ĐIỆN THOẠI (TÙY CHỌN)
                                                     </label>
                                                     <input
                                                         type="tel"
