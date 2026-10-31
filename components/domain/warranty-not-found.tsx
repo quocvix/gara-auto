@@ -97,7 +97,7 @@ export function WarrantyNotFound({ plate, settings = {} }: WarrantyNotFoundProps
                     <button
                         type="button"
                         onClick={() => router.push("/tra-cuu")}
-                        className="touch-target w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all cursor-pointer"
+                        className="touch-target w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
                     >
                         <span>Nhập Lại Biển Số Khác</span>
                         <ArrowLeft className="w-4 h-4 stroke-[2.2] rotate-180" />

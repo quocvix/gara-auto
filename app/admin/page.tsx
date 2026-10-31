@@ -120,12 +120,12 @@ export default function AdminDashboardPage() {
                         value={searchPlate}
                         onChange={(e) => setSearchPlate(e.target.value)}
                         placeholder="Tìm nhanh biển số xe (VD: 51K-123.45)..."
-                        className="w-full h-11 pl-10 pr-22 rounded-xl border border-slate-200/90 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs font-medium uppercase transition-all"
+                        className="w-full h-11 pl-10 pr-22 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 shadow-2xs font-medium uppercase tabular-nums transition-all"
                     />
                     <button
                         type="submit"
                         disabled={!searchPlate.trim()}
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-3 rounded-lg bg-blue-600 disabled:opacity-40 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-3 rounded-lg bg-blue-600 disabled:opacity-40 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                     >
                         Tra cứu
                     </button>
@@ -138,22 +138,22 @@ export default function AdminDashboardPage() {
                 <Link
                     href="/admin/xe?status=active"
                     onClick={() => trigger("tap")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-emerald-50/40 border border-emerald-300/80 border-t-4 border-t-emerald-500 shadow-md shadow-emerald-900/5 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                    className="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-3.5 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
                 >
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700">Xe Còn Hạn</span>
-                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <Car className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Xe Còn Hạn</span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                            <Car className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-emerald-700 tracking-tight">
+                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-slate-900 tracking-tight">
                             {kpis.activeVehicles}
                         </div>
-                        <div className="text-[11px] text-emerald-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                        <div className="text-[11px] text-emerald-700 mt-1 flex items-center gap-1.5 font-medium truncate">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                             <span>Đang bảo hành</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0 text-slate-400" aria-hidden="true" />
                         </div>
                     </div>
                 </Link>
@@ -162,30 +162,30 @@ export default function AdminDashboardPage() {
                 <Link
                     href="/admin/xe?status=expiring"
                     onClick={() => trigger("tap")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50/50 to-white border-2 border-amber-400 border-t-4 border-t-amber-500 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+                    className="p-3.5 sm:p-5 rounded-2xl bg-amber-50/40 border border-amber-200/90 hover:border-amber-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-3.5 relative overflow-hidden focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
                 >
                     {kpis.expiringVehicles > 0 && (
-                        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5" aria-hidden="true">
+                        <span className="absolute top-2.5 right-2.5 flex h-2 w-2" aria-hidden="true">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
                         </span>
                     )}
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wide">
+                        <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
                             Sắp Hết Hạn
                         </span>
-                        <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <Clock className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
+                        <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                            <Clock className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-amber-700 tracking-tight">
+                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-amber-700 tracking-tight">
                             {kpis.expiringVehicles}
                         </div>
-                        <div className="text-[11px] text-amber-900 mt-1 flex items-center gap-1 font-bold truncate">
+                        <div className="text-[11px] text-amber-800 mt-1 flex items-center gap-1.5 font-semibold truncate">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden="true" />
                             <span>Cần gọi chăm sóc</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0 text-amber-600/70" aria-hidden="true" />
                         </div>
                     </div>
                 </Link>
@@ -194,22 +194,22 @@ export default function AdminDashboardPage() {
                 <Link
                     href="/admin/kho?filter=low"
                     onClick={() => trigger("tap")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 via-rose-50/40 to-white border-2 border-rose-300 border-t-4 border-t-rose-500 shadow-md shadow-rose-500/10 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                    className="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-3.5 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
                 >
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-rose-950 uppercase tracking-wide">Kho Sắp Hết</span>
-                        <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <AlertTriangle className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Kho Sắp Hết</span>
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                            <AlertTriangle className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-rose-600 tracking-tight">
+                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-slate-900 tracking-tight">
                             {kpis.lowStockParts}
                         </div>
-                        <div className="text-[11px] text-rose-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                        <div className="text-[11px] text-rose-700 mt-1 flex items-center gap-1.5 font-medium truncate">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" aria-hidden="true" />
                             <span>≤ {settings.lowStockThreshold} sản phẩm</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0 text-slate-400" aria-hidden="true" />
                         </div>
                     </div>
                 </Link>
@@ -218,22 +218,22 @@ export default function AdminDashboardPage() {
                 <Link
                     href="/admin/xe"
                     onClick={() => trigger("tap")}
-                    className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-white to-blue-50/40 border border-blue-300/80 border-t-4 border-t-blue-500 shadow-md shadow-blue-900/5 hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                    className="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-3.5 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                 >
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700 truncate">Phiếu Tháng Này</span>
-                        <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-2xs">
-                            <FileCheck2 className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Phiếu Tháng Này</span>
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                            <FileCheck2 className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-blue-700 tracking-tight">
+                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-slate-900 tracking-tight">
                             {kpis.ticketsThisMonth}
                         </div>
-                        <div className="text-[11px] text-blue-800 mt-1 flex items-center gap-1 font-semibold truncate">
+                        <div className="text-[11px] text-blue-700 mt-1 flex items-center gap-1.5 font-medium truncate">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true" />
                             <span>Hồ sơ phát hành</span>
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" aria-hidden="true" />
+                            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0 text-slate-400" aria-hidden="true" />
                         </div>
                     </div>
                 </Link>
@@ -242,7 +242,7 @@ export default function AdminDashboardPage() {
             {/* 3. KHỐI TRỌNG TÂM: XE SẮP HẾT HẠN CẦN CHĂM SÓC KHÁCH HÀNG */}
             <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 overflow-hidden transition-all">
                 {/* Header thanh lịch với tông Slate-Amber tương phản */}
-                <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-gradient-to-r from-amber-500/15 via-amber-50/40 to-slate-50 border-b border-amber-200/80 flex items-center justify-between gap-2.5">
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-linear-to-r from-amber-500/10 via-amber-50/30 to-slate-50 border-b border-amber-200/60 flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
                             <Clock className="w-4 h-4 stroke-[2.5]" />
@@ -252,7 +252,7 @@ export default function AdminDashboardPage() {
                                 <h2 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wide truncate">
                                     Xe Sắp Hết Hạn
                                 </h2>
-                                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-mono font-bold text-2xs shrink-0">
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-2xs tabular-nums shrink-0">
                                     {expiringVehicles.length}
                                 </span>
                             </div>
@@ -275,7 +275,7 @@ export default function AdminDashboardPage() {
                         {expiringVehicles.map((veh) => (
                             <div
                                 key={veh.id}
-                                className="group p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white hover:bg-amber-50/20 border border-slate-200/90 hover:border-amber-300/90 border-l-4 border-l-amber-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-3"
+                                className="group p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white hover:bg-slate-50/60 border border-slate-200/90 hover:border-amber-300 transition-all shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-3"
                             >
                                 {/* Hàng 1: Biển số xe & Thẻ đếm ngược thời hạn */}
                                 <div className="flex items-center justify-between gap-2">
@@ -286,7 +286,7 @@ export default function AdminDashboardPage() {
                                         <LicensePlate plate={veh.plate} color={veh.plateColor} size="sm" />
                                     </div>
 
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-300/80 text-amber-900 font-bold text-xs font-mono shrink-0">
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-300/80 text-amber-900 font-bold text-xs tabular-nums shrink-0">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
                                         <Clock className="w-3 h-3 text-amber-600 shrink-0" />
                                         <span>Còn {veh.daysLeft} ngày</span>
@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
                                         <a
                                             href={`tel:${veh.ownerPhone}`}
                                             onClick={(e) => e.stopPropagation()}
-                                            className="flex-1 h-9 sm:h-8.5 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold shadow-xs shadow-emerald-600/20 transition-all cursor-pointer"
+                                            className="flex-1 h-9 sm:h-8.5 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold tabular-nums shadow-xs shadow-emerald-600/20 transition-all cursor-pointer"
                                             title={`Gọi khách hàng ${veh.ownerName}: ${veh.ownerPhone}`}
                                         >
                                             <Phone className="w-3.5 h-3.5 fill-current" />
@@ -352,7 +352,7 @@ export default function AdminDashboardPage() {
             {lowStockPartsList.length > 0 && (
                 <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 overflow-hidden transition-all">
                     {/* Header cảnh báo Tồn kho */}
-                    <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-gradient-to-r from-rose-500/15 via-rose-50/40 to-slate-50 border-b border-rose-200/80 flex items-center justify-between gap-2.5">
+                    <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-linear-to-r from-rose-500/10 via-rose-50/30 to-slate-50 border-b border-rose-200/60 flex items-center justify-between gap-2.5">
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-xs shrink-0">
                                 <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
@@ -362,7 +362,7 @@ export default function AdminDashboardPage() {
                                     <h2 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wide truncate">
                                         Tồn Kho Thấp
                                     </h2>
-                                    <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-mono font-bold text-2xs shrink-0">
+                                    <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold text-2xs tabular-nums shrink-0">
                                         {lowStockPartsList.length}
                                     </span>
                                 </div>
@@ -407,7 +407,7 @@ export default function AdminDashboardPage() {
                                             />
                                         </div>
                                     </div>
-                                    <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-xs shrink-0 shadow-xs tabular-nums">
+                                    <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-black text-xs shrink-0 shadow-xs tabular-nums">
                                         Còn {p.stock}
                                     </span>
                                 </Link>
@@ -421,7 +421,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 <Link
                     href="/admin/xe"
-                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                 >
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -439,7 +439,7 @@ export default function AdminDashboardPage() {
 
                 <Link
                     href="/admin/kho"
-                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                 >
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -457,7 +457,7 @@ export default function AdminDashboardPage() {
 
                 <Link
                     href="/admin/kho/lich-su"
-                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs"
+                    className="p-3.5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
                 >
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">

@@ -150,7 +150,7 @@ export default function TraCuuPlatePage() {
                         {/* Cột 2: Số điện thoại */}
                         <div className="p-3.5 sm:p-4 rounded-2xl bg-linear-to-b from-white/[0.07] to-white/[0.02] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_20px_-4px_rgba(0,0,0,0.45)] backdrop-blur-xs flex flex-col justify-center transition-transform hover:-translate-y-0.5">
                             <span className="text-xs text-slate-400 font-medium block">Số điện thoại</span>
-                            <span className="font-mono font-bold text-amber-400 text-base sm:text-lg tracking-wider leading-tight block mt-1 truncate">
+                            <span className="font-mono font-bold text-amber-400 text-base sm:text-lg tracking-wider leading-tight block mt-1 truncate tabular-nums">
                                 {data.ownerPhoneMasked || "—"}
                             </span>
                         </div>
@@ -176,7 +176,7 @@ export default function TraCuuPlatePage() {
                                     key={ticket.id}
                                     className={`rounded-2xl sm:rounded-3xl border ${
                                         isLatest
-                                            ? "border-blue-200/90 ring-1 ring-blue-500/15 shadow-xs"
+                                            ? "border-blue-300 shadow-sm"
                                             : "border-slate-200/90 shadow-2xs"
                                     } bg-white overflow-hidden transition-all`}
                                 >
@@ -226,7 +226,7 @@ export default function TraCuuPlatePage() {
                                             return (
                                                 <div
                                                     key={item.id || iIdx}
-                                                    className={`rounded-xl sm:rounded-2xl border border-slate-200/90 border-l-[3.5px] ${currentStatus.accentBorder} bg-white p-3.5 sm:p-4 space-y-2.5 shadow-xs transition-all hover:shadow-sm hover:border-slate-300`}
+                                                    className="rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-4 space-y-2.5 shadow-2xs transition-all hover:shadow-xs hover:border-slate-300"
                                                 >
                                                     {/* 2. Chi tiết linh kiện: Tên nằm trái (truncate), SL nằm phải */}
                                                     <div className="flex items-center justify-between gap-3 min-w-0">
@@ -262,7 +262,7 @@ export default function TraCuuPlatePage() {
                                                                 )}
                                                             </span>
                                                             <span
-                                                                className={`px-2.5 py-0.5 rounded-full font-mono font-bold text-3xs sm:text-2xs shadow-2xs shrink-0 ${currentStatus.badgeBg}`}
+                                                                className={`px-2.5 py-0.5 rounded-full font-mono font-bold text-3xs sm:text-2xs shadow-2xs shrink-0 tabular-nums ${currentStatus.badgeBg}`}
                                                             >
                                                                 {isUnlimited
                                                                     ? "Không giới hạn"
@@ -287,10 +287,10 @@ export default function TraCuuPlatePage() {
                                                         </div>
 
                                                         {/* Dòng ngày tháng chi tiết */}
-                                                        <div className="flex items-center justify-between text-3xs text-slate-400">
+                                                        <div className="flex items-center justify-between text-3xs text-slate-500">
                                                             <span>
                                                                 Kích hoạt:{" "}
-                                                                <strong className="text-slate-600 font-bold font-mono">
+                                                                <strong className="text-slate-700 font-bold tabular-nums">
                                                                     {formatDateVN(itemActivatedOn)}
                                                                 </strong>
                                                             </span>
@@ -302,7 +302,7 @@ export default function TraCuuPlatePage() {
                                                                 ) : (
                                                                     <>
                                                                         Hết hạn:{" "}
-                                                                        <strong className="text-slate-600 font-bold">
+                                                                        <strong className="text-slate-700 font-bold tabular-nums">
                                                                             {formatDateVN(item.expiresOn)}
                                                                         </strong>
                                                                     </>
